@@ -26,6 +26,8 @@ add_definitions(-DFLUSH_TO_DISK_ENABLED=1)
 # Passthrough compression switch
 add_definitions(-DUSE_PASSTHROUGH_COMPRESSION=0)
 
+add_definitions(-DUSE_ZLIB_COMPRESSION=1)
+
 # Make off_t 64-bit
 add_definitions(-D_FILE_OFFSET_BITS=64)
 
@@ -103,6 +105,18 @@ endif()
 
 # Add yaml-cpp
 add_subdirectory(submodules/yaml-cpp EXCLUDE_FROM_ALL)
+
+# Find and setup zlib Library
+if(CLP_USE_STATIC_LIBS)
+    # TODO Does nothing right now
+    set(ZLIB_USE_STATIC_LIBS ON)
+endif()
+find_package(ZLIB REQUIRED)
+if(ZLIB_FOUND)
+    message(STATUS "Found ZLIB ${ZLIB_VERSION}")
+else()
+    message(FATAL_ERROR "Could not find ${CLP_LIBS_STRING} libraries for ZLIB")
+endif()
 
 # Find and setup ZStd Library
 if(CLP_USE_STATIC_LIBS)
@@ -228,6 +242,11 @@ set(SOURCE_FILES_clp
         src/streaming_compression/passthrough/Compressor.hpp
         src/streaming_compression/passthrough/Decompressor.cpp
         src/streaming_compression/passthrough/Decompressor.hpp
+        src/streaming_compression/gzip/Compressor.cpp
+        src/streaming_compression/gzip/Compressor.hpp
+#        src/streaming_compression/gzip/Decompressor.cpp
+#        src/streaming_compression/gzip/Decompressor.hpp
+        src/streaming_compression/gzip/Constants.hpp
         src/streaming_compression/zstd/Compressor.cpp
         src/streaming_compression/zstd/Compressor.hpp
         src/streaming_compression/zstd/Constants.hpp
@@ -263,6 +282,7 @@ target_link_libraries(clp
         LibArchive::LibArchive
         MariaDBClient::MariaDBClient
         yaml-cpp::yaml-cpp
+        ZLIB::ZLIB
         ZStd::ZStd
         )
 target_compile_features(clp

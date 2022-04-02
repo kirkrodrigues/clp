@@ -9,6 +9,7 @@
 #include "../../Defs.h"
 #include "../../ErrorCode.hpp"
 #include "../../streaming_compression/passthrough/Compressor.hpp"
+#include "../../streaming_compression/gzip/Compressor.hpp"
 #include "../../streaming_compression/zstd/Compressor.hpp"
 #include "../../TraceableException.hpp"
 #include "../Constants.hpp"
@@ -77,6 +78,8 @@ namespace streaming_archive { namespace writer {
         FileWriter m_file_writer;
 #if USE_PASSTHROUGH_COMPRESSION
         streaming_compression::passthrough::Compressor m_compressor;
+#elif USE_ZLIB_COMPRESSION
+        streaming_compression::gzip::Compressor m_compressor;
 #else
         streaming_compression::zstd::Compressor m_compressor;
 #endif

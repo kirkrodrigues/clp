@@ -17,6 +17,23 @@ void open_dictionary_for_reading (const std::string& dictionary_path, const std:
     segment_index_decompressor.open(segment_index_file_reader, decompressor_file_read_buffer_capacity);
 }
 
+void open_passthrough_dictionary_for_reading (const std::string& dictionary_path, const std::string& segment_index_path, FileReader& dictionary_file_reader,
+                                              streaming_compression::passthrough::Decompressor& dictionary_decompressor, FileReader& segment_index_file_reader,
+                                              streaming_compression::passthrough::Decompressor& segment_index_decompressor)
+{
+    dictionary_file_reader.open(dictionary_path);
+    // Skip header
+    dictionary_file_reader.seek_from_begin(sizeof(uint64_t));
+    // Open decompressor
+    dictionary_decompressor.open(dictionary_file_reader);
+
+    segment_index_file_reader.open(segment_index_path);
+    // Skip header
+    segment_index_file_reader.seek_from_begin(sizeof(uint64_t));
+    // Open decompressor
+    segment_index_decompressor.open(segment_index_file_reader);
+}
+
 uint64_t read_dictionary_header (FileReader& file_reader) {
     auto dictionary_file_reader_pos = file_reader.get_pos();
     file_reader.seek_from_begin(0);

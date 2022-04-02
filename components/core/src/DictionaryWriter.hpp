@@ -15,6 +15,8 @@
 #include "Defs.h"
 #include "dictionary_utils.hpp"
 #include "FileWriter.hpp"
+#include "streaming_compression/passthrough/Compressor.hpp"
+#include "streaming_compression/gzip/Compressor.hpp"
 #include "streaming_compression/zstd/Compressor.hpp"
 #include "TraceableException.hpp"
 
@@ -96,9 +98,21 @@ protected:
 
     // Variables related to on-disk storage
     FileWriter m_dictionary_file_writer;
+#if USE_PASSTHROUGH_COMPRESSION
+    streaming_compression::passthrough::Compressor m_dictionary_compressor;
+#elif USE_ZLIB_COMPRESSION
+    streaming_compression::gzip::Compressor m_dictionary_compressor;
+#else
     streaming_compression::zstd::Compressor m_dictionary_compressor;
+#endif
     FileWriter m_segment_index_file_writer;
+#if USE_PASSTHROUGH_COMPRESSION
+    streaming_compression::passthrough::Compressor m_segment_index_compressor;
+#elif USE_ZLIB_COMPRESSION
+    streaming_compression::gzip::Compressor m_segment_index_compressor;
+#else
     streaming_compression::zstd::Compressor m_segment_index_compressor;
+#endif
     size_t m_num_segments_in_index;
 
     value_to_id_t m_value_to_id;
