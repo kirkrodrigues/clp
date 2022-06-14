@@ -16,20 +16,6 @@ logging_console_handler.setFormatter(logging_formatter)
 logger.addHandler(logging_console_handler)
 
 
-def delete_archives(archives_dir: pathlib.Path):
-    if not archives_dir.exists():
-        return
-
-    for archive_path in archives_dir.glob("*"):
-        metadata_file_path = archive_path / "metadata"
-        if metadata_file_path.exists():
-            if not archive_path.exists():
-                return
-
-            # Delete archive on disk
-            shutil.rmtree(archive_path)
-
-
 def main(argv):
     args_parser = argparse.ArgumentParser(description="Run a basic compression and decompression test.")
     args_parser.add_argument("bin-dir", help="Directory containing binaries.")
