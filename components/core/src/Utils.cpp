@@ -134,6 +134,11 @@ bool convert_string_to_int64 (const std::string& raw, int64_t& converted) {
         return false;
     }
 
+    // Ensure string doesn't start with whitespace
+    if (std::isspace(raw[0])) {
+        return false;
+    }
+
     const char* c_str = raw.c_str();
     char* endptr;
     // Reset errno so we can detect if it's been set
@@ -153,12 +158,17 @@ bool convert_string_to_double (const std::string& raw, double& converted) {
         return false;
     }
 
+    // Ensure string doesn't start with whitespace
+    if (std::isspace(raw[0])) {
+        return false;
+    }
+
     const char* c_str = raw.c_str();
     char* end_ptr;
     // Reset errno so we can detect a new error
     errno = 0;
     double raw_as_double = strtod(c_str, &end_ptr);
-    if (ERANGE == errno || (0.0 == raw_as_double && ((end_ptr - c_str) < raw.length()))) {
+    if (ERANGE == errno || (end_ptr - c_str) < raw.length()) {
         return false;
     }
     converted = raw_as_double;
