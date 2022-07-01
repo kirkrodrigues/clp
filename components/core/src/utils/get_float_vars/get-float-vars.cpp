@@ -65,7 +65,7 @@ static bool get_all_file_paths (const string& input_path, vector<string>& file_p
 static bool is_double (const string& var) {
     // Ensure string is not an integer
     int64_t var_as_integer;
-    if (convert_string_to_int64(var, var_as_integer)) {
+    if (convert_string_to_int64(var, 0, var_as_integer)) {
         return false;
     }
 

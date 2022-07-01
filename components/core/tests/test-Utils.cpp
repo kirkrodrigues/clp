@@ -51,29 +51,29 @@ TEST_CASE("convert_string_to_int64", "[convert_string_to_int64]") {
     // Corner cases
     // Empty string
     raw = "";
-    REQUIRE(false == convert_string_to_int64(raw, converted));
+    REQUIRE(false == convert_string_to_int64(raw, 10, converted));
 
     // Integer that's more than 64-bits
     raw = "9999999999999999999";
-    REQUIRE(false == convert_string_to_int64(raw, converted));
+    REQUIRE(false == convert_string_to_int64(raw, 10, converted));
 
     // Non-integers
     raw = "abc";
-    REQUIRE(false == convert_string_to_int64(raw, converted));
+    REQUIRE(false == convert_string_to_int64(raw, 10, converted));
 
     raw = "90a";
-    REQUIRE(false == convert_string_to_int64(raw, converted));
+    REQUIRE(false == convert_string_to_int64(raw, 10, converted));
 
     raw = "0.5";
-    REQUIRE(false == convert_string_to_int64(raw, converted));
+    REQUIRE(false == convert_string_to_int64(raw, 10, converted));
 
     // Non-decimal integers
     raw = "0x5A";
-    REQUIRE(false == convert_string_to_int64(raw, converted));
+    REQUIRE(false == convert_string_to_int64(raw, 10, converted));
 
     // Integers
     raw = "98340";
-    REQUIRE(convert_string_to_int64(raw, converted));
+    REQUIRE(convert_string_to_int64(raw, 10, converted));
     REQUIRE(98340 == converted);
 }
 

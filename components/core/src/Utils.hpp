@@ -27,10 +27,11 @@ std::string clean_up_wildcard_search_string (const std::string& str);
 /**
  * Converts the given string to a 64-bit integer if possible
  * @param raw
+ * @param The base of the raw value (e.g., 10 for decimal)
  * @param converted
  * @return true if the conversion was successful, false otherwise
  */
-bool convert_string_to_int64 (const std::string& raw, int64_t& converted);
+bool convert_string_to_int64 (const std::string& raw, int base, int64_t& converted);
 
 /**
  * Converts the given string to a double if possible
