@@ -46,7 +46,15 @@ namespace streaming_compression { namespace gzip {
             // Check if there's data that can be decompressed
             if (0 == m_decompression_stream->avail_in) {
                 if (InputType::File != m_input_type) {
-                    if (0 == m_decompression_stream->avail_out)
+
+                } else {
+                    auto error_code = m_file_reader->try_read(m_file_read_buffer.get(), m_file_read_buffer_capacity,
+                                                              m_file_read_buffer_length);
+                    if (ErrorCode_Success != error_code) {
+                        if (ErrorCode_EndOfFile == error_code) {
+
+                        }
+                    }
                 }
             }
 
@@ -54,21 +62,29 @@ namespace streaming_compression { namespace gzip {
             switch (return_value) {
                 case Z_OK:
                 case Z_BUF_ERROR:
+                    if (0 == m_decompression_stream->avail_out) {
+                        m_decompression_stream->next_out = nullptr;
+                        return ErrorCode_Success;
+                    }
                     break;
                 case Z_STREAM_END:
                     // TODO
+
                     break;
                 case Z_NEED_DICT:
                     SPDLOG_ERROR("streaming_compression::gzip::Decompressor does not support compression with dictionaries.");
                     throw OperationFailed(ErrorCode_Unsupported, __FILENAME__, __LINE__);
                 case Z_STREAM_ERROR:
-                    SPDLOG_ERROR("streaming_compression::gzip::Decompressor does not support compression with dictionaries.");
+                    SPDLOG_ERROR("streaming_compression::gzip::Decompressor inflate() failed due to a logic error.");
                     throw OperationFailed(ErrorCode_Unsupported, __FILENAME__, __LINE__);
                 case Z_DATA_ERROR:
                     SPDLOG_ERROR("streaming_compression::gzip::Decompressor inflate() failed - {}", m_decompression_stream->msg);
                     throw OperationFailed(ErrorCode_Failure, __FILENAME__, __LINE__);
                 case Z_MEM_ERROR:
-                    SPDLOG_ERROR("streaming_compression::gzip::Decompressor inflate() ran out of memory", m_decompression_stream->msg);
+                    SPDLOG_ERROR("streaming_compression::gzip::Decompressor inflate() ran out of memory");
+                    throw OperationFailed(ErrorCode_Failure, __FILENAME__, __LINE__);
+                default:
+                    SPDLOG_ERROR("inflate() returned an unexpected value - {}.", return_value);
                     throw OperationFailed(ErrorCode_Failure, __FILENAME__, __LINE__);
             }
         }
@@ -180,8 +196,9 @@ namespace streaming_compression { namespace gzip {
         m_decompression_stream->next_out = nullptr;
         m_decompression_stream->avail_out = 0;
         m_decompression_stream->data_type = Z_BINARY;
-        m_decompression_stream->zalloc = nullptr;
-        m_decompression_stream->zfree = nullptr;
+        m_decompression_stream->zalloc = Z_NULL;
+        m_decompression_stream->zfree = Z_NULL;
+        m_decompression_stream->opaque = Z_NULL;
 
         reset_stream();
     }
@@ -208,7 +225,7 @@ namespace streaming_compression { namespace gzip {
         memory_map_params.hint = m_memory_mapped_compressed_file.data();  // Try to map it to the same memory location as previous memory mapped file
         m_memory_mapped_compressed_file.open(memory_map_params);
         if (!m_memory_mapped_compressed_file.is_open()) {
-            SPDLOG_ERROR("streaming_compression::zstd::Decompressor: Unable to memory map the compressed file with path: {}", compressed_file_path.c_str());
+            SPDLOG_ERROR("streaming_compression::gzip::Decompressor: Unable to memory map the compressed file with path: {}", compressed_file_path.c_str());
             return ErrorCode_Failure;
         }
 
@@ -218,9 +235,9 @@ namespace streaming_compression { namespace gzip {
         m_decompression_stream->avail_in = compressed_file_size;
         m_decompression_stream->next_out = nullptr;
         m_decompression_stream->avail_out = 0;
-        m_decompression_stream->data_type = Z_BINARY;
-        m_decompression_stream->zalloc = nullptr;
-        m_decompression_stream->zfree = nullptr;
+        m_decompression_stream->zalloc = Z_NULL;
+        m_decompression_stream->zfree = Z_NULL;
+        m_decompression_stream->opaque = Z_NULL;
 
         reset_stream();
 
@@ -247,8 +264,9 @@ namespace streaming_compression { namespace gzip {
         m_decompression_stream->next_out = nullptr;
         m_decompression_stream->avail_out = 0;
         m_decompression_stream->data_type = Z_BINARY;
-        m_decompression_stream->zalloc = nullptr;
-        m_decompression_stream->zfree = nullptr;
+        m_decompression_stream->zalloc = Z_NULL;
+        m_decompression_stream->zfree = Z_NULL;
+        m_decompression_stream->opaque = Z_NULL;
 
         reset_stream();
     }
@@ -269,6 +287,7 @@ namespace streaming_compression { namespace gzip {
             m_file_read_buffer_length = 0;
         }
 
+        // TODO Need to call inflateEnd if this is a second call?
         auto return_value = inflateInit(m_decompression_stream);
         if (Z_OK != return_value) {
             // TODO Error handling

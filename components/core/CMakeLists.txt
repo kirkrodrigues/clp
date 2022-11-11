@@ -244,8 +244,8 @@ set(SOURCE_FILES_clp
         src/streaming_compression/passthrough/Decompressor.hpp
         src/streaming_compression/gzip/Compressor.cpp
         src/streaming_compression/gzip/Compressor.hpp
-#        src/streaming_compression/gzip/Decompressor.cpp
-#        src/streaming_compression/gzip/Decompressor.hpp
+        src/streaming_compression/gzip/Decompressor.cpp
+        src/streaming_compression/gzip/Decompressor.hpp
         src/streaming_compression/gzip/Constants.hpp
         src/streaming_compression/zstd/Compressor.cpp
         src/streaming_compression/zstd/Compressor.hpp

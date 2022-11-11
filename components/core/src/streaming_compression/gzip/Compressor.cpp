@@ -36,17 +36,18 @@ namespace streaming_compression { namespace gzip {
         }
 
         // Setup compressed stream parameters
-        m_compression_stream = new z_stream;
+        m_compression_stream = new z_stream; // TODO make_unique
         m_compression_stream->next_in = nullptr;
         m_compression_stream->avail_in = 0;
         m_compression_stream->next_out = m_compressed_stream_block_buffer.get();
         m_compression_stream->avail_out = cCompressedStreamBlockBufferSize;
         m_compression_stream->data_type = Z_BINARY;
-        m_compression_stream->zalloc = nullptr;
-        m_compression_stream->zfree = nullptr;
+        m_compression_stream->zalloc = Z_NULL;
+        m_compression_stream->zfree = Z_NULL;
+        m_compression_stream->opaque = Z_NULL;
 
         // Setup compression stream
-        int return_value = deflateInit(m_compression_stream, compression_level);
+        auto return_value = deflateInit(m_compression_stream, compression_level);
         if (Z_OK != return_value) {
 //            SPDLOG_ERROR("streaming_compression::gzip::Compressor: deflateInit() error: {}", m_compression_stream->msg);
             throw OperationFailed(ErrorCode_Failure, __FILENAME__, __LINE__);
@@ -131,15 +132,23 @@ namespace streaming_compression { namespace gzip {
             return;
         }
 
+        // Z_NO_FLUSH - deflate decides how much data to accumulate before producing output
+        // Z_SYNC_FLUSH - All pending output flushed to output buf and output aligned to byte boundary (completes current block and follows it with empty block that is 3 bits plus filler to next byte, followed by 4 bytes
+        // Z_PARTIAL_FLUSH - Same as Z_SYNC_FLUSH but output not aligned to byte boundary (completes current block and follows it with empty fixed codes block that is 10 bits long)
+        // Z_BLOCK - Same as Z_SYNC_FLUSH but output not aligned on a byte boundary and up to 7 bits of current block held to be written
+        // Z_FULL_FLUSH - Same as Z_SYNC_FLUSH but compression state reset so that decompression can restart from this point if the previous compressed data has been damaged
+        // Z_FINISH - Pending output flushed and deflate returns Z_STREAM_END if there was enough output space, or Z_OK or Z_BUF_ERROR if it needs to be called again with more space
+        //
+
         bool flush_complete = false;
         while (true) {
             // NOTE: We use Z_PARTIAL_FLUSH instead of Z_SYNC_FLUSH since it should result in lower overhead
             auto return_value = deflate(m_compression_stream, Z_PARTIAL_FLUSH);
             switch (return_value) {
                 case Z_OK:
+                    flush_complete = true;
                     break;
                 case Z_BUF_ERROR:
-                    flush_complete = true;
                     break;
                 case Z_STREAM_ERROR:
 //                    SPDLOG_ERROR("deflate() failed due to a logic error.");
