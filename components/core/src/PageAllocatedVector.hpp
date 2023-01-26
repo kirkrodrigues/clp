@@ -101,6 +101,17 @@ public:
 private:
     // Methods
     /**
+     * Memory maps a new anonymous region with the given size
+     * @param new_size
+     * @return A pointer to the new region
+     */
+    static void* map_new_region (size_t new_size);
+    /**
+     * Unmaps the existing region
+     */
+    static void unmap_region (void* region, size_t region_size);
+
+    /**
      * Increases the vector's capacity to the given value
      * @param required_capacity
      * @throw PageAllocatedVector::OperationFailed if memory allocation fails
@@ -168,18 +179,10 @@ void PageAllocatedVector<ValueType>::push_back (ValueType& value) {
 
 template <typename ValueType>
 void PageAllocatedVector<ValueType>::clear () noexcept {
-    if (nullptr != m_values) {
-        int retval = munmap(m_values, m_capacity_in_bytes);
-        if (0 != retval) {
-            SPDLOG_ERROR("PageAllocatedVector::clear munmap failed with errno={}", errno);
-            return;
-        }
-
-        m_values = nullptr;
-        m_capacity_in_bytes = 0;
-        m_capacity = 0;
-        m_size = 0;
-    }
+    unmap_region(m_values, m_capacity_in_bytes);
+    m_capacity_in_bytes = 0;
+    m_capacity = 0;
+    m_size = 0;
 }
 
 template <typename ValueType>
@@ -219,20 +222,55 @@ void PageAllocatedVector<ValueType>::increase_capacity (size_t required_capacity
 
     void* new_region;
     if (nullptr == m_values) {
-        // NOTE: Regions with the MAP_SHARED flag cannot be remapped for some reason
-        new_region = mmap(nullptr, new_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-        if (MAP_FAILED == new_region) {
-            throw OperationFailed(ErrorCode_errno, __FILENAME__, __LINE__);
-        }
+        new_region = map_new_region(new_size);
     } else {
+#ifdef __APPLE__
+        // macOS doesn't support mremap, so we need to map a new region, copy
+        // the contents of the old region, and then unmap the old region.
+        new_region = map_new_region(new_size);
+        memcpy(new_region, m_values, m_capacity_in_bytes);
+#else
         new_region = mremap(m_values, m_capacity_in_bytes, new_size, MREMAP_MAYMOVE);
         if (MAP_FAILED == new_region) {
             throw OperationFailed(ErrorCode_errno, __FILENAME__, __LINE__);
         }
+#endif
     }
+#ifdef __APPLE__
+    auto old_region = m_values;
+    auto old_capacity_in_bytes = m_capacity_in_bytes;
+#endif
     m_values = (ValueType*)new_region;
     m_capacity_in_bytes = new_size;
     m_capacity = m_capacity_in_bytes/sizeof(ValueType);
+#ifdef __APPLE__
+    // We unmap only after the new region is set up so that if the unmap fails,
+    // at least the new region can still be used and isn't leaked
+    unmap_region(old_region, old_capacity_in_bytes);
+#endif
+}
+
+template <typename ValueType>
+void* PageAllocatedVector<ValueType>::map_new_region (size_t new_size) {
+    // NOTE: Regions with the MAP_SHARED flag cannot be remapped for some reason
+    void* new_region = mmap(nullptr, new_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS,
+                            -1, 0);
+    if (MAP_FAILED == new_region) {
+        throw OperationFailed(ErrorCode_errno, __FILENAME__, __LINE__);
+    }
+    return new_region;
+}
+
+template <typename ValueType>
+void PageAllocatedVector<ValueType>::unmap_region (void* region, size_t region_size) {
+    if (nullptr == region) {
+        return;
+    }
+
+    int retval = munmap(region, region_size);
+    if (0 != retval) {
+        throw OperationFailed(ErrorCode_errno, __FILENAME__, __LINE__);
+    }
 }
 
 #endif // PAGEALLOCATEDVECTOR_HPP
