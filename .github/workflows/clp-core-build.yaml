@@ -110,3 +110,18 @@ jobs:
 
       - name: Build CLP Core
         uses: ./.github/actions/clp-core-build
+
+  # TODO
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+        
+      - name: Install dependencies
+        run: brew install boost cmake fmt gcc libarchive lz4 mariadb-connector-c msgpack-cxx spdlog pkg-config zstd
+
+      - name: Build CLP Core
+        uses: ./.github/actions/clp-core-build
+        with:
+          # Building with static libs is unsupported on macos
+          use_static_libs: OFF
