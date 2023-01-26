@@ -212,11 +212,13 @@ ErrorCode memory_map_file (const string& path, bool read_ahead, int& fd, size_t&
         }
     } else {
         int flags = MAP_SHARED;
+#ifndef __APPLE__
         if (read_ahead) {
             flags |= MAP_POPULATE;
         } else {
             flags |= MAP_NONBLOCK;
         }
+#endif
         void* mapped_region = mmap(nullptr, file_size, PROT_READ, flags, fd, 0);
         if (MAP_FAILED == mapped_region) {
             SPDLOG_ERROR("Failed to mmap {}, errno={}", path.c_str(), errno);
