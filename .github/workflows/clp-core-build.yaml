@@ -122,6 +122,8 @@ jobs:
 
       - name: Build CLP Core
         uses: ./.github/actions/clp-core-build
+        env:
+          PKG_CONFIG_PATH: "/usr/local/opt/libarchive/lib/pkgconfig"
         with:
           # Building with static libs is unsupported on macos
           use_static_libs: OFF
