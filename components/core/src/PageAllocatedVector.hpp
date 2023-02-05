@@ -19,6 +19,13 @@
 #include "Platform.hpp"
 #include "TraceableException.hpp"
 
+// We use MREMAP_MAYMOVE in our Linux-specific code, but the syntax-checking
+// fails on macOS because the compiler detects it as a missing identifier. So we
+// define a dummy MREMAP_MAYMOVE here.
+#if defined(__APPLE__) || defined(__MACH__)
+#define MREMAP_MAYMOVE
+#endif
+
 /**
  * A minimal vector that is allocated in increments of pages rather than individual elements
  * @tparam ValueType The type of value contained in the vector
@@ -230,24 +237,24 @@ void PageAllocatedVector<ValueType>::increase_capacity (size_t required_capacity
             // the contents of the old region, and then unmap the old region.
             new_region = map_new_region(new_size);
             memcpy(new_region, m_values, m_capacity_in_bytes);
+
+            // Unmap only after the new region is set up so that if the unmap
+            // fails, at least the new region can still be used and isn't leaked
+            auto old_region = m_values;
+            auto old_capacity_in_bytes = m_capacity_in_bytes;
+            m_values = static_cast<ValueType*>(new_region);
+            unmap_region(old_region, old_capacity_in_bytes);
         } else {
             new_region = mremap(m_values, m_capacity_in_bytes, new_size, MREMAP_MAYMOVE);
             if (MAP_FAILED == new_region) {
                 throw OperationFailed(ErrorCode_errno, __FILENAME__, __LINE__);
             }
+            m_values = static_cast<ValueType*>(new_region);
         }
     }
 
-    [[maybe_unused]] auto old_region = m_values;
-    [[maybe_unused]] auto old_capacity_in_bytes = m_capacity_in_bytes;
-    m_values = static_cast<ValueType*>(new_region);
     m_capacity_in_bytes = new_size;
     m_capacity = m_capacity_in_bytes / sizeof(ValueType);
-    if constexpr (Platform::MacOs == cCurrentPlatform) {
-        // We unmap only after the new region is set up so that if the unmap fails,
-        // at least the new region can still be used and isn't leaked
-        unmap_region(old_region, old_capacity_in_bytes);
-    }
 }
 
 template <typename ValueType>
