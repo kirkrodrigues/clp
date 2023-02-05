@@ -123,6 +123,7 @@ jobs:
       - name: Build CLP Core
         uses: ./.github/actions/clp-core-build
         with:
-          # Building with static libs is unsupported on macOS
-          use_static_libs: OFF
+          # libarchive is a keg-only package on macOS since macOS already 
+          # includes a version. So we need to point CMake at the keg 
+          # installation path.
           cmake_extra_args: "-DCMAKE_PREFIX_PATH=/usr/local/opt/libarchive"

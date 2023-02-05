@@ -49,6 +49,11 @@ endif()
 
 # Detect linking mode (static or shared); Default to static.
 set(CLP_USE_STATIC_LIBS ON CACHE BOOL "Whether to link against static libraries")
+if (CLP_USE_STATIC_LIBS AND APPLE)
+    message(AUTHOR_WARNING "Building with static libraries is unsupported on macOS."
+            " Switching to shared libraries.")
+    set(CLP_USE_STATIC_LIBS OFF)
+endif ()
 if(CLP_USE_STATIC_LIBS)
     set(CLP_LIBS_STRING "static")
 else()

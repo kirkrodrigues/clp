@@ -6,10 +6,6 @@ inputs:
     description: "CLP CMake Build Type: Debug, Release, RelWithDebInfo and MinSizeRel"
     required: false
     default: Release
-  use_static_libs:
-    description: "Whether to build CLP using static libraries"
-    required: false
-    default: "ON"
   cmake_extra_args:
     description: "Extra args to pass to CMake"
     required: false
@@ -27,7 +23,7 @@ runs:
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B $GITHUB_WORKSPACE/build -DCMAKE_BUILD_TYPE=${{inputs.build_type}} -DCLP_USE_STATIC_LIBS=${{inputs.use_static_libs}} ${{inputs.cmake_extra_args}}
+      run: cmake -B $GITHUB_WORKSPACE/build -DCMAKE_BUILD_TYPE=${{inputs.build_type}} ${{inputs.cmake_extra_args}}
       working-directory: ./components/core
       shell: bash
 
