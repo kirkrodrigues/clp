@@ -13,6 +13,7 @@
 
 // Project headers
 #include "Defs.h"
+#include "Platforms.hpp"
 
 using std::string;
 
@@ -51,14 +52,16 @@ void FileWriter::flush () {
     }
 
     // Flush page cache pages to disk
-#ifdef __APPLE__
-    if (0 != fsync(m_fd)) {
-        SPDLOG_ERROR("fsync failed, errno={}", errno);
-#else
-    if (0 != fdatasync(m_fd)) {
-        SPDLOG_ERROR("fdatasync failed, errno={}", errno);
-#endif
-        throw OperationFailed(ErrorCode_errno, __FILENAME__, __LINE__);
+    if constexpr (Platforms::MacOs == cCurrentPlatform) {
+        if (0 != fsync(m_fd)) {
+            SPDLOG_ERROR("fsync failed, errno={}", errno);
+            throw OperationFailed(ErrorCode_errno, __FILENAME__, __LINE__);
+        }
+    } else {
+        if (0 != fdatasync(m_fd)) {
+            SPDLOG_ERROR("fdatasync failed, errno={}", errno);
+            throw OperationFailed(ErrorCode_errno, __FILENAME__, __LINE__);
+        }
     }
 }
 

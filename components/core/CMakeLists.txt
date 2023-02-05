@@ -243,6 +243,7 @@ set(SOURCE_FILES_clp
         src/PageAllocatedVector.hpp
         src/ParsedMessage.cpp
         src/ParsedMessage.hpp
+        src/Platforms.hpp
         src/Profiler.cpp
         src/Profiler.hpp
         src/Query.cpp
@@ -394,6 +395,7 @@ set(SOURCE_FILES_clg
         src/PageAllocatedVector.hpp
         src/ParsedMessage.cpp
         src/ParsedMessage.hpp
+        src/Platforms.hpp
         src/Profiler.cpp
         src/Profiler.hpp
         src/Query.cpp
@@ -532,6 +534,7 @@ set(SOURCE_FILES_clo
         src/PageAllocatedVector.hpp
         src/ParsedMessage.cpp
         src/ParsedMessage.hpp
+        src/Platforms.hpp
         src/Profiler.cpp
         src/Profiler.hpp
         src/Query.cpp
@@ -713,6 +716,7 @@ set(SOURCE_FILES_unitTest
         src/PageAllocatedVector.hpp
         src/ParsedMessage.cpp
         src/ParsedMessage.hpp
+        src/Platforms.hpp
         src/Profiler.cpp
         src/Profiler.hpp
         src/Query.cpp

@@ -16,6 +16,7 @@
 // Project headers
 #include "Defs.h"
 #include "ErrorCode.hpp"
+#include "Platforms.hpp"
 #include "TraceableException.hpp"
 
 /**
@@ -224,30 +225,29 @@ void PageAllocatedVector<ValueType>::increase_capacity (size_t required_capacity
     if (nullptr == m_values) {
         new_region = map_new_region(new_size);
     } else {
-#ifdef __APPLE__
-        // macOS doesn't support mremap, so we need to map a new region, copy
-        // the contents of the old region, and then unmap the old region.
-        new_region = map_new_region(new_size);
-        memcpy(new_region, m_values, m_capacity_in_bytes);
-#else
-        new_region = mremap(m_values, m_capacity_in_bytes, new_size, MREMAP_MAYMOVE);
-        if (MAP_FAILED == new_region) {
-            throw OperationFailed(ErrorCode_errno, __FILENAME__, __LINE__);
+        if constexpr (Platforms::MacOs == cCurrentPlatform) {
+            // macOS doesn't support mremap, so we need to map a new region, copy
+            // the contents of the old region, and then unmap the old region.
+            new_region = map_new_region(new_size);
+            memcpy(new_region, m_values, m_capacity_in_bytes);
+        } else {
+            new_region = mremap(m_values, m_capacity_in_bytes, new_size, MREMAP_MAYMOVE);
+            if (MAP_FAILED == new_region) {
+                throw OperationFailed(ErrorCode_errno, __FILENAME__, __LINE__);
+            }
         }
-#endif
     }
-#ifdef __APPLE__
-    auto old_region = m_values;
-    auto old_capacity_in_bytes = m_capacity_in_bytes;
-#endif
-    m_values = (ValueType*)new_region;
+
+    [[maybe_unused]] auto old_region = m_values;
+    [[maybe_unused]] auto old_capacity_in_bytes = m_capacity_in_bytes;
+    m_values = static_cast<ValueType*>(new_region);
     m_capacity_in_bytes = new_size;
-    m_capacity = m_capacity_in_bytes/sizeof(ValueType);
-#ifdef __APPLE__
-    // We unmap only after the new region is set up so that if the unmap fails,
-    // at least the new region can still be used and isn't leaked
-    unmap_region(old_region, old_capacity_in_bytes);
-#endif
+    m_capacity = m_capacity_in_bytes / sizeof(ValueType);
+    if constexpr (Platforms::MacOs == cCurrentPlatform) {
+        // We unmap only after the new region is set up so that if the unmap fails,
+        // at least the new region can still be used and isn't leaked
+        unmap_region(old_region, old_capacity_in_bytes);
+    }
 }
 
 template <typename ValueType>
