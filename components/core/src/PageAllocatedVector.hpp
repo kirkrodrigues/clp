@@ -23,7 +23,7 @@
 // fails on macOS because the compiler detects it as a missing identifier. So we
 // define a dummy MREMAP_MAYMOVE here.
 #if defined(__APPLE__) || defined(__MACH__)
-#define MREMAP_MAYMOVE
+#define MREMAP_MAYMOVE 0
 #endif
 
 /**
