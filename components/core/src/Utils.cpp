@@ -18,7 +18,7 @@
 #include <spdlog/spdlog.h>
 
 // Project headers
-#include "Platforms.hpp"
+#include "Platform.hpp"
 #include "string_utils.hpp"
 
 using std::list;
@@ -213,7 +213,7 @@ ErrorCode memory_map_file (const string& path, bool read_ahead, int& fd, size_t&
         }
     } else {
         int flags = MAP_SHARED;
-        if constexpr (Platforms::Linux == cCurrentPlatform) {
+        if constexpr (Platform::Linux == cCurrentPlatform) {
             if (read_ahead) {
                 flags |= MAP_POPULATE;
             } else {

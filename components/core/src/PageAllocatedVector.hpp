@@ -16,7 +16,7 @@
 // Project headers
 #include "Defs.h"
 #include "ErrorCode.hpp"
-#include "Platforms.hpp"
+#include "Platform.hpp"
 #include "TraceableException.hpp"
 
 /**
@@ -225,7 +225,7 @@ void PageAllocatedVector<ValueType>::increase_capacity (size_t required_capacity
     if (nullptr == m_values) {
         new_region = map_new_region(new_size);
     } else {
-        if constexpr (Platforms::MacOs == cCurrentPlatform) {
+        if constexpr (Platform::MacOs == cCurrentPlatform) {
             // macOS doesn't support mremap, so we need to map a new region, copy
             // the contents of the old region, and then unmap the old region.
             new_region = map_new_region(new_size);
@@ -243,7 +243,7 @@ void PageAllocatedVector<ValueType>::increase_capacity (size_t required_capacity
     m_values = static_cast<ValueType*>(new_region);
     m_capacity_in_bytes = new_size;
     m_capacity = m_capacity_in_bytes / sizeof(ValueType);
-    if constexpr (Platforms::MacOs == cCurrentPlatform) {
+    if constexpr (Platform::MacOs == cCurrentPlatform) {
         // We unmap only after the new region is set up so that if the unmap fails,
         // at least the new region can still be used and isn't leaked
         unmap_region(old_region, old_capacity_in_bytes);

@@ -13,7 +13,7 @@
 
 // Project headers
 #include "Defs.h"
-#include "Platforms.hpp"
+#include "Platform.hpp"
 
 using std::string;
 
@@ -52,7 +52,7 @@ void FileWriter::flush () {
     }
 
     // Flush page cache pages to disk
-    if constexpr (Platforms::MacOs == cCurrentPlatform) {
+    if constexpr (Platform::MacOs == cCurrentPlatform) {
         if (0 != fsync(m_fd)) {
             SPDLOG_ERROR("fsync failed, errno={}", errno);
             throw OperationFailed(ErrorCode_errno, __FILENAME__, __LINE__);

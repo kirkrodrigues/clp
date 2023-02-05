@@ -1,9 +1,9 @@
-#ifndef PLATFORMS_HPP
-#define PLATFORMS_HPP
+#ifndef PLATFORM_HPP
+#define PLATFORM_HPP
 
 #include <cstdint>
 
-enum class Platforms {
+enum class Platform {
     MacOs = 0,
     Linux = 1,
 };
@@ -33,7 +33,7 @@ enum class Platforms {
 #if defined(__APPLE__) || defined(__MACH__)
 constexpr Platform cCurrentPlatform = Platform::MacOs;
 #else
-constexpr Platforms cCurrentPlatform = Platforms::Linux;
+constexpr Platform cCurrentPlatform = Platform::Linux;
 #endif
 
-#endif // PLATFORMS_HPP
+#endif // PLATFORM_HPP
