@@ -23,7 +23,8 @@ endif()
 # Add local CMake module directory to CMake's modules path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-# Macro providing the length of the absolute source directory path so we can create a relative (rather than absolute) __FILE__ macro
+# Macro providing the length of the absolute source directory path so we can
+# create a relative (rather than absolute) __FILE__ macro
 string(LENGTH "${CMAKE_SOURCE_DIR}/" SOURCE_PATH_SIZE)
 add_definitions("-DSOURCE_PATH_SIZE=${SOURCE_PATH_SIZE}")
 
@@ -247,6 +248,7 @@ set(SOURCE_FILES_clp
         src/PageAllocatedVector.hpp
         src/ParsedMessage.cpp
         src/ParsedMessage.hpp
+        src/Platform.hpp
         src/Profiler.cpp
         src/Profiler.hpp
         src/Query.cpp
@@ -398,6 +400,7 @@ set(SOURCE_FILES_clg
         src/PageAllocatedVector.hpp
         src/ParsedMessage.cpp
         src/ParsedMessage.hpp
+        src/Platform.hpp
         src/Profiler.cpp
         src/Profiler.hpp
         src/Query.cpp
@@ -536,6 +539,7 @@ set(SOURCE_FILES_clo
         src/PageAllocatedVector.hpp
         src/ParsedMessage.cpp
         src/ParsedMessage.hpp
+        src/Platform.hpp
         src/Profiler.cpp
         src/Profiler.hpp
         src/Query.cpp
@@ -717,6 +721,7 @@ set(SOURCE_FILES_unitTest
         src/PageAllocatedVector.hpp
         src/ParsedMessage.cpp
         src/ParsedMessage.hpp
+        src/Platform.hpp
         src/Profiler.cpp
         src/Profiler.hpp
         src/Query.cpp
