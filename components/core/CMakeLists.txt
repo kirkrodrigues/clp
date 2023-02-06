@@ -48,12 +48,29 @@ endif()
 
 # Detect linking mode (static or shared); Default to static.
 set(CLP_USE_STATIC_LIBS ON CACHE BOOL "Whether to link against static libraries")
+if (CLP_USE_STATIC_LIBS AND APPLE)
+    message(AUTHOR_WARNING "Building with static libraries is unsupported on macOS."
+            " Switching to shared libraries.")
+    set(CLP_USE_STATIC_LIBS OFF)
+endif ()
 if(CLP_USE_STATIC_LIBS)
     set(CLP_LIBS_STRING "static")
 else()
     set(CLP_LIBS_STRING "shared")
 endif()
 message(STATUS "Building using ${CLP_LIBS_STRING} libraries")
+
+# Link against c++fs if required by the compiler we're using
+set(STD_FS_LIBS "")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.1.0")
+        set(STD_FS_LIBS "stdc++fs")
+    endif ()
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "9.0.0")
+        set(STD_FS_LIBS "c++fs")
+    endif ()
+endif ()
 
 # Find and setup Boost Library
 if(CLP_USE_STATIC_LIBS)
@@ -309,7 +326,7 @@ target_link_libraries(clp
         ${sqlite_LIBRARY_DEPENDENCIES}
         LibArchive::LibArchive
         MariaDBClient::MariaDBClient
-        stdc++fs
+        ${STD_FS_LIBS}
         yaml-cpp::yaml-cpp
         ZStd::ZStd
         )
@@ -455,7 +472,7 @@ target_link_libraries(clg
         MariaDBClient::MariaDBClient
         spdlog::spdlog
         ${sqlite_LIBRARY_DEPENDENCIES}
-        stdc++fs
+        ${STD_FS_LIBS}
         yaml-cpp::yaml-cpp
         ZStd::ZStd
         )
@@ -595,7 +612,7 @@ target_link_libraries(clo
         msgpackc-cxx
         spdlog::spdlog
         ${sqlite_LIBRARY_DEPENDENCIES}
-        stdc++fs
+        ${STD_FS_LIBS}
         ZStd::ZStd
         )
 target_compile_features(clo
@@ -793,7 +810,7 @@ target_link_libraries(unitTest
         MariaDBClient::MariaDBClient
         spdlog::spdlog
         ${sqlite_LIBRARY_DEPENDENCIES}
-        stdc++fs
+        ${STD_FS_LIBS}
         yaml-cpp::yaml-cpp
         ZStd::ZStd
         )
