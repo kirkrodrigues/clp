@@ -251,7 +251,7 @@ void PageAllocatedVector<ValueType>::increase_capacity (size_t required_capacity
 
     void* new_region;
     if (nullptr == m_values) {
-        m_values = static_cast<ValueType*>(new_region);
+        m_values = static_cast<ValueType*>(map_new_region(new_size));
     } else {
         if constexpr (Platform::MacOs == cCurrentPlatform) {
             // macOS doesn't support mremap, so we need to map a new region, copy
