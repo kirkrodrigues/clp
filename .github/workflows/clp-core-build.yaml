@@ -110,3 +110,22 @@ jobs:
 
       - name: Build CLP Core
         uses: ./.github/actions/clp-core-build
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+            submodules: recursive
+
+      - name: Workaround actions/runner-images/issues/6775
+        run: chown $(id -u):$(id -g) -R .
+
+      - name: Build CLP Core
+        uses: ./.github/actions/clp-core-build
+        with:
+          # libarchive is a keg-only package on macOS since macOS already 
+          # includes a version. So we need to point CMake at the keg 
+          # installation path.
+          cmake_config_extra_args: "-DCMAKE_PREFIX_PATH=/usr/local/opt/libarchive"
