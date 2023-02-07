@@ -119,9 +119,6 @@ jobs:
         with:
             submodules: recursive
 
-      - name: Workaround actions/runner-images/issues/6775
-        run: chown $(id -u):$(id -g) -R .
-
       - name: Build CLP Core
         uses: ./.github/actions/clp-core-build
         with:
