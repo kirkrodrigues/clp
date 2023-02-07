@@ -58,6 +58,7 @@ void FileWriter::flush () {
 
     // Flush page cache pages to disk
     if constexpr (Platform::MacOs == cCurrentPlatform) {
+        // macOS doesn't have fdatasync, so just use the more expensive fsync
         if (0 != fsync(m_fd)) {
             SPDLOG_ERROR("fsync failed, errno={}", errno);
             throw OperationFailed(ErrorCode_errno, __FILENAME__, __LINE__);

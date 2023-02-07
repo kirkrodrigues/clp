@@ -19,7 +19,7 @@
 #include "Platform.hpp"
 #include "TraceableException.hpp"
 
-// Define a shim for MREMAP_MAYMOVE for compilation (just compilation) on macOS
+// Define a MREMAP_MAYMOVE shim for compilation (just compilation) on macOS
 #if defined(__APPLE__) || defined(__MACH__)
 #define MREMAP_MAYMOVE 0
 #endif
@@ -107,7 +107,7 @@ public:
 private:
     // Methods
     /**
-     * Memory maps a new anonymous region with the given size
+     * Memory maps a new readable/writeable anonymous region with the given size
      * @param new_size
      * @return A pointer to the new region
      */
