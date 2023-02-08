@@ -9,7 +9,7 @@ will not install any dependencies you don't expect.
 * Install all dependencies:
 
   ```bash
-  install-all.sh
+  ./install-all.sh
   ```
 
 # Setup dependencies
