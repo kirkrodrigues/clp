@@ -78,7 +78,7 @@ jobs:
           context: ${{github.workspace}}/binaries
           file: components/core/tools/docker-images/clp-core-focal/Dockerfile
           token: ${{secrets.GITHUB_TOKEN}}
-          push_image: ${{ github.event_name != 'pull_request' }}
+          push_image: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
 
   build-bionic:
     runs-on: ubuntu-latest
