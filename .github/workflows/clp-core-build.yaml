@@ -43,6 +43,8 @@ jobs:
       - name: Build CLP Core
         id: build
         uses: ./.github/actions/clp-core-build
+        with:
+          cmake_build_extra_args: -j
       
       - name: Upload CLP Binary artifact
         uses: actions/upload-artifact@main
@@ -110,3 +112,5 @@ jobs:
 
       - name: Build CLP Core
         uses: ./.github/actions/clp-core-build
+        with:
+          cmake_build_extra_args: -j

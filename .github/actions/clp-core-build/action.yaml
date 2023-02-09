@@ -6,6 +6,9 @@ inputs:
     description: "CLP CMake Build Type: Debug, Release, RelWithDebInfo and MinSizeRel"
     required: false
     default: Release
+  cmake_build_extra_args:
+    description: "Extra arguments to the cmake --build command"
+    required: false
   
 runs:
   using: "composite"
@@ -25,7 +28,7 @@ runs:
 
     - name: Build
       # Build your program with the given configuration
-      run: cmake --build $GITHUB_WORKSPACE/build --config ${{inputs.build_type}}
+      run: cmake --build $GITHUB_WORKSPACE/build --config ${{inputs.build_type}} ${{inputs.cmake_build_extra_args}}
       working-directory: ./components/core
       shell: bash
       
