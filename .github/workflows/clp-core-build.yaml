@@ -111,7 +111,7 @@ jobs:
         uses: ./.github/actions/clp-core-build
 
   build-macos:
-    runs-on: macos-latest
+    runs-on: macos-12
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -119,13 +119,11 @@ jobs:
             submodules: recursive
 
       - name: Install dependencies
-        run: brew install boost cmake fmt gcc libarchive lz4 mariadb-connector-c msgpack-cxx spdlog 
-                          pkg-config zstd
+        run: ./components/core/tools/scripts/lib_install/macos-12/install-all.sh
 
       - name: Build CLP Core
         uses: ./.github/actions/clp-core-build
         with:
-          # libarchive is a keg-only package on macOS since macOS already 
-          # includes a version. So we need to point CMake at the keg 
-          # installation path.
+          # libarchive is a keg-only package on macOS since macOS has a built-in 
+          # version. So we need to point CMake at the keg installation path.
           cmake_config_extra_args: "-DCMAKE_PREFIX_PATH=/usr/local/opt/libarchive"
