@@ -114,11 +114,12 @@ endif()
 # So it cannot be found by pkg-config and we need to manually find it.
 # For more details, see https://github.com/Homebrew/homebrew-core/issues/117642
 if(APPLE)
-    execute_process(COMMAND brew --prefix libarchive OUTPUT_VARIABLE libarchive_MACOS_PREFIX)
-    string(STRIP "${libarchive_MACOS_PREFIX}" libarchive_MACOS_PREFIX)
-    set(ENV{CMAKE_PREFIX_PATH} "${libarchive_MACOS_PREFIX};$ENV{CMAKE_PREFIX_PATH}")
+    execute_process(COMMAND brew --prefix libarchive OUTPUT_VARIABLE LibArchive_PREFIX)
+    string(STRIP "${LibArchive_PREFIX}" LibArchive_PREFIX)
 endif()
-find_package(LibArchive REQUIRED)
+find_package(LibArchive REQUIRED
+             HINTS ${LibArchive_PREFIX}
+             )
 if(LibArchive_FOUND)
     message(STATUS "Found LibArchive ${LibArchive_VERSION}")
 else()
