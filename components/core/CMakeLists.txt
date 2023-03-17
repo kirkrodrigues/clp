@@ -110,16 +110,7 @@ endif()
 if(CLP_USE_STATIC_LIBS)
     set(LibArchive_USE_STATIC_LIBS ON)
 endif()
-# On macOS, libarchive installed through brew is not linked into prefix by default. 
-# So it cannot be found by pkg-config and we need to manually find it.
-# For more details, see https://github.com/Homebrew/homebrew-core/issues/117642
-if(APPLE)
-    execute_process(COMMAND brew --prefix libarchive OUTPUT_VARIABLE LibArchive_PREFIX)
-    string(STRIP "${LibArchive_PREFIX}" LibArchive_PREFIX)
-endif()
-find_package(LibArchive REQUIRED
-             HINTS ${LibArchive_PREFIX}
-             )
+find_package(LibArchive REQUIRED)
 if(LibArchive_FOUND)
     message(STATUS "Found LibArchive ${LibArchive_VERSION}")
 else()
