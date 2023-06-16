@@ -13,4 +13,4 @@ source /opt/rh/devtoolset-7/enable
 ./tools/scripts/lib_install/mariadb-connector-c.sh 3.2.3
 ./tools/scripts/lib_install/msgpack.sh 6.0.0
 ./tools/scripts/lib_install/spdlog.sh 1.9.2
-./tools/scripts/lib_install/zstandard.sh 1.4.9
+./tools/scripts/lib_install/zstandard.sh 1.5.5
