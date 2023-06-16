@@ -40,6 +40,13 @@ jobs:
       - name: Workaround actions/runner-images/issues/6775
         run: chown $(id -u):$(id -g) -R .
 
+      # On a PR, install the necessary dependencies since the published
+      # container image won't contain any new dependencies until the PR is
+      # merged.
+      - name: Install dependencies
+        if: ${{'pull_request' == github.event_name}}
+        run: ./components/core/tools/scripts/lib_install/ubuntu-focal/install-all.sh
+
       - name: Build CLP Core
         id: build
         uses: ./.github/actions/clp-core-build
@@ -93,6 +100,13 @@ jobs:
 
       - name: Workaround actions/runner-images/issues/6775
         run: chown $(id -u):$(id -g) -R .
+      
+      # On a PR, install the necessary dependencies since the published
+      # container image won't contain any new dependencies until the PR is
+      # merged.
+      - name: Install dependencies
+        if: ${{'pull_request' == github.event_name}}
+        run: ./components/core/tools/scripts/lib_install/ubuntu-bionic/install-all.sh
 
       - name: Build CLP Core
         uses: ./.github/actions/clp-core-build
@@ -108,6 +122,13 @@ jobs:
 
       - name: Workaround actions/runner-images/issues/6775
         run: chown $(id -u):$(id -g) -R .
+      
+      # On a PR, install the necessary dependencies since the published
+      # container image won't contain any new dependencies until the PR is
+      # merged.
+      - name: Install dependencies
+        if: ${{'pull_request' == github.event_name}}
+        run: ./components/core/tools/scripts/lib_install/centos7.4/install-all.sh
 
       - name: Build CLP Core
         uses: ./.github/actions/clp-core-build
