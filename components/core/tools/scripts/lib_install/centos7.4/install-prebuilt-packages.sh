@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Exit on error
+set -e
+
 yum install -y \
   bzip2 \
   centos-release-scl \
