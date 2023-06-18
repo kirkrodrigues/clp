@@ -6,7 +6,7 @@ set -e
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Enable gcc 7
-source /opt/rh/devtoolset-7/enable
+source /opt/rh/devtoolset-8/enable
 
 # NOTE: cmake and boost must be installed first since the remaining packages depend on them
 "$script_dir"/../install-cmake.sh 3.21.2
