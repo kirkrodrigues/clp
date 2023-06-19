@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Exit on error
+set -e
+
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y \
   checkinstall \

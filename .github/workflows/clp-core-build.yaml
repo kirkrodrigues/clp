@@ -21,6 +21,12 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME_BASE: ${{github.repository}}/clp-core-x86
+  # Whether to reinstall the dependencies before building CLP core
+  # NOTE: The published container images used to build CLP core are based on the
+  # main branch, so if a branch introduces a new dependency, it won't be in the
+  # container image and the build will fail. So for workflow runs on branches
+  # other than main, we need to reinstall the dependencies before building.
+  REINSTALL_DEPS: ${{ github.ref != 'refs/heads/main' }}
 
 concurrency: build-${{github.ref}}
 
@@ -39,6 +45,10 @@ jobs:
 
       - name: Workaround actions/runner-images/issues/6775
         run: chown $(id -u):$(id -g) -R .
+
+      - name: Reinstall dependencies
+        if: ${{ 'true' == env.REINSTALL_DEPS }}
+        run: ./components/core/tools/scripts/lib_install/ubuntu-focal/install-all.sh
 
       - name: Build CLP Core
         id: build
@@ -93,6 +103,10 @@ jobs:
 
       - name: Workaround actions/runner-images/issues/6775
         run: chown $(id -u):$(id -g) -R .
+        
+      - name: Reinstall dependencies
+        if: ${{ 'true' == env.REINSTALL_DEPS }}
+        run: ./components/core/tools/scripts/lib_install/ubuntu-bionic/install-all.sh
 
       - name: Build CLP Core
         uses: ./.github/actions/clp-core-build
@@ -108,6 +122,10 @@ jobs:
 
       - name: Workaround actions/runner-images/issues/6775
         run: chown $(id -u):$(id -g) -R .
+        
+      - name: Reinstall dependencies
+        if: ${{ 'true' == env.REINSTALL_DEPS }}
+        run: ./components/core/tools/scripts/lib_install/centos7.4/install-all.sh
 
       - name: Build CLP Core
         uses: ./.github/actions/clp-core-build
