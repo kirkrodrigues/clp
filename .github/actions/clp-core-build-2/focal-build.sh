@@ -6,5 +6,5 @@ set -u
 pushd components/core || exit
 
 ./tools/scripts/deps-download/download-all.sh
-cmake -B "$GITHUB_WORKSPACE"/focal-build -DCMAKE_BUILD_TYPE=Release
-cmake --build "$GITHUB_WORKSPACE"/focal-build --config Release
+cmake -B ./focal-build -DCMAKE_BUILD_TYPE=Release
+cmake --build ./focal-build --config Release
