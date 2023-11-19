@@ -60,6 +60,7 @@ jobs:
       - name: Build clp
         if: steps.filter.outputs.src == 'true'
         run: |
+          components/core/tools/scripts/deps-download/download-all.sh
           docker run -u$(id -u):$(id -g) --rm -v"$GITHUB_WORKSPACE":/mnt/clp --workdir /mnt/clp ghcr.io/y-scope/clp/clp-core-dependencies-x86-ubuntu-focal:main /mnt/clp/.github/actions/clp-core-build-2/focal-build.sh
 
 #      - name: Build and push to local registry
