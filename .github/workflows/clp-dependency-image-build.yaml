@@ -23,6 +23,11 @@ jobs:
   build-ubuntu-focal:
     runs-on: ubuntu-20.04
     name: Build Image - Ubuntu Focal
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -45,15 +50,28 @@ jobs:
               - '${{env.CORE_COMPONENT_LIB_INSTALL_DIR}}/ubuntu-focal/**'
               - '${{env.WORKFLOWS_DIR}}/clp-dependency-image-build.yaml'
     
-      - name: Build and Push Ubuntu Focal Docker Image
-        uses: ./.github/actions/clp-docker-build-push-action
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          # TODO: Is this because the service must run on the host? I.e., we
+          # can't have a docker registry inside a container?
+          driver-opts: network=host
+
+      - name: Build and push to local registry
+        uses: docker/build-push-action@v5
         if: steps.filter.outputs.src == 'true'
         with:
-          image_name: ${{env.IMAGE_NAME_BASE}}-ubuntu-focal
           context: ${{env.CORE_COMPONENT_DIR}}
           file: ${{env.CORE_COMPONENT_DOCKER_IMGS_DIR}}/clp-env-base-focal/Dockerfile
-          token: ${{secrets.GITHUB_TOKEN}}
-          push_image: ${{'pull_request' != github.event_name && 'refs/heads/main' == github.ref}}
+          push: true
+          tags: localhost:5000/${{env.IMAGE_NAME_BASE}}-ubuntu-focal:latest
+
+      - name: Build clp
+        uses: ./.github/actions/clp-core-build-2
+        if: steps.filter.outputs.src == 'true'
+        with:
+          image_path: "Dockerfile"
+          build_script_path: "focal-build.sh"
 
   build-ubuntu-bionic:
     runs-on: ubuntu-20.04

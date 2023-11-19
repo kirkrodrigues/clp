@@ -1,0 +1,15 @@
+name: "Build CLP Core"
+description: "Configures CMake and uses CMake to build CLP Core"
+
+inputs:
+  image_path:
+    description: "Dockerfile path"
+    required: true
+  build_script_path:
+    description: "Build script path"
+    required: true
+  
+runs:
+  using: "docker"
+  image: ${{inputs.image_path}}
+  entrypoint: ${{inputs.build_script_path}}
