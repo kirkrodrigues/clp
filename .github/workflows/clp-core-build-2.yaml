@@ -15,6 +15,7 @@ env:
   
   CORE_COMPONENT_PATHS_FILTER: |
     clp:
+      - ".github/workflows/clp-core-build-2.yaml"
       - ".gitmodules"
       - "components/core/cmake/**"
       - "components/core/CMakeLists.txt"
@@ -60,7 +61,7 @@ jobs:
               - "${{env.CORE_COMPONENT_DOCKER_IMGS_DIR}}/clp-env-base-focal/**"
               - "${{env.CORE_COMPONENT_LIB_INSTALL_DIR}}/*.sh"
               - "${{env.CORE_COMPONENT_LIB_INSTALL_DIR}}/ubuntu-focal/**"
-              - "${{env.WORKFLOWS_DIR}}/clp-core-build.yaml"
+              - "${{env.WORKFLOWS_DIR}}/clp-core-build-2.yaml"
             ${{env.CORE_COMPONENT_PATHS_FILTER}}
 
       - if: steps.filter.outputs.image == 'true'
