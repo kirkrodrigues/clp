@@ -68,6 +68,7 @@ jobs:
             ${{env.CORE_COMPONENT_PATHS_FILTER}}
 
       - if: steps.filter.outputs.image == 'true'
+        name: Build dependencies container image and CLP's core
         uses: ./.github/actions/clp-docker-build-push-2
         with:
           build_dir_name: ubuntu-focal

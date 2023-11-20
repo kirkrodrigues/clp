@@ -27,5 +27,6 @@ runs:
           /bin/bash -c \
           "cmake -S . -B ${{inputs.build_dir_name}} \
             && cmake --build ${{inputs.build_dir_name}} \
-            && ${{inputs.build_dir_name}}/unitTest" 
+            && cd ${{inputs.build_dir_name}} \
+            && ./unitTest" 
       shell: bash
