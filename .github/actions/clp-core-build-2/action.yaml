@@ -18,14 +18,14 @@ runs:
       shell: bash
 
     - name: Build clp and run unit tests
-      run: >
-        docker run
-          --user $(id -u):$(id -g)
-          --volume "$GITHUB_WORKSPACE":/mnt/clp
-          --workdir /mnt/clp
-          ${{inputs.image_name}}
-          /bin/bash -c
-          "cmake -S . -B ${{inputs.build_dir_name}}
-            && cmake --build ${{inputs.build_dir_name}}
+      run: >-
+        docker run \
+          --user $(id -u):$(id -g) \
+          --volume "$GITHUB_WORKSPACE":/mnt/clp \
+          --workdir /mnt/clp \
+          ${{inputs.image_name}} \
+          /bin/bash -c \
+          "cmake -S . -B ${{inputs.build_dir_name}} \
+            && cmake --build ${{inputs.build_dir_name}} \
             && ${{inputs.build_dir_name}}/unitTest" 
       shell: bash
