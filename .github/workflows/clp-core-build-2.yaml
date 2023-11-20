@@ -70,5 +70,5 @@ jobs:
           image_name: ${{env.IMAGE_NAME_BASE}}-ubuntu-focal
           context: ${{env.CORE_COMPONENT_DIR}}
           file: ${{env.CORE_COMPONENT_DOCKER_IMGS_DIR}}/clp-env-base-focal/Dockerfile
-          push_image: ${{"pull_request" != github.event_name && "refs/heads/main" == github.ref}}
+          push_image: ${{'pull_request' != github.event_name && 'refs/heads/main' == github.ref}}
           token: ${{secrets.GITHUB_TOKEN}}
