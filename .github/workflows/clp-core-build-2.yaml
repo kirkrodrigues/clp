@@ -63,7 +63,7 @@ jobs:
               - "${{env.WORKFLOWS_DIR}}/clp-core-build.yaml"
             ${{env.CORE_COMPONENT_PATHS_FILTER}}
 
-      - if: steps.filter.outputs.image == "true"
+      - if: steps.filter.outputs.image == 'true'
         uses: ./.github/actions/clp-docker-build-push-2
         with:
           build_dir_name: ubuntu-focal
