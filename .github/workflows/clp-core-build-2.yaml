@@ -4,6 +4,7 @@ on:
   push:
     paths:
       # TODO
+      - '.github/actions/**'
       - '.github/workflows/clp-core-build-2.yaml'
       - 'components/core/**'
       - '!components/core/tools/scripts/lib_install/macos-12/**'
@@ -15,6 +16,7 @@ env:
   
   CORE_COMPONENT_PATHS_FILTER: |
     clp:
+      - ".github/actions/**"
       - ".github/workflows/clp-core-build-2.yaml"
       - ".gitmodules"
       - "components/core/cmake/**"
@@ -58,6 +60,7 @@ jobs:
           base: ${{github.ref_name}}
           filters: |
             image:
+              - ".github/actions/**"
               - "${{env.CORE_COMPONENT_DOCKER_IMGS_DIR}}/clp-env-base-focal/**"
               - "${{env.CORE_COMPONENT_LIB_INSTALL_DIR}}/*.sh"
               - "${{env.CORE_COMPONENT_LIB_INSTALL_DIR}}/ubuntu-focal/**"
