@@ -1,15 +1,31 @@
 name: "Build CLP Core"
-description: "Configures CMake and uses CMake to build CLP Core"
+description: "Builds CLP's core in the given container"
 
 inputs:
-  image_path:
-    description: "Dockerfile path"
+  image_name:
+    description: "Container image to use"
     required: true
-  build_script_path:
-    description: "Build script path"
+  build_dir_name:
+    description: "Directory in which to build clp"
     required: true
   
 runs:
-  using: "docker"
-  image: ${{inputs.image_path}}
-  entrypoint: ${{inputs.build_script_path}}
+  using: "composite"
+  steps:
+    - name: Download dependencies
+      run: ./tools/scripts/deps-download/download-all.sh
+      working-directory: ./components/core
+      shell: bash
+
+    - name: Build clp and run unit tests
+      run: >
+        docker run
+          --user $(id -u):$(id -g)
+          --volume "$GITHUB_WORKSPACE":/mnt/clp
+          --workdir /mnt/clp
+          ${{inputs.image_name}}
+          /bin/bash -c
+          "cmake -S . -B ${{inputs.build_dir_name}}
+            && cmake --build ${{inputs.build_dir_name}}
+            && ${{inputs.build_dir_name}}/unitTest" 
+      shell: bash
