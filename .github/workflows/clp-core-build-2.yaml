@@ -4,7 +4,7 @@ on:
   push:
     paths:
       # TODO
-      - '.github/workflows/clp-core-build.yaml'
+      - '.github/workflows/clp-core-build-2.yaml'
       - 'components/core/**'
       - '!components/core/tools/scripts/lib_install/macos-12/**'
   workflow_dispatch:
