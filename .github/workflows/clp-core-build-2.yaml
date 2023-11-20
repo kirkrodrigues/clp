@@ -75,5 +75,12 @@ jobs:
           image_name: ${{env.IMAGE_NAME_BASE}}-ubuntu-focal
           context: ${{env.CORE_COMPONENT_DIR}}
           file: ${{env.CORE_COMPONENT_DOCKER_IMGS_DIR}}/clp-env-base-focal/Dockerfile
-          push_image: ${{'pull_request' != github.event_name && 'refs/heads/main' == github.ref}}
+          push_image: ${{'pull_request' != github.event_name && 'refs/heads/test-docker-image-changes' == github.ref}}
           token: ${{secrets.GITHUB_TOKEN}}
+
+      - if: steps.filter.outputs.image == 'false'
+        name: Build CLP's core and run unit tests
+        uses: ./.github/actions/clp-core-build-2
+        with:
+          build_dir_name: ubuntu-focal
+          image_name: ghcr.io/${{env.IMAGE_NAME_BASE}}-ubuntu-focal:test-docker-image-changes
