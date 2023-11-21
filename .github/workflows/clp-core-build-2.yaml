@@ -41,6 +41,14 @@ jobs:
         image: registry:2
         ports: ["5000:5000"]
     steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Work around actions/runner-images/issues/6775
+        run: chown $(id -u):$(id -g) -R .
+        shell: bash
+      
       - uses: ./.github/actions/clp-core-build-and-test
         with:
             os_name: centos7.4
