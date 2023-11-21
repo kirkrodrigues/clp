@@ -7,6 +7,9 @@ inputs:
   os_name:
     description: "Name of container OS"
     required: true
+  token:
+    description: "Container registry token"
+    required: true
 
 runs:
   using: "composite"
@@ -24,23 +27,29 @@ runs:
         filters: |
           image:
             - ".github/actions/**"
-            - "${{env.CORE_COMPONENT_DOCKER_IMGS_DIR}}/clp-env-base-${{inputs.os_name}}/**"
-            - "${{env.CORE_COMPONENT_LIB_INSTALL_DIR}}/*.sh"
-            - "${{env.CORE_COMPONENT_LIB_INSTALL_DIR}}/${{inputs.os_name}}/**"
-            - "${{env.WORKFLOWS_DIR}}/clp-core-build-2.yaml"
-          ${{env.CORE_COMPONENT_PATHS_FILTER}}
+            - "components/core/tools/docker-images/clp-env-base-${{inputs.os_name}}/**"
+            - "components/core/tools/scripts/lib_install/*.sh"
+            - "components/core/tools/scripts/lib_install/${{inputs.os_name}}/**"
+          clp:
+            - ".github/actions/**"
+            - ".gitmodules"
+            - "components/core/cmake/**"
+            - "components/core/CMakeLists.txt"
+            - "components/core/src/**"
+            - "components/core/tests/**"
 
     - if: steps.filter.outputs.image == 'true'
       uses: ./.github/actions/clp-docker-build-push-2
       with:
-        context: ${{env.CORE_COMPONENT_DIR}}
-        file: ${{env.CORE_COMPONENT_DOCKER_IMGS_DIR}}/clp-env-base-${{inputs.os_name}}/Dockerfile
-        image_name: ${{env.IMAGE_NAME_BASE}}-${{inputs.os_name}}
+        context: components/core
+        file: components/core/tools/docker-images/clp-env-base-${{inputs.os_name}}/Dockerfile
+        image_name: ${{github.repository}}/clp-core-x86-${{inputs.os_name}}
+        # TODO
         push_image: ${{'pull_request' != github.event_name && 'refs/heads/test-docker-image-changes' == github.ref}}
-        token: ${{secrets.GITHUB_TOKEN}}
+        token: ${{inputs.token}}
 
     - if: steps.filter.outputs.image == 'false'
       uses: ./.github/actions/clp-core-build-2
       with:
         # TODO
-        image_name: ghcr.io/${{env.IMAGE_NAME_BASE}}-${{inputs.os_name}}:test-docker-image-changes
+        image_name: ghcr.io/${{github.repository}}/clp-core-x86-${{inputs.os_name}}:test-docker-image-changes

@@ -10,25 +10,6 @@ on:
       - '!components/core/tools/scripts/lib_install/macos-12/**'
   workflow_dispatch:
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME_BASE: ${{github.repository}}/clp-core-x86
-  
-  CORE_COMPONENT_PATHS_FILTER: |
-    clp:
-      - ".github/actions/**"
-      - ".github/workflows/clp-core-build-2.yaml"
-      - ".gitmodules"
-      - "components/core/cmake/**"
-      - "components/core/CMakeLists.txt"
-      - "components/core/src/**"
-      - "components/core/tests/**"
-  
-  CORE_COMPONENT_DIR: "components/core"
-  CORE_COMPONENT_DOCKER_IMGS_DIR: "components/core/tools/docker-images"
-  CORE_COMPONENT_LIB_INSTALL_DIR: "components/core/tools/scripts/lib_install"
-  WORKFLOWS_DIR: ".github/workflows"
-
 # Currency group to prevent multiple instances from trying to publish container
 # images
 concurrency: ${{github.workflow}}-${{github.ref}}
@@ -52,3 +33,4 @@ jobs:
       - uses: ./.github/actions/clp-core-build-and-test
         with:
             os_name: centos7.4
+            token: ${{secrets.GITHUB_TOKEN}}
