@@ -1,0 +1,54 @@
+name: "Build and test CLP-core"
+description: >-
+  Builds a container image containing CLP-core's dependencies, builds CLP-core,
+  and runs CLP-core's unit tests.
+
+inputs:
+  os_name:
+    description: "Name of container OS"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Work around actions/runner-images/issues/6775
+      run: chown $(id -u):$(id -g) -R .
+      shell: bash
+
+    - name: Filter relevant changes
+      uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        # Consider changes between this commit and main
+        # NOTE: We need to use main rather than the previous commit since a
+        # pull request may change the image, and we need to rebuild the image
+        # on every push or else the workflow will use the published container
+        # image which does not contain the changes from the pull request.
+        base: main
+        filters: |
+          image:
+            - ".github/actions/**"
+            - "${{env.CORE_COMPONENT_DOCKER_IMGS_DIR}}/clp-env-base-${{inputs.os_name}}/**"
+            - "${{env.CORE_COMPONENT_LIB_INSTALL_DIR}}/*.sh"
+            - "${{env.CORE_COMPONENT_LIB_INSTALL_DIR}}/${{inputs.os_name}}/**"
+            - "${{env.WORKFLOWS_DIR}}/clp-core-build-2.yaml"
+          ${{env.CORE_COMPONENT_PATHS_FILTER}}
+
+    - if: steps.filter.outputs.image == 'true'
+      uses: ./.github/actions/clp-docker-build-push-2
+      with:
+        context: ${{env.CORE_COMPONENT_DIR}}
+        file: ${{env.CORE_COMPONENT_DOCKER_IMGS_DIR}}/clp-env-base-${{inputs.os_name}}/Dockerfile
+        image_name: ${{env.IMAGE_NAME_BASE}}-${{inputs.os_name}}
+        push_image: ${{'pull_request' != github.event_name && 'refs/heads/test-docker-image-changes' == github.ref}}
+        token: ${{secrets.GITHUB_TOKEN}}
+
+    - if: steps.filter.outputs.image == 'false'
+      uses: ./.github/actions/clp-core-build-2
+      with:
+        # TODO
+        image_name: ghcr.io/${{env.IMAGE_NAME_BASE}}-${{inputs.os_name}}:test-docker-image-changes

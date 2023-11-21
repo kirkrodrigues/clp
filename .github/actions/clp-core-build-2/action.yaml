@@ -5,9 +5,6 @@ inputs:
   image_name:
     description: "Container image to use"
     required: true
-  build_dir_name:
-    description: "Directory in which to build clp"
-    required: true
   
 runs:
   using: "composite"
@@ -25,8 +22,8 @@ runs:
           --workdir /mnt/clp \
           ${{inputs.image_name}} \
           /bin/bash -c \
-          "cmake -S . -B ${{inputs.build_dir_name}} \
-            && cmake --build ${{inputs.build_dir_name}} \
-            && cd ${{inputs.build_dir_name}} \
+          "cmake -S . -B build \
+            && cmake --build build \
+            && cd build \
             && ./unitTest" 
       shell: bash

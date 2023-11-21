@@ -29,58 +29,18 @@ env:
   CORE_COMPONENT_LIB_INSTALL_DIR: "components/core/tools/scripts/lib_install"
   WORKFLOWS_DIR: ".github/workflows"
 
+# Currency group to prevent multiple instances from trying to publish container
+# images
 concurrency: ${{github.workflow}}-${{github.ref}}
 
 jobs:
   ubuntu-focal:
     runs-on: ubuntu-latest
-    # TODO
-#    container: 
-#      image: ghcr.io/y-scope/clp/clp-core-dependencies-x86-ubuntu-focal:main
-#      volumes:
-#        - ${{github.workspace}}/build:/output
     services:
       registry:
         image: registry:2
         ports: ["5000:5000"]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - uses: ./.github/actions/clp-core-build-and-test
         with:
-            submodules: recursive
-
-      - name: Workaround actions/runner-images/issues/6775
-        run: chown $(id -u):$(id -g) -R .
-
-      - name: Filter relevant changes
-        uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          # Consider changes between the previous commit and this one
-          base: ${{github.ref_name}}
-          filters: |
-            image:
-              - ".github/actions/**"
-              - "${{env.CORE_COMPONENT_DOCKER_IMGS_DIR}}/clp-env-base-focal/**"
-              - "${{env.CORE_COMPONENT_LIB_INSTALL_DIR}}/*.sh"
-              - "${{env.CORE_COMPONENT_LIB_INSTALL_DIR}}/ubuntu-focal/**"
-              - "${{env.WORKFLOWS_DIR}}/clp-core-build-2.yaml"
-            ${{env.CORE_COMPONENT_PATHS_FILTER}}
-
-      - if: steps.filter.outputs.image == 'true'
-        name: Build dependencies container image and CLP's core
-        uses: ./.github/actions/clp-docker-build-push-2
-        with:
-          build_dir_name: ubuntu-focal
-          image_name: ${{env.IMAGE_NAME_BASE}}-ubuntu-focal
-          context: ${{env.CORE_COMPONENT_DIR}}
-          file: ${{env.CORE_COMPONENT_DOCKER_IMGS_DIR}}/clp-env-base-focal/Dockerfile
-          push_image: ${{'pull_request' != github.event_name && 'refs/heads/test-docker-image-changes' == github.ref}}
-          token: ${{secrets.GITHUB_TOKEN}}
-
-      - if: steps.filter.outputs.image == 'false'
-        name: Build CLP's core and run unit tests
-        uses: ./.github/actions/clp-core-build-2
-        with:
-          build_dir_name: ubuntu-focal
-          image_name: ghcr.io/${{env.IMAGE_NAME_BASE}}-ubuntu-focal:test-docker-image-changes
+            os_name: centos7.4
