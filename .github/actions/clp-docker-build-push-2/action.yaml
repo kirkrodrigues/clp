@@ -49,6 +49,10 @@ runs:
       uses: "docker/metadata-action@v5"
       with:
         images: "${{steps.get_deps_image_repo.outputs.IMAGE_REPO}}"
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=ref,event=tag
 
     - uses: "docker/build-push-action@v5"
       with:
