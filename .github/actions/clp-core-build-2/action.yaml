@@ -9,12 +9,11 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Download dependencies
-      run: ./tools/scripts/deps-download/download-all.sh
-      working-directory: ./components/core
-      shell: bash
+    - shell: "bash"
+      working-directory: "./components/core"
+      run: "./tools/scripts/deps-download/download-all.sh"
 
-    - name: Build clp and run unit tests
+    - shell: "bash"
       run: >-
         docker run \
           --user $(id -u):$(id -g) \
@@ -26,4 +25,3 @@ runs:
             && cmake --build build \
             && cd build \
             && ./unitTest" 
-      shell: bash

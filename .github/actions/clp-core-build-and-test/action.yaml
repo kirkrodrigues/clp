@@ -7,6 +7,15 @@ inputs:
   os_name:
     description: "Name of container OS"
     required: true
+  deps_image_changed:
+    description: "Whether the dependencies Docker image files have changed"
+    required: true
+  push_binaries_image:
+    description: "Whether to publish a Docker image containing CLP's binaries"
+    required: true
+  local_registry_port:
+    description: "Port number for the local registry"
+    required: true
   token:
     description: "Container registry token"
     required: true
@@ -14,42 +23,24 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Filter relevant changes
-      uses: dorny/paths-filter@v2
-      id: filter
+    - if: "inputs.deps_image_changed == 'true'"
+      uses: "./.github/actions/clp-docker-build-push-2"
       with:
-        # Consider changes between this commit and main
-        # NOTE: We need to use main rather than the previous commit since a
-        # pull request may change the image, and we need to rebuild the image
-        # on every push or else the workflow will use the published container
-        # image which does not contain the changes from the pull request.
-        base: main
-        filters: |
-          image:
-            - ".github/actions/**"
-            - "components/core/tools/docker-images/clp-env-base-${{inputs.os_name}}/**"
-            - "components/core/tools/scripts/lib_install/*.sh"
-            - "components/core/tools/scripts/lib_install/${{inputs.os_name}}/**"
-          clp:
-            - ".github/actions/**"
-            - ".gitmodules"
-            - "components/core/cmake/**"
-            - "components/core/CMakeLists.txt"
-            - "components/core/src/**"
-            - "components/core/tests/**"
-
-    - if: steps.filter.outputs.image == 'true'
-      uses: ./.github/actions/clp-docker-build-push-2
-      with:
-        context: components/core
-        file: components/core/tools/docker-images/clp-env-base-${{inputs.os_name}}/Dockerfile
-        image_name: ${{github.repository}}/clp-core-x86-${{inputs.os_name}}
+        os_name: "${{inputs.os_name}}"
+        clp_core_dir: "components/core"
         # TODO
-        push_image: ${{'pull_request' != github.event_name && 'refs/heads/test-docker-image-changes' == github.ref}}
-        token: ${{inputs.token}}
+        push_deps_image: >-
+          ${{'pull_request' != github.event_name
+            && 'refs/heads/test-docker-image-changes' == github.ref}}
+        push_binaries_image: >-
+          ${{inputs.push_binaries_image
+            && 'pull_request' != github.event_name
+            && 'refs/heads/test-docker-image-changes' == github.ref}}
+        local_registry_port: "${{inputs.local_registry_port}}"
+        token: "${{inputs.token}}"
 
-    - if: steps.filter.outputs.image == 'false'
-      uses: ./.github/actions/clp-core-build-2
+    - if: "inputs.deps_image_changed == 'false'"
+      uses: "./.github/actions/clp-core-build-2"
       with:
         # TODO
-        image_name: ghcr.io/${{github.repository}}/clp-core-x86-${{inputs.os_name}}:test-docker-image-changes
+        image_name: "ghcr.io/${{github.repository}}/clp-core-x86-${{inputs.os_name}}:test-docker-image-changes"

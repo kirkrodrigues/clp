@@ -1,18 +1,21 @@
-name: "Build and push Docker image"
-description: "Builds a Docker image and pushes it to one or more registries"
+name: "Build and push CLP Docker image"
+description: "Builds a CLP-related Docker image and pushes it to one or more registries"
 
 inputs:
-  image_name:
-    description: "Name of image to push"
+  os_name:
+    description: "Name of container OS"
     required: true
-  context:
-    description: "Docker build context"
+  clp_core_dir:
+    description: "CLP core's component directory"
     required: true
-  file:
-    description: "Dockerfile path"
+  push_deps_image:
+    description: "Whether to publish a Docker image containing CLP's dependencies"
     required: true
-  push_image:
-    description: "Whether to publish the Docker image to GitHub packages"
+  push_binaries_image:
+    description: "Whether to publish a Docker image containing CLP's binaries"
+    required: true
+  local_registry_port:
+    description: "Port number for the local registry"
     required: true
   token:
     description: "Registry token"
@@ -21,39 +24,49 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: docker/setup-buildx-action@v3
+    - uses: "docker/setup-buildx-action@v3"
       with:
-        driver-opts: network=host
+        driver-opts: "network=host"
 
-    - name: Build and push to local registry
-      uses: docker/build-push-action@v5
+    - if: "inputs.push_deps_image == 'true'"
+      uses: "docker/login-action@v3"
       with:
-        context: ${{inputs.context}}
-        file: ${{inputs.file}}
+        registry: "ghcr.io"
+        username: "${{github.actor}}"
+        password: "${{inputs.token}}"
+
+    - id: "get_deps_image_repo"
+      shell: "bash"
+      run: |
+        if [ ${{inputs.push_deps_image}} ] ; then
+          registry=ghcr.io
+        else
+          registry=localhost:${{inputs.local_registry_port}}
+        fi
+        echo "IMAGE_REPO=$registry/${{github.repository}}/clp-core-dependencies-x86-${{inputs.os_name}}" >> "$GITHUB_OUTPUT"
+
+    - id: "meta"
+      uses: "docker/metadata-action@v5"
+      with:
+        images: "${{steps.get_deps_image_repo.outputs.IMAGE_REPO}}"
+
+    - uses: "docker/build-push-action@v5"
+      with:
+        context: "${{inputs.clp_core_dir}}"
+        file: "${{inputs.clp_core_dir}}/tools/docker-images/clp-env-base-${{inputs.os_name}}/Dockerfile"
         push: true
-        tags: localhost:5000/${{inputs.image_name}}:latest
+        tags: "${{steps.get_deps_image_repo.outputs.IMAGE_REPO}}"
+        labels: "${{steps.meta.outputs.labels}}"
     
-    - uses: ./.github/actions/clp-core-build-2
+    - uses: "./.github/actions/clp-core-build-2"
       with:
-        image_name: localhost:5000/${{inputs.image_name}}:latest
+        image_name: "${{steps.get_deps_image_repo.outputs.IMAGE_REPO}}:${{github.ref_name}}"
 
-    - if: inputs.push_image == 'true'
-      uses: docker/login-action@v3
+    - if: "inputs.push_binaries_image == 'true'"
+      uses: "docker/build-push-action@v5"
       with:
-        registry: ghcr.io
-        username: ${{github.actor}}
-        password: ${{inputs.token}}
-
-    - id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ghcr.io/${{inputs.image_name}}
-
-    - if: inputs.push_image == 'true'
-      uses: docker/build-push-action@v5
-      with:
-        context: ${{inputs.context}}
-        file: ${{inputs.file}}
+        context: "${{inputs.clp_core_dir}}/build"
+        file: "${{inputs.clp_core_dir}}/tools/docker-images/clp-core-${{inputs.os_name}}/Dockerfile"
         push: true
-        tags: ${{steps.meta.outputs.tags}}
-        labels: ${{steps.meta.outputs.labels}}
+        tags: "ghcr.io/${{github.repository}}/clp-core-x86-${{inputs.os_name}}"
+        labels: "${{steps.meta.outputs.labels}}"
