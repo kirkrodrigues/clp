@@ -152,7 +152,7 @@ jobs:
       - uses: "./.github/actions/clp-core-build-and-test"
         with:
             os_name: "${{env.OS_NAME}}"
-            deps_image_changed: "${{steps.filter.outputs.image}}"
+            deps_image_changed: false #"${{steps.filter.outputs.image}}"
             push_binaries_image: true
             local_registry_port: "${{env.LOCAL_REGISTRY_PORT}}"
             token: "${{secrets.GITHUB_TOKEN}}"
