@@ -44,7 +44,8 @@ runs:
           registry=localhost:${{inputs.local_registry_port}}
         fi
         # Sanitize branch name for use as a Docker tag
-        branch_name=$(echo "${{github.ref}}" | sed 's#refs/heads/##' | sed 's/[^a-zA-Z0-9._-]/_/g' | tr '[:upper:]' '[:lower:]')
+        branch_name=$(echo "${{github.ref_name}}" | sed 's#refs/heads/##' | sed 's/[^a-zA-Z0-9._-]/_/g' | tr '[:upper:]' '[:lower:]')
+
         echo "IMAGE_REPO=$registry/${{github.repository}}/clp-core-dependencies-x86-${{inputs.os_name}}" >> "$GITHUB_OUTPUT"
         echo "TAG_SUFFIX=$branch_name" >> "$GITHUB_OUTPUT"
 
@@ -64,7 +65,6 @@ runs:
         push: true
         tags: "${{steps.get_deps_image_repo.outputs.IMAGE_REPO}}:${{steps.get_deps_image_repo.outputs.TAG_SUFFIX}}"
         labels: "${{steps.meta.outputs.labels}}"
-        remove-image: true
     
     - uses: "./.github/actions/clp-core-build-2"
       with:
