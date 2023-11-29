@@ -68,7 +68,7 @@ runs:
     
     - uses: "./.github/actions/clp-core-build-2"
       with:
-        image_name: "${{steps.get_deps_image_repo.outputs.IMAGE_REPO}}:${{github.ref_name}}"
+        image_name: "${{steps.get_deps_image_repo.outputs.IMAGE_REPO}}:${{steps.get_deps_image_repo.outputs.TAG_SUFFIX}}"
 
     - if: "inputs.push_binaries_image == 'true'"
       uses: "docker/build-push-action@v5"
