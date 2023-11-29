@@ -76,5 +76,5 @@ runs:
         context: "${{inputs.clp_core_dir}}/build"
         file: "${{inputs.clp_core_dir}}/tools/docker-images/clp-core-${{inputs.os_name}}/Dockerfile"
         push: true
-        tags: "ghcr.io/${{github.repository}}/clp-core-x86-${{inputs.os_name}}"
+        tags: "ghcr.io/${{github.repository}}/clp-core-x86-${{inputs.os_name}}:${{steps.get_deps_image_repo.outputs.TAG_SUFFIX}}"
         labels: "${{steps.meta.outputs.labels}}"
