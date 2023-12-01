@@ -13,16 +13,15 @@ runs:
       working-directory: "./components/core"
       run: "./tools/scripts/deps-download/download-all.sh"
 
-# TODO
-#    - shell: "bash"
-#      run: >-
-#        docker run \
-#          --user $(id -u):$(id -g) \
-#          --volume "$GITHUB_WORKSPACE/components/core":/mnt/clp \
-#          --workdir /mnt/clp \
-#          ${{inputs.image_name}} \
-#          /bin/bash -c \
-#          "cmake -S . -B build \
-#            && cmake --build build \
-#            && cd build \
-#            && ./unitTest"
+    - shell: "bash"
+      run: >-
+        docker run \
+          --user $(id -u):$(id -g) \
+          --volume "$GITHUB_WORKSPACE/components/core":/mnt/clp \
+          --workdir /mnt/clp \
+          ${{inputs.image_name}} \
+          /bin/bash -c \
+          "cmake -S . -B build \
+            && cmake --build build \
+            && cd build \
+            && ./unitTest" 
