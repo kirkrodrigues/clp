@@ -54,7 +54,7 @@ runs:
       with:
         images: "${{steps.get_deps_image_repo.outputs.IMAGE_REPO}}"
         tags: |
-          type=raw,value=${{steps.get_deps_image_repo.outputs.IMAGE_REPO}}:{{branch}}
+          type=raw,value={{branch}}
 
     - uses: "docker/build-push-action@v5"
       with:
