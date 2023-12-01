@@ -18,7 +18,8 @@ env:
   # determining what files have changed, we use main rather than the previous commit to ensure
   # that on every push to the PR, we can detect if the image was changed and use it to build
   # and test CLP.
-  PATHS_FILTER_BASE: "main"
+  # TODO
+  PATHS_FILTER_BASE: "test-docker-image-changes"
   PATHS_FILTER_LIB_INSTALL_GLOB: "components/core/tools/scripts/lib_install/*.sh"
   PATHS_FILTER_CLP_FILTER: |
     clp:
