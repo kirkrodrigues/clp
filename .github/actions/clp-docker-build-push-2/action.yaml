@@ -35,38 +35,51 @@ runs:
         username: "${{github.actor}}"
         password: "${{inputs.token}}"
 
-    - id: "get_deps_image_repo"
+    - id: "get_deps_image_props"
       shell: "bash"
       run: |
         if [ ${{inputs.push_deps_image}} ] ; then
           registry=ghcr.io
+          branch=${{github.ref_name}}
         else
           registry=localhost:${{inputs.local_registry_port}}
+          branch=latest
         fi
-        # Sanitize branch name for use as a Docker tag
-        branch_name=$(echo "${{github.ref_name}}" | sed 's#refs/heads/##' | sed 's/[^a-zA-Z0-9._-]/_/g' | tr '[:upper:]' '[:lower:]')
 
-        echo "IMAGE_REPO=$registry/${{github.repository}}/clp-core-dependencies-x86-${{inputs.os_name}}" >> "$GITHUB_OUTPUT"
-        echo "TAG_SUFFIX=$branch_name" >> "$GITHUB_OUTPUT"
+        echo "REGISTRY=$registry" >> "$GITHUB_OUTPUT"
+        echo "BRANCH=$branch" >> "$GITHUB_OUTPUT"
 
-    - id: "meta"
+    - id: "deps_image_meta"
       uses: "docker/metadata-action@v5"
       with:
-        images: "${{steps.get_deps_image_repo.outputs.IMAGE_REPO}}"
+        images: "${{steps.get_deps_image_props.outputs.REGISTRY}}\
+          /${{github.repository}}\
+          /clp-core-dependencies-x86-${{inputs.os_name}}"
         tags: |
-          type=raw,value={{branch}}
+          type=raw,value=${{steps.get_deps_image_props.outputs.BRANCH}}
 
     - uses: "docker/build-push-action@v5"
       with:
         context: "${{inputs.clp_core_dir}}"
-        file: "${{inputs.clp_core_dir}}/tools/docker-images/clp-env-base-${{inputs.os_name}}/Dockerfile"
+        file: "${{inputs.clp_core_dir}}/tools/docker-images/clp-env-base-${{inputs.os_name}}\
+          /Dockerfile"
         push: true
-        tags: "${{steps.meta.outputs.tags}}"
-        labels: "${{steps.meta.outputs.labels}}"
+        tags: "${{steps.deps_image_meta.outputs.tags}}"
+        labels: "${{steps.deps_image_meta.outputs.labels}}"
     
     - uses: "./.github/actions/clp-core-build-2"
       with:
-        image_name: "${{steps.meta.outputs.tags}}"
+        image_name: "${{steps.deps_image_meta.outputs.tags}}"
+
+    - if: "inputs.push_binaries_image == 'true'"
+      id: "core_image_meta"
+      uses: "docker/metadata-action@v5"
+      with:
+        images: "${{steps.get_deps_image_props.outputs.REGISTRY}}\
+          /${{github.repository}}\
+          /clp-core-x86-${{inputs.os_name}}"
+        tags: |
+          type=raw,value=${{steps.get_deps_image_props.outputs.BRANCH}}
 
     - if: "inputs.push_binaries_image == 'true'"
       uses: "docker/build-push-action@v5"
@@ -74,5 +87,5 @@ runs:
         context: "${{inputs.clp_core_dir}}/build"
         file: "${{inputs.clp_core_dir}}/tools/docker-images/clp-core-${{inputs.os_name}}/Dockerfile"
         push: true
-        tags: "${{steps.meta.outputs.tags}}"
-        labels: "${{steps.meta.outputs.labels}}"
+        tags: "${{steps.core_image_meta.outputs.tags}}"
+        labels: "${{steps.core_image_meta.outputs.labels}}"
