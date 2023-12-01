@@ -52,23 +52,21 @@ runs:
     - id: "meta"
       uses: "docker/metadata-action@v5"
       with:
-        images: "${{steps.get_deps_image_repo.outputs.IMAGE_REPO}}:${{steps.get_deps_image_repo.outputs.TAG_SUFFIX}}"
+        images: "${{steps.get_deps_image_repo.outputs.IMAGE_REPO}}"
         tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=ref,event=tag
+          type=raw,value=${{steps.get_deps_image_repo.outputs.IMAGE_REPO}}:{{branch}}
 
     - uses: "docker/build-push-action@v5"
       with:
         context: "${{inputs.clp_core_dir}}"
         file: "${{inputs.clp_core_dir}}/tools/docker-images/clp-env-base-${{inputs.os_name}}/Dockerfile"
         push: true
-        tags: "${{steps.get_deps_image_repo.outputs.IMAGE_REPO}}:${{steps.get_deps_image_repo.outputs.TAG_SUFFIX}}"
+        tags: "${{steps.meta.outputs.tags}}"
         labels: "${{steps.meta.outputs.labels}}"
     
     - uses: "./.github/actions/clp-core-build-2"
       with:
-        image_name: "${{steps.get_deps_image_repo.outputs.IMAGE_REPO}}:${{steps.get_deps_image_repo.outputs.TAG_SUFFIX}}"
+        image_name: "${{steps.meta.outputs.tags}}"
 
     - if: "inputs.push_binaries_image == 'true'"
       uses: "docker/build-push-action@v5"
@@ -76,5 +74,5 @@ runs:
         context: "${{inputs.clp_core_dir}}/build"
         file: "${{inputs.clp_core_dir}}/tools/docker-images/clp-core-${{inputs.os_name}}/Dockerfile"
         push: true
-        tags: "ghcr.io/${{github.repository}}/clp-core-x86-${{inputs.os_name}}:${{steps.get_deps_image_repo.outputs.TAG_SUFFIX}}"
+        tags: "${{steps.meta.outputs.tags}}"
         labels: "${{steps.meta.outputs.labels}}"
