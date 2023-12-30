@@ -1,11 +1,15 @@
-#include "Thread.hpp"
+#include "thread_utils/Thread.hpp"
 
-// Project headers
-#include "Defs.h"
-#include "spdlog_with_specializations.hpp"
+#include <memory>
+#include <system_error>
+
+#include <spdlog/spdlog.h>
+
+#include "../ErrorCode.hpp"
 
 using std::system_error;
 
+namespace thread_utils {
 Thread::~Thread() {
     if (m_thread_running) {
         SPDLOG_WARN("Thread did not exit before being destroyed.");
@@ -47,3 +51,4 @@ void Thread::thread_entry_point() {
     thread_method();
     m_thread_running = false;
 }
+}  // namespace thread_utils

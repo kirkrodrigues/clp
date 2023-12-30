@@ -11,3 +11,5 @@ add_library(
 add_library(string_utils::string_utils ALIAS string_utils)
 target_include_directories(string_utils PUBLIC ../include)
 target_compile_features(string_utils PRIVATE cxx_std_17)
+
+add_subdirectory(thread_utils EXCLUDE_FROM_ALL)

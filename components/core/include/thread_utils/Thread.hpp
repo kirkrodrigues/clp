@@ -1,13 +1,14 @@
-#ifndef THREAD_HPP
-#define THREAD_HPP
+#ifndef THREAD_UTILS_THREAD_HPP
+#define THREAD_UTILS_THREAD_HPP
 
 #include <atomic>
 #include <memory>
 #include <thread>
 
-#include "ErrorCode.hpp"
-#include "TraceableException.hpp"
+#include "../../src/ErrorCode.hpp"
+#include "../../src/TraceableException.hpp"
 
+namespace thread_utils {
 /**
  * Wrapper for C++ threads that has some extra features and provides a more encapsulated way to
  * define a thread. Note that detachment is explicitly not supported since that means this object
@@ -59,5 +60,6 @@ private:
     std::unique_ptr<std::thread> m_thread;
     std::atomic_bool m_thread_running;
 };
+}  // namespace thread_utils
 
-#endif  // THREAD_HPP
+#endif  // THREAD_UTILS_THREAD_HPP

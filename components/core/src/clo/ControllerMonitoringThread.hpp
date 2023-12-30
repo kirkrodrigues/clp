@@ -1,13 +1,13 @@
 #ifndef CONTROLLERMONITORINGTHREAD_HPP
 #define CONTROLLERMONITORINGTHREAD_HPP
 
-#include "../Thread.hpp"
+#include "thread_utils/Thread.hpp"
 
 /**
  * A thread that waits for the controller to close the connection at which time it will indicate the
  * query has been cancelled.
  */
-class ControllerMonitoringThread : public Thread {
+class ControllerMonitoringThread : public thread_utils::Thread {
 public:
     // Constructor
     ControllerMonitoringThread(int controller_socket_fd)
