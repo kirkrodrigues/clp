@@ -171,6 +171,7 @@ include(cmake/Modules/FindLibraryDependencies.cmake)
 FindDynamicLibraryDependencies(sqlite "${sqlite_DYNAMIC_LIBS}")
 
 set(SOURCE_FILES_clp
+        include/math_utils.hpp
         src/ArrayBackedPosIntSet.hpp
         src/BufferedFileReader.cpp
         src/BufferedFileReader.hpp
@@ -243,7 +244,6 @@ set(SOURCE_FILES_clp
         src/LogTypeDictionaryReader.hpp
         src/LogTypeDictionaryWriter.cpp
         src/LogTypeDictionaryWriter.hpp
-        src/math_utils.hpp
         src/MessageParser.cpp
         src/MessageParser.hpp
         src/MySQLDB.cpp
@@ -625,6 +625,7 @@ target_compile_features(clo
         )
 
 set(SOURCE_FILES_unitTest
+        include/math_utils.hpp
         src/BufferedFileReader.cpp
         src/BufferedFileReader.hpp
         src/BufferReader.cpp
@@ -712,7 +713,6 @@ set(SOURCE_FILES_unitTest
         src/LogTypeDictionaryReader.hpp
         src/LogTypeDictionaryWriter.cpp
         src/LogTypeDictionaryWriter.hpp
-        src/math_utils.hpp
         src/MessageParser.cpp
         src/MessageParser.hpp
         src/MySQLDB.cpp

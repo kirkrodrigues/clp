@@ -8,6 +8,7 @@
 
 #include "math_utils.hpp"
 
+using math_utils::int_round_up_to_multiple;
 using std::string;
 
 namespace {

@@ -3,6 +3,7 @@
 
 #include <type_traits>
 
+namespace math_utils {
 /**
  * @tparam unsigned_t An unsigned integer type
  * @param val
@@ -16,5 +17,6 @@ auto int_round_up_to_multiple(unsigned_t val, unsigned_t factor) -> unsigned_t {
     // semantics are well-defined for unsigned integers.
     return ((val + factor - 1) / factor) * factor;
 }
+}  // namespace math_utils
 
 #endif  // MATH_UTILS_HPP
