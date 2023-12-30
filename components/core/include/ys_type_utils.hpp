@@ -1,9 +1,10 @@
-#ifndef TYPE_UTILS_HPP
-#define TYPE_UTILS_HPP
+#ifndef YS_TYPE_UTILS_HPP
+#define YS_TYPE_UTILS_HPP
 
 #include <cstring>
 #include <type_traits>
 
+namespace ys_type_utils {
 /**
  * An empty type which can be used to declare variables conditionally based on template parameters
  */
@@ -66,5 +67,6 @@ std::enable_if_t<sizeof(Destination) == sizeof(Source), Destination*>
 size_checked_pointer_cast(Source* src) {
     return reinterpret_cast<Destination*>(src);
 }
+}  // namespace ys_type_utils
 
-#endif  // TYPE_UTILS_HPP
+#endif  // YS_TYPE_UTILS_HPP

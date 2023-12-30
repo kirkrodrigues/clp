@@ -172,6 +172,7 @@ FindDynamicLibraryDependencies(sqlite "${sqlite_DYNAMIC_LIBS}")
 
 set(SOURCE_FILES_clp
         include/math_utils.hpp
+        include/ys_type_utils.hpp
         src/ArrayBackedPosIntSet.hpp
         src/BufferedFileReader.cpp
         src/BufferedFileReader.hpp
@@ -307,7 +308,6 @@ set(SOURCE_FILES_clp
         src/TimestampPattern.cpp
         src/TimestampPattern.hpp
         src/TraceableException.hpp
-        src/type_utils.hpp
         src/Utils.cpp
         src/Utils.hpp
         src/VariableDictionaryEntry.cpp
@@ -351,6 +351,7 @@ target_compile_features(clp
 add_subdirectory(src/grammar/kql)
 
 set(SOURCE_FILES_clg
+        include/ys_type_utils.hpp
         src/BufferReader.cpp
         src/BufferReader.hpp
         src/clg/clg.cpp
@@ -453,7 +454,6 @@ set(SOURCE_FILES_clg
         src/TimestampPattern.cpp
         src/TimestampPattern.hpp
         src/TraceableException.hpp
-        src/type_utils.hpp
         src/Utils.cpp
         src/Utils.hpp
         src/VariableDictionaryEntry.cpp
@@ -492,6 +492,7 @@ target_compile_features(clg
         )
 
 set(SOURCE_FILES_clo
+        include/ys_type_utils.hpp
         src/BufferReader.cpp
         src/BufferReader.hpp
         src/clo/clo.cpp
@@ -588,7 +589,6 @@ set(SOURCE_FILES_clo
         src/TimestampPattern.cpp
         src/TimestampPattern.hpp
         src/TraceableException.hpp
-        src/type_utils.hpp
         src/Utils.cpp
         src/Utils.hpp
         src/VariableDictionaryEntry.cpp
@@ -626,6 +626,7 @@ target_compile_features(clo
 
 set(SOURCE_FILES_unitTest
         include/math_utils.hpp
+        include/ys_type_utils.hpp
         src/BufferedFileReader.cpp
         src/BufferedFileReader.hpp
         src/BufferReader.cpp
@@ -776,7 +777,6 @@ set(SOURCE_FILES_unitTest
         src/TimestampPattern.cpp
         src/TimestampPattern.hpp
         src/TraceableException.hpp
-        src/type_utils.hpp
         src/Utils.cpp
         src/Utils.hpp
         src/VariableDictionaryEntry.cpp

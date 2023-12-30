@@ -5,6 +5,7 @@
 #include "../../ir/types.hpp"
 #include "byteswap.hpp"
 #include "protocol_constants.hpp"
+#include "ys_type_utils.hpp"
 
 using ir::eight_byte_encoded_variable_t;
 using ir::epoch_time_ms_t;
@@ -465,7 +466,7 @@ IRErrorCode deserialize_preamble(
     metadata.resize(metadata_size);
     if (ErrorCode_Success
         != reader.try_read_exact_length(
-                size_checked_pointer_cast<char>(metadata.data()),
+                ys_type_utils::size_checked_pointer_cast<char>(metadata.data()),
                 metadata_size
         ))
     {

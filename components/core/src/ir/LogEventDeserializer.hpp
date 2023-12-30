@@ -8,9 +8,9 @@
 #include "../ReaderInterface.hpp"
 #include "../TimestampPattern.hpp"
 #include "../TraceableException.hpp"
-#include "../type_utils.hpp"
 #include "LogEvent.hpp"
 #include "types.hpp"
+#include "ys_type_utils.hpp"
 
 namespace ir {
 /**
@@ -74,7 +74,7 @@ private:
     [[no_unique_address]] std::conditional_t<
             std::is_same_v<encoded_variable_t, four_byte_encoded_variable_t>,
             epoch_time_ms_t,
-            EmptyType>
+            ys_type_utils::EmptyType>
             m_prev_msg_timestamp{};
     ReaderInterface& m_reader;
 };

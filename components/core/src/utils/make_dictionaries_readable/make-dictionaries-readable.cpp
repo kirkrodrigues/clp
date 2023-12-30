@@ -9,10 +9,10 @@
 #include "../../LogTypeDictionaryReader.hpp"
 #include "../../spdlog_with_specializations.hpp"
 #include "../../streaming_archive/Constants.hpp"
-#include "../../type_utils.hpp"
 #include "../../VariableDictionaryReader.hpp"
 #include "CommandLineArguments.hpp"
 #include "string_utils.hpp"
+#include "ys_type_utils.hpp"
 
 using ir::VariablePlaceholder;
 using std::string;
@@ -100,7 +100,7 @@ int main(int argc, char const* argv[]) {
                     SPDLOG_ERROR(
                             "Logtype '{}' contains unexpected variable placeholder 0x{:x}",
                             value,
-                            enum_to_underlying_type(var_placeholder)
+                            ys_type_utils::enum_to_underlying_type(var_placeholder)
                     );
                     return -1;
             }

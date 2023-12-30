@@ -1,11 +1,12 @@
 #include "parsing.hpp"
 
-#include "../type_utils.hpp"
 #include "string_utils.hpp"
 #include "types.hpp"
+#include "ys_type_utils.hpp"
 
 using std::string;
 using std::string_view;
+using ys_type_utils::enum_to_underlying_type;
 
 namespace ir {
 /*

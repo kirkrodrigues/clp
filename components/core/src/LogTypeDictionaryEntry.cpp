@@ -2,12 +2,13 @@
 
 #include "ir/parsing.hpp"
 #include "ir/types.hpp"
-#include "type_utils.hpp"
 #include "Utils.hpp"
+#include "ys_type_utils.hpp"
 
 using ir::VariablePlaceholder;
 using std::string;
 using std::string_view;
+using ys_type_utils::enum_to_underlying_type;
 
 size_t LogTypeDictionaryEntry::get_placeholder_info(
         size_t placeholder_ix,

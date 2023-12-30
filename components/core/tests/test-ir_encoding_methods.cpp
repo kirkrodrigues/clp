@@ -7,6 +7,7 @@
 #include "../src/ffi/ir_stream/encoding_methods.hpp"
 #include "../src/ffi/ir_stream/protocol_constants.hpp"
 #include "../src/ir/types.hpp"
+#include "ys_type_utils.hpp"
 
 using ffi::decode_float_var;
 using ffi::decode_integer_var;
@@ -34,6 +35,8 @@ using std::is_same_v;
 using std::string;
 using std::string_view;
 using std::vector;
+using ys_type_utils::enum_to_underlying_type;
+using ys_type_utils::size_checked_pointer_cast;
 
 static epoch_time_ms_t get_current_ts();
 

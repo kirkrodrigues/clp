@@ -8,6 +8,7 @@
 #include "../src/ffi/search/QueryMethodFailed.hpp"
 #include "../src/ffi/search/WildcardToken.hpp"
 #include "../src/ir/types.hpp"
+#include "ys_type_utils.hpp"
 
 using ffi::search::ExactVariableToken;
 using ffi::search::generate_subqueries;
@@ -20,6 +21,7 @@ using ir::VariablePlaceholder;
 using std::string;
 using std::variant;
 using std::vector;
+using ys_type_utils::enum_to_underlying_type;
 
 /**
  * Simple class to hold the type of a query variable

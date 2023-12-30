@@ -3,10 +3,12 @@
 #include "../../ir/parsing.hpp"
 #include "../../ir/types.hpp"
 #include "QueryWildcard.hpp"
+#include "ys_type_utils.hpp"
 
 using std::string;
 using std::variant;
 using std::vector;
+using ys_type_utils::enum_to_underlying_type;
 
 namespace ffi::search {
 template <typename encoded_variable_t>

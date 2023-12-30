@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "Stopwatch.hpp"
-#include "type_utils.hpp"
+#include "ys_type_utils.hpp"
 
 /**
  * Class to time code.
@@ -51,14 +51,18 @@ public:
     // Constants
     // NOTE: We use lambdas so that we can programmatically initialize the constexpr array
     static constexpr auto cContinuousMeasurementEnabled = []() {
-        std::array<bool, enum_to_underlying_type(ContinuousMeasurementIndex::Length)> enabled{};
-        enabled[enum_to_underlying_type(ContinuousMeasurementIndex::Compression)] = true;
-        enabled[enum_to_underlying_type(ContinuousMeasurementIndex::ParseLogFile)] = true;
-        enabled[enum_to_underlying_type(ContinuousMeasurementIndex::Search)] = true;
+        std::array<bool, ys_type_utils::enum_to_underlying_type(ContinuousMeasurementIndex::Length)>
+                enabled{};
+        enabled[ys_type_utils::enum_to_underlying_type(ContinuousMeasurementIndex::Compression)]
+                = true;
+        enabled[ys_type_utils::enum_to_underlying_type(ContinuousMeasurementIndex::ParseLogFile)]
+                = true;
+        enabled[ys_type_utils::enum_to_underlying_type(ContinuousMeasurementIndex::Search)] = true;
         return enabled;
     }();
     static constexpr auto cFragmentedMeasurementEnabled = []() {
-        std::array<bool, enum_to_underlying_type(FragmentedMeasurementIndex::Length)> enabled{};
+        std::array<bool, ys_type_utils::enum_to_underlying_type(FragmentedMeasurementIndex::Length)>
+                enabled{};
         return enabled;
     }();
 
@@ -69,19 +73,22 @@ public:
     static void init() {
         if constexpr (PROF_ENABLED) {
             m_continuous_measurements = new std::vector<Stopwatch>(
-                    enum_to_underlying_type(ContinuousMeasurementIndex::Length)
+                    ys_type_utils::enum_to_underlying_type(ContinuousMeasurementIndex::Length)
             );
             m_fragmented_measurements = new std::vector<Stopwatch>(
-                    enum_to_underlying_type(FragmentedMeasurementIndex::Length)
+                    ys_type_utils::enum_to_underlying_type(FragmentedMeasurementIndex::Length)
             );
         }
     }
 
     template <ContinuousMeasurementIndex index>
     static void start_continuous_measurement() {
-        if constexpr (PROF_ENABLED && cContinuousMeasurementEnabled[enum_to_underlying_type(index)])
+        if constexpr ((PROF_ENABLED
+                       && cContinuousMeasurementEnabled[ys_type_utils::enum_to_underlying_type(index
+                       )]))
         {
-            auto& stopwatch = (*m_continuous_measurements)[enum_to_underlying_type(index)];
+            auto& stopwatch
+                    = (*m_continuous_measurements)[ys_type_utils::enum_to_underlying_type(index)];
             stopwatch.reset();
             stopwatch.start();
         }
@@ -89,16 +96,18 @@ public:
 
     template <ContinuousMeasurementIndex index>
     static void stop_continuous_measurement() {
-        if constexpr (PROF_ENABLED && cContinuousMeasurementEnabled[enum_to_underlying_type(index)])
+        if constexpr ((PROF_ENABLED
+                       && cContinuousMeasurementEnabled[ys_type_utils::enum_to_underlying_type(index
+                       )]))
         {
-            (*m_continuous_measurements)[enum_to_underlying_type(index)].stop();
+            (*m_continuous_measurements)[ys_type_utils::enum_to_underlying_type(index)].stop();
         }
     }
 
     template <ContinuousMeasurementIndex index>
     static double get_continuous_measurement_in_seconds() {
         if constexpr (PROF_ENABLED) {
-            return (*m_continuous_measurements)[enum_to_underlying_type(index)]
+            return (*m_continuous_measurements)[ys_type_utils::enum_to_underlying_type(index)]
                     .get_time_taken_in_seconds();
         } else {
             return 0;
@@ -107,32 +116,38 @@ public:
 
     template <FragmentedMeasurementIndex index>
     static void start_fragmented_measurement() {
-        if constexpr (PROF_ENABLED && cFragmentedMeasurementEnabled[enum_to_underlying_type(index)])
+        if constexpr ((PROF_ENABLED
+                       && cFragmentedMeasurementEnabled[ys_type_utils::enum_to_underlying_type(index
+                       )]))
         {
-            (*m_fragmented_measurements)[enum_to_underlying_type(index)].start();
+            (*m_fragmented_measurements)[ys_type_utils::enum_to_underlying_type(index)].start();
         }
     }
 
     template <FragmentedMeasurementIndex index>
     static void stop_fragmented_measurement() {
-        if constexpr (PROF_ENABLED && cFragmentedMeasurementEnabled[enum_to_underlying_type(index)])
+        if constexpr ((PROF_ENABLED
+                       && cFragmentedMeasurementEnabled[ys_type_utils::enum_to_underlying_type(index
+                       )]))
         {
-            (*m_fragmented_measurements)[enum_to_underlying_type(index)].stop();
+            (*m_fragmented_measurements)[ys_type_utils::enum_to_underlying_type(index)].stop();
         }
     }
 
     template <FragmentedMeasurementIndex index>
     static void reset_fragmented_measurement() {
-        if constexpr (PROF_ENABLED && cFragmentedMeasurementEnabled[enum_to_underlying_type(index)])
+        if constexpr ((PROF_ENABLED
+                       && cFragmentedMeasurementEnabled[ys_type_utils::enum_to_underlying_type(index
+                       )]))
         {
-            (*m_fragmented_measurements)[enum_to_underlying_type(index)].reset();
+            (*m_fragmented_measurements)[ys_type_utils::enum_to_underlying_type(index)].reset();
         }
     }
 
     template <FragmentedMeasurementIndex index>
     static double get_fragmented_measurement_in_seconds() {
         if constexpr (PROF_ENABLED) {
-            return (*m_fragmented_measurements)[enum_to_underlying_type(index)]
+            return (*m_fragmented_measurements)[ys_type_utils::enum_to_underlying_type(index)]
                     .get_time_taken_in_seconds();
         } else {
             return 0;
@@ -148,11 +163,15 @@ private:
 // NOTE: We use macros so that we can add the measurement index to the log (not easy to do with
 // templates).
 #define LOG_CONTINUOUS_MEASUREMENT(x) \
-    if (PROF_ENABLED && Profiler::cContinuousMeasurementEnabled[enum_to_underlying_type(x)]) { \
+    if (PROF_ENABLED \
+        && Profiler::cContinuousMeasurementEnabled[ys_type_utils::enum_to_underlying_type(x)]) \
+    { \
         SPDLOG_INFO("{} took {} s", #x, Profiler::get_continuous_measurement_in_seconds<x>()); \
     }
 #define LOG_FRAGMENTED_MEASUREMENT(x) \
-    if (PROF_ENABLED && Profiler::cFragmentedMeasurementEnabled[enum_to_underlying_type(x)]) { \
+    if (PROF_ENABLED \
+        && Profiler::cFragmentedMeasurementEnabled[ys_type_utils::enum_to_underlying_type(x)]) \
+    { \
         SPDLOG_INFO("{} took {} s", #x, Profiler::get_fragmented_measurement_in_seconds<x>()); \
     }
 #define PROFILER_SPDLOG_INFO(...) \

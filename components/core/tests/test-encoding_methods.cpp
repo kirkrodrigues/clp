@@ -2,6 +2,7 @@
 
 #include "../src/ffi/encoding_methods.hpp"
 #include "../src/ir/types.hpp"
+#include "ys_type_utils.hpp"
 
 using ffi::decode_float_var;
 using ffi::decode_integer_var;
@@ -18,6 +19,7 @@ using ir::VariablePlaceholder;
 using std::string;
 using std::string_view;
 using std::vector;
+using ys_type_utils::enum_to_underlying_type;
 
 // Local function prototypes
 /**

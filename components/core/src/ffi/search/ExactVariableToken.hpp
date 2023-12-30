@@ -5,6 +5,7 @@
 #include "../../ir/types.hpp"
 #include "../encoding_methods.hpp"
 #include "QueryToken.hpp"
+#include "ys_type_utils.hpp"
 
 namespace ffi::search {
 /**
@@ -35,7 +36,7 @@ public:
     bool operator!=(ExactVariableToken const& rhs) const { return !(rhs == *this); }
 
     void add_to_logtype_query(std::string& logtype_query) const {
-        logtype_query += enum_to_underlying_type(m_placeholder);
+        logtype_query += ys_type_utils::enum_to_underlying_type(m_placeholder);
     }
 
     [[nodiscard]] encoded_variable_t get_encoded_value() const { return m_encoded_value; }

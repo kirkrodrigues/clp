@@ -6,8 +6,8 @@
 
 #include "../database_utils.hpp"
 #include "../Defs.h"
-#include "../type_utils.hpp"
 #include "Constants.hpp"
+#include "ys_type_utils.hpp"
 
 // Types
 enum class FilesTableFieldIndexes : uint16_t {
@@ -33,6 +33,7 @@ using std::make_unique;
 using std::string;
 using std::to_string;
 using std::vector;
+using ys_type_utils::enum_to_underlying_type;
 
 namespace streaming_archive {
 static void

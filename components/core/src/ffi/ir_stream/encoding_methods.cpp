@@ -6,6 +6,7 @@
 #include "../../ir/types.hpp"
 #include "byteswap.hpp"
 #include "protocol_constants.hpp"
+#include "ys_type_utils.hpp"
 
 using ir::eight_byte_encoded_variable_t;
 using ir::epoch_time_ms_t;
@@ -13,6 +14,7 @@ using ir::four_byte_encoded_variable_t;
 using std::string;
 using std::string_view;
 using std::vector;
+using ys_type_utils::bit_cast;
 
 namespace ffi::ir_stream {
 // Local function prototypes

@@ -1,6 +1,8 @@
 #include "QueryWildcard.hpp"
 
-#include "../../type_utils.hpp"
+#include "ys_type_utils.hpp"
+
+using ys_type_utils::enum_to_underlying_type;
 
 namespace ffi::search {
 QueryWildcard::QueryWildcard(char wildcard, size_t pos_in_query, bool is_boundary_wildcard) {

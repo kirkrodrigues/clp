@@ -4,8 +4,8 @@
 #include <string>
 #include <string_view>
 
-#include "../type_utils.hpp"
 #include "types.hpp"
+#include "ys_type_utils.hpp"
 
 namespace ir {
 template <typename EscapeHandler>
@@ -18,7 +18,8 @@ void append_constant_to_logtype(
     auto constant_len = constant.length();
     for (size_t i = 0; i < constant_len; ++i) {
         auto const c = constant[i];
-        bool const is_escape_char = (enum_to_underlying_type(VariablePlaceholder::Escape) == c);
+        bool const is_escape_char
+                = (ys_type_utils::enum_to_underlying_type(VariablePlaceholder::Escape) == c);
         if (false == is_escape_char && false == is_variable_placeholder(c)) {
             continue;
         }

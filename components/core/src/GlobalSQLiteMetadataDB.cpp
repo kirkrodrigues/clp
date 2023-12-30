@@ -8,7 +8,7 @@
 #include "database_utils.hpp"
 #include "spdlog_with_specializations.hpp"
 #include "streaming_archive/Constants.hpp"
-#include "type_utils.hpp"
+#include "ys_type_utils.hpp"
 
 // Types
 enum class ArchivesTableFieldIndexes : uint16_t {
@@ -45,6 +45,7 @@ using std::string;
 using std::to_string;
 using std::unordered_set;
 using std::vector;
+using ys_type_utils::enum_to_underlying_type;
 
 static void create_tables(
         vector<std::pair<string, string>> const& archive_field_names_and_types,

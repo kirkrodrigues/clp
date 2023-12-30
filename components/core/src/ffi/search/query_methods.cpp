@@ -5,6 +5,7 @@
 #include "CompositeWildcardToken.hpp"
 #include "QueryMethodFailed.hpp"
 #include "string_utils.hpp"
+#include "ys_type_utils.hpp"
 
 using ir::eight_byte_encoded_variable_t;
 using ir::four_byte_encoded_variable_t;
@@ -94,7 +95,7 @@ void generate_subqueries(
         if (ir::is_variable_placeholder(constant[char_to_escape_pos])
             || (next_char_pos < constant.length() && false == is_wildcard(constant[next_char_pos])))
         {
-            logtype += enum_to_underlying_type(ir::VariablePlaceholder::Escape);
+            logtype += ys_type_utils::enum_to_underlying_type(ir::VariablePlaceholder::Escape);
         }
     };
     string logtype_query;
@@ -113,7 +114,7 @@ void generate_subqueries(
             );
 
             std::visit(
-                    overloaded{
+                    ys_type_utils::overloaded{
                             [&logtype_query, &query_vars](  // clang-format off
                                     ExactVariableToken<encoded_variable_t> const& token
                             ) {  // clang-format on

@@ -5,11 +5,13 @@
 #include "../src/EncodedVariableInterpreter.hpp"
 #include "../src/ir/types.hpp"
 #include "../src/streaming_archive/Constants.hpp"
+#include "ys_type_utils.hpp"
 
 using ir::VariablePlaceholder;
 using std::string;
 using std::to_string;
 using std::vector;
+using ys_type_utils::enum_to_underlying_type;
 
 TEST_CASE("EncodedVariableInterpreter", "[EncodedVariableInterpreter]") {
     SECTION("Test convert_string_to_representable_integer_var") {

@@ -2,7 +2,7 @@
 
 #include "../src/ir/parsing.hpp"
 #include "../src/ir/types.hpp"
-#include "../src/type_utils.hpp"
+#include "ys_type_utils.hpp"
 
 using ir::get_bounds_of_next_var;
 using std::string;
@@ -92,7 +92,7 @@ TEST_CASE("ir::get_bounds_of_next_var", "[ir][get_bounds_of_next_var]") {
 
     // String containing variable placeholder
     str = " text ";
-    str += enum_to_underlying_type(ir::VariablePlaceholder::Integer);
+    str += ys_type_utils::enum_to_underlying_type(ir::VariablePlaceholder::Integer);
     str += " var123 ";
     begin_pos = 0;
     end_pos = 0;

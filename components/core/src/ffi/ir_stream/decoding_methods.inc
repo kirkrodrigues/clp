@@ -8,6 +8,7 @@
 #include "../encoding_methods.hpp"
 #include "decoding_methods.hpp"
 #include "protocol_constants.hpp"
+#include "ys_type_utils.hpp"
 
 namespace ffi::ir_stream {
 template <
@@ -36,7 +37,7 @@ void generic_decode_message(
     for (size_t cur_pos = 0; cur_pos < logtype_length; ++cur_pos) {
         auto c = logtype[cur_pos];
         switch (c) {
-            case enum_to_underlying_type(ir::VariablePlaceholder::Float): {
+            case ys_type_utils::enum_to_underlying_type(ir::VariablePlaceholder::Float): {
                 constant_handler(
                         logtype,
                         next_static_text_begin_pos,
@@ -57,7 +58,7 @@ void generic_decode_message(
                 break;
             }
 
-            case enum_to_underlying_type(ir::VariablePlaceholder::Integer): {
+            case ys_type_utils::enum_to_underlying_type(ir::VariablePlaceholder::Integer): {
                 constant_handler(
                         logtype,
                         next_static_text_begin_pos,
@@ -78,7 +79,7 @@ void generic_decode_message(
                 break;
             }
 
-            case enum_to_underlying_type(ir::VariablePlaceholder::Dictionary): {
+            case ys_type_utils::enum_to_underlying_type(ir::VariablePlaceholder::Dictionary): {
                 constant_handler(
                         logtype,
                         next_static_text_begin_pos,
@@ -99,7 +100,7 @@ void generic_decode_message(
                 break;
             }
 
-            case enum_to_underlying_type(ir::VariablePlaceholder::Escape): {
+            case ys_type_utils::enum_to_underlying_type(ir::VariablePlaceholder::Escape): {
                 // Ensure the escape character is followed by a character that's being escaped
                 if (cur_pos == logtype_length - 1) {
                     throw DecodingException(

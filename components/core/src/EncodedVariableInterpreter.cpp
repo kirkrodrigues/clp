@@ -10,7 +10,7 @@
 #include "ir/types.hpp"
 #include "spdlog_with_specializations.hpp"
 #include "string_utils.hpp"
-#include "type_utils.hpp"
+#include "ys_type_utils.hpp"
 
 using ffi::cEightByteEncodedFloatDigitsBitMask;
 using ir::eight_byte_encoded_variable_t;
@@ -20,6 +20,7 @@ using ir::VariablePlaceholder;
 using std::string;
 using std::unordered_set;
 using std::vector;
+using ys_type_utils::bit_cast;
 
 variable_dictionary_id_t EncodedVariableInterpreter::decode_var_dict_id(
         encoded_variable_t encoded_var
@@ -349,7 +350,7 @@ bool EncodedVariableInterpreter::decode_variables_into_message(
                         "EncodedVariableInterpreter: Logtype '{}' contains unexpected variable "
                         "placeholder 0x{:x}",
                         logtype_value,
-                        enum_to_underlying_type(var_placeholder)
+                        ys_type_utils::enum_to_underlying_type(var_placeholder)
                 );
                 return false;
         }

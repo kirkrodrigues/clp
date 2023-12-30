@@ -3,6 +3,7 @@
 #include "../../ir/parsing.hpp"
 #include "../../ir/types.hpp"
 #include "string_utils.hpp"
+#include "ys_type_utils.hpp"
 
 using std::string;
 using std::string_view;
@@ -62,7 +63,7 @@ void CompositeWildcardToken<encoded_variable_t>::add_to_query(
             logtype_query.append(m_query, constant_begin_pos, begin_pos - constant_begin_pos);
         }
         std::visit(
-                overloaded{
+                ys_type_utils::overloaded{
                         [&logtype_query, &variable_tokens](  // clang-format off
                                 ExactVariableToken<encoded_variable_t> const& exact_var
                         ) {  // clang-format on
@@ -87,7 +88,8 @@ void CompositeWildcardToken<encoded_variable_t>::add_to_query(
         if (std::holds_alternative<WildcardToken<encoded_variable_t>>(last_var)) {
             auto const& wildcard_var = std::get<WildcardToken<encoded_variable_t>>(last_var);
             if (wildcard_var.has_suffix_star_wildcard()) {
-                logtype_query += enum_to_underlying_type(WildcardType::ZeroOrMoreChars);
+                logtype_query
+                        += ys_type_utils::enum_to_underlying_type(WildcardType::ZeroOrMoreChars);
             }
         }
     }

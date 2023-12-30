@@ -11,7 +11,7 @@
 #include "streaming_compression/zstd/Compressor.hpp"
 #include "streaming_compression/zstd/Decompressor.hpp"
 #include "TraceableException.hpp"
-#include "type_utils.hpp"
+#include "ys_type_utils.hpp"
 
 /**
  * Class representing a logtype dictionary entry
@@ -46,7 +46,7 @@ public:
      * @param logtype
      */
     static void add_dict_var(std::string& logtype) {
-        logtype += enum_to_underlying_type(ir::VariablePlaceholder::Dictionary);
+        logtype += ys_type_utils::enum_to_underlying_type(ir::VariablePlaceholder::Dictionary);
     }
 
     /**
@@ -54,7 +54,7 @@ public:
      * @param logtype
      */
     static void add_int_var(std::string& logtype) {
-        logtype += enum_to_underlying_type(ir::VariablePlaceholder::Integer);
+        logtype += ys_type_utils::enum_to_underlying_type(ir::VariablePlaceholder::Integer);
     }
 
     /**
@@ -62,7 +62,7 @@ public:
      * @param logtype
      */
     static void add_float_var(std::string& logtype) {
-        logtype += enum_to_underlying_type(ir::VariablePlaceholder::Float);
+        logtype += ys_type_utils::enum_to_underlying_type(ir::VariablePlaceholder::Float);
     }
 
     /**
@@ -70,7 +70,7 @@ public:
      * @param logtype
      */
     static void add_escape(std::string& logtype) {
-        logtype += enum_to_underlying_type(ir::VariablePlaceholder::Escape);
+        logtype += ys_type_utils::enum_to_underlying_type(ir::VariablePlaceholder::Escape);
     }
 
     /**

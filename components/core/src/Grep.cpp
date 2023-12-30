@@ -11,6 +11,7 @@
 #include "string_utils.hpp"
 #include "StringReader.hpp"
 #include "Utils.hpp"
+#include "ys_type_utils.hpp"
 
 using ir::is_delim;
 using std::string;
@@ -416,7 +417,9 @@ SubQueryMatchabilityResult generate_logtypes_and_vars_for_subquery(
     string logtype;
     auto escape_handler
             = [](std::string_view constant, size_t char_to_escape_pos, string& logtype) -> void {
-        auto const escape_char{enum_to_underlying_type(ir::VariablePlaceholder::Escape)};
+        auto const escape_char{
+                ys_type_utils::enum_to_underlying_type(ir::VariablePlaceholder::Escape)
+        };
         auto const next_char_pos{char_to_escape_pos + 1};
         // NOTE: We don't want to add additional escapes for wildcards that have been escaped. E.g.,
         // the query "\\*" should remain unchanged.

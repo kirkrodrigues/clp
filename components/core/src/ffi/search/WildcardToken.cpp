@@ -3,16 +3,17 @@
 #include <string_view>
 
 #include "../../ir/types.hpp"
-#include "../../type_utils.hpp"
 #include "../encoding_methods.hpp"
 #include "QueryWildcard.hpp"
 #include "string_utils.hpp"
+#include "ys_type_utils.hpp"
 
 using ir::eight_byte_encoded_variable_t;
 using ir::four_byte_encoded_variable_t;
 using ir::VariablePlaceholder;
 using std::string;
 using std::string_view;
+using ys_type_utils::enum_to_underlying_type;
 
 namespace ffi::search {
 // Local function prototypes
