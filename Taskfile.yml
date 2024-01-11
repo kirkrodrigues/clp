@@ -144,11 +144,13 @@ tasks:
   lint-check:
     cmds:
       - task: "core-lint-check"
+      - task: "shell-lint-check"
       - task: "yamllint"
 
   lint-fix:
     cmds:
       - task: "core-lint-fix"
+      - task: "shell-lint-fix"
       - task: "yamllint"
 
   core-lint-check:
@@ -176,6 +178,30 @@ tasks:
         vars:
           FLAGS: "-i"
     sources: *core_lint_source_files
+
+  py-lint-fix:
+    deps: ["lint-venv"]
+    cmds:
+      - |-
+        . "{{.LINT_VENV_DIR}}/bin/activate"
+        mypy components/clp-package-utils/clp_package_utils \
+          components/clp-py-utils/clp_py_utils \
+          components/compression-job-handler/compression_job_handler \
+          components/job-orchestration/job_orchestration
+        black components/clp-package-utils/clp_package_utils
+        ruff check --fix components/clp-package-utils/clp_package_utils
+
+  shell-lint-check:
+    cmds:
+      - task: "shell-lint"
+        vars:
+          SHFMT_FLAGS: "--diff"
+
+  shell-lint-fix:
+    cmds:
+      - task: "shell-lint"
+        vars:
+          SHFMT_FLAGS: "--write"
 
   yamllint:
     deps: ["lint-venv"]
@@ -292,3 +318,16 @@ tasks:
     status:
       - "test -d {{.LINT_VENV_DIR}}"
       - "test {{.TIMESTAMP | unixEpoch}} -lt $(stat --format %Y {{.LINT_VENV_DIR}})"
+
+  shell-lint:
+    internal: true
+    requires:
+      vars: ["SHFMT_FLAGS"]
+    deps: ["lint-venv"]
+    cmds:
+      - >-
+        find components/core/tools tools -type f -iname "*.sh" -print0
+        | xargs -0 shfmt --indent 4 --binary-next-line --case-indent {{.SHFMT_FLAGS}}
+      - >-
+        find components/core/tools tools -type f -iname "*.sh" -print0
+        | xargs -0 shellcheck --format gcc

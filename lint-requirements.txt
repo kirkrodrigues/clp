@@ -1,2 +1,7 @@
 clang-format~=17.0
 yamllint~=1.33
+black~=23.11
+mypy~=1.7
+ruff~=0.1
+types-PyYAML~=6.0
+zstandard

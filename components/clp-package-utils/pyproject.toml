@@ -13,4 +13,38 @@ zstandard = "~0.22"
 
 [build-system]
 requires = ["poetry-core"]
+requires-python = ">=3.8"
 build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+pretty = true
+strict = true
+
+[tool.ruff]
+line-length = 100
+select = ["ALL"]
+ignore = [
+    "ANN101",  # Excessive
+    "D203",  # Preference
+    "D205",  # Too much effort
+    "D212",  # Preference
+    "D400",  # Doesn't apply when first line isn't a docstring
+    "D401",  # We use non-imperative for function docstrings
+    "D415",  # Doesn't apply when first line isn't a docstring
+    "FBT",  # Unnecessary with modern IDEs
+    "UP015",  # Explicit open modes are helpful
+    "PT",  # We don't use pytest
+    "CPY001",  # Unnecessary
+    "T20",  # We use print/pprint
+    "SIM300",  # We use Yoda conditions in other languages
+    "TD002",  # Excessive
+    "TD003",  # Unnecessary
+    "TD004",  # Preference
+    "S311"  # Too-many false positives
+]
+
+[tool.ruff.lint.flake8-annotations]
+mypy-init-return = true
+
+[tool.ruff.isort]
+order-by-type = false
