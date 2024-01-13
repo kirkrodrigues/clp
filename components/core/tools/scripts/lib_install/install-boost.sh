@@ -4,7 +4,7 @@
 set -e
 
 cUsage="Usage: ${BASH_SOURCE[0]} <version>"
-if [ "$#" -lt 1 ] ; then
+if [ "$#" -lt 1 ]; then
     echo $cUsage
     exit
 fi
@@ -12,8 +12,8 @@ version=$1
 version_with_underscores=${version//./_}
 
 echo "Checking for elevated privileges..."
-if [ ${EUID:-$(id -u)} -ne 0 ] ; then
-  sudo echo "Script can elevate privileges."
+if [ ${EUID:-$(id -u)} -ne 0 ]; then
+    sudo echo "Script can elevate privileges."
 fi
 
 # Get number of cpu cores
@@ -38,10 +38,10 @@ cd boost_${version_with_underscores}
 ./b2 -j${num_cpus}
 
 # Install
-if [ ${EUID:-$(id -u)} -ne 0 ] ; then
-  sudo ./b2 install
+if [ ${EUID:-$(id -u)} -ne 0 ]; then
+    sudo ./b2 install
 else
-  ./b2 install
+    ./b2 install
 fi
 
 # Clean up
