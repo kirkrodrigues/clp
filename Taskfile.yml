@@ -152,11 +152,13 @@ tasks:
   lint-check:
     cmds:
       - task: "core-lint-check"
+      - task: "shell-lint-check"
       - task: "yamllint"
 
   lint-fix:
     cmds:
       - task: "core-lint-fix"
+      - task: "shell-lint-fix"
       - task: "yamllint"
 
   core-lint-check:
@@ -184,6 +186,18 @@ tasks:
         vars:
           FLAGS: "-i"
     sources: *core_lint_source_files
+
+  shell-lint-check:
+    cmds:
+      - task: "shell-lint"
+        vars:
+          SHFMT_FLAGS: "--diff"
+
+  shell-lint-fix:
+    cmds:
+      - task: "shell-lint"
+        vars:
+          SHFMT_FLAGS: "--write"
 
   yamllint:
     deps: ["lint-venv"]
@@ -330,3 +344,16 @@ tasks:
     status:
       - "test -e '{{.CREATION_TIMESTAMP_FILE}}'"
       - "test {{.TIMESTAMP | unixEpoch}} -lt $(stat --format %Y '{{.CREATION_TIMESTAMP_FILE}}')"
+
+  shell-lint:
+    internal: true
+    requires:
+      vars: ["SHFMT_FLAGS"]
+    deps: ["lint-venv"]
+    cmds:
+      - >-
+        find components/core/tools tools -type f -iname "*.sh" -print0
+        | xargs -0 shfmt --indent 4 --binary-next-line --case-indent {{.SHFMT_FLAGS}}
+      - >-
+        find components/core/tools tools -type f -iname "*.sh" -print0
+        | xargs -0 shellcheck --format gcc
