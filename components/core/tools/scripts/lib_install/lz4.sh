@@ -44,9 +44,6 @@ if [ ${EUID:-$(id -u)} -ne 0 ]; then
     install_cmd_args+=("sudo")
 fi
 
-# Get number of cpu cores
-num_cpus=$(grep -c ^processor /proc/cpuinfo)
-
 # Download
 mkdir -p $temp_dir
 cd $temp_dir
@@ -62,7 +59,7 @@ fi
 
 # Build
 cd ${extracted_dir}
-make -j${num_cpus}
+make -j
 
 # Check if checkinstall is installed
 set +e
@@ -83,7 +80,7 @@ if [ $checkinstall_installed -eq 0 ]; then
     )
 fi
 install_cmd_args+=(
-    make -j install
+    make install
 )
 "${install_cmd_args[@]}"
 
