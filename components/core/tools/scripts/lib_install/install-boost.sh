@@ -16,9 +16,6 @@ if [ ${EUID:-$(id -u)} -ne 0 ]; then
     sudo echo "Script can elevate privileges."
 fi
 
-# Get number of cpu cores
-num_cpus=$(grep -c ^processor /proc/cpuinfo)
-
 package_name=boost
 
 # Create temp dir for installation
@@ -35,7 +32,7 @@ cd boost_${version_with_underscores}
 
 # Build
 ./bootstrap.sh --with-libraries=filesystem,iostreams,program_options,regex,system
-./b2 -j${num_cpus}
+./b2 -j
 
 # Install
 if [ ${EUID:-$(id -u)} -ne 0 ]; then

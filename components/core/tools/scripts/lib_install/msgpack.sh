@@ -81,6 +81,7 @@ install_cmd_args+=(
     cmake
     --build .
     --target install
+    --parallel
 )
 "${install_cmd_args[@]}"
 

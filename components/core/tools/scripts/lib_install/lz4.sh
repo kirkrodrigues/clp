@@ -83,7 +83,7 @@ if [ $checkinstall_installed -eq 0 ]; then
     )
 fi
 install_cmd_args+=(
-    make install
+    make -j install
 )
 "${install_cmd_args[@]}"
 

@@ -15,9 +15,6 @@ if [ ${EUID:-$(id -u)} -ne 0 ]; then
     sudo echo "Script can elevate privileges."
 fi
 
-# Get number of cpu cores
-num_cpus=$(grep -c ^processor /proc/cpuinfo)
-
 package_name=cmake
 
 # Create temp dir for installation
@@ -34,7 +31,7 @@ cd cmake-${version}
 
 # Build
 ./bootstrap
-make -j${num_cpus}
+make -j
 
 # Install
 if [ ${EUID:-$(id -u)} -ne 0 ]; then
