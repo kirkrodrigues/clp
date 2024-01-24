@@ -31,7 +31,13 @@ cd cmake-${version}
 
 # Build
 ./bootstrap
-make -j
+if [ -z ${RUNNER_OS+x} ] ; then
+    make -j
+else
+    num_cpus=$(grep -c ^processor /proc/cpuinfo)
+    echo "Building with ${num_cpus}"
+    make -j"${num_cpus}"
+fi
 
 # Install
 if [ ${EUID:-$(id -u)} -ne 0 ]; then
