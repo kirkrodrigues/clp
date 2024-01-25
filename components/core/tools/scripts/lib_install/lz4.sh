@@ -59,7 +59,8 @@ fi
 
 # Build
 cd ${extracted_dir}
-make -j
+num_cpus=$(grep -c ^processor /proc/cpuinfo)
+make -j"${num_cpus}"
 
 # Check if checkinstall is installed
 set +e

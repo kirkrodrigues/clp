@@ -32,7 +32,6 @@ cd cmake-${version}
 # Build
 ./bootstrap
 num_cpus=$(grep -c ^processor /proc/cpuinfo)
-echo "Building with ${num_cpus}"
 make -j"${num_cpus}"
 
 # Install
