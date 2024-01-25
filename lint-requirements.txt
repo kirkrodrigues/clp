@@ -1,2 +1,3 @@
+black~=23.12
 clang-format~=17.0
 yamllint~=1.33

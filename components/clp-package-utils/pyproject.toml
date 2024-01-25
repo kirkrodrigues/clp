@@ -15,3 +15,8 @@ zstandard = "~0.22"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+color = true
+preview = true
+target-version = ["py38", "py310"]
