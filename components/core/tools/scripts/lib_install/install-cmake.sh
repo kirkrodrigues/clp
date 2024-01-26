@@ -31,8 +31,7 @@ cd cmake-${version}
 
 # Build
 ./bootstrap
-num_cpus=$(grep -c ^processor /proc/cpuinfo)
-make -j"${num_cpus}"
+make -j"$(nproc)"
 
 # Install
 if [ ${EUID:-$(id -u)} -ne 0 ]; then

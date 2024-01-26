@@ -32,8 +32,7 @@ cd boost_${version_with_underscores}
 
 # Build
 ./bootstrap.sh --with-libraries=filesystem,iostreams,program_options,regex,system
-num_cpus=$(grep -c ^processor /proc/cpuinfo)
-./b2 -j"${num_cpus}"
+./b2 -j"$(nproc)"
 
 # Install
 if [ ${EUID:-$(id -u)} -ne 0 ]; then

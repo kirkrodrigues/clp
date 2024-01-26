@@ -62,8 +62,7 @@ mkdir -p cmake-build-release
 cd cmake-build-release
 # NOTE: Disable expat so the static libarchive doesn't look for it at link time
 cmake -DENABLE_EXPAT=OFF ../
-num_cpus=$(grep -c ^processor /proc/cpuinfo)
-make -j"${num_cpus}"
+make -j"$(nproc)"
 
 # Check if checkinstall is installed
 set +e

@@ -96,12 +96,11 @@ if [ $checkinstall_installed -eq 0 ]; then
         --pakdir "${deb_output_dir}"
     )
 fi
-num_cpus=$(grep -c ^processor /proc/cpuinfo)
 install_cmd_args+=(
     cmake
     --build .
     --target install
-    --parallel "${num_cpus}"
+    --parallel "$(nproc)"
 )
 "${install_cmd_args[@]}"
 

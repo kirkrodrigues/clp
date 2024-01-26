@@ -62,8 +62,7 @@ cd ${extracted_dir}/build/cmake
 mkdir -p cmake-build-release
 cd cmake-build-release
 cmake ../
-num_cpus=$(grep -c ^processor /proc/cpuinfo)
-make -j"${num_cpus}"
+make -j"$(nproc)"
 
 # Check if checkinstall is installed
 set +e
