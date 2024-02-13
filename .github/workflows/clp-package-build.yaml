@@ -27,6 +27,7 @@ jobs:
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           nvm install node
           npm install -g @go-task/cli
+          nvm install 14
           nvm use 14
           npm install -g meteor
 
