@@ -19,19 +19,23 @@ jobs:
         run: "chown $(id -u):$(id -g) -R ."
         shell: "bash"
 
-      - shell: "bash"
-        run: "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash"
-
       - name: "Install dependencies"
         shell: "bash"
         run: |-
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           nvm install node
           npm install -g @go-task/cli
           nvm use 14
           npm install -g meteor
 
       - shell: "bash"
-        run: "task package-tar"
+        run: |-
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          nvm use 14
+          task package-tar
 
       - uses: "softprops/action-gh-release@v1"
         if: "github.event_name != 'pull_request' \
