@@ -19,14 +19,15 @@ jobs:
         run: "chown $(id -u):$(id -g) -R ."
         shell: "bash"
 
-      - shell: "bash"
-        run: "npm install -g @go-task/cli"
-
-      - shell: "bash"
-        run: "nvm use 14"
-
-      - shell: "bash"
-        run: "npm install -g meteor"
+      - name: "Install dependencies"
+        shell: "bash"
+        run: |-
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+          source ~/.bashrc
+          nvm install node
+          npm install -g @go-task/cli
+          nvm use 14
+          npm install -g meteor
 
       - shell: "bash"
         run: "task package-tar"
