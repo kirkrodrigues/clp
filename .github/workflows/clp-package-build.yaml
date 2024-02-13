@@ -1,0 +1,40 @@
+name: "clp-package-build"
+
+on:
+  workflow_dispatch:
+
+# Currency group to prevent multiple workflow instances from trying to publish packages
+concurrency: "${{github.workflow}}-${{github.ref}}"
+
+jobs:
+  clp-package:
+    runs-on: "ubuntu-focal"
+    container:
+      image: "ghcr.io/y-scope/clp/clp-core-x86-ubuntu-focal:main"
+    steps:
+      - uses: "actions/checkout@v3"
+        with:
+          submodules: "recursive"
+
+      - name: "Work around actions/runner-images/issues/6775"
+        run: "chown $(id -u):$(id -g) -R ."
+        shell: "bash"
+
+      - shell: "bash"
+        run: "npm install -g @go-task/cli"
+
+      - shell: "bash"
+        run: "nvm use 14"
+
+      - shell: "bash"
+        run: "npm install -g meteor"
+
+      - shell: "bash"
+        run: "task package-tar"
+
+      - uses: "softprops/action-gh-release@v1"
+        if: "github.event_name != 'pull_request' \
+        && github.ref == 'refs/heads/ci-package-build-release'"
+        with:
+          prerelease: true
+          files: "build/clp-package*.tar.gz"
