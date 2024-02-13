@@ -7,7 +7,7 @@ concurrency: "${{github.workflow}}-${{github.ref}}"
 
 jobs:
   clp-package:
-    runs-on: "ubuntu-focal"
+    runs-on: "ubuntu-latest"
     container:
       image: "ghcr.io/y-scope/clp/clp-core-x86-ubuntu-focal:main"
     steps:
