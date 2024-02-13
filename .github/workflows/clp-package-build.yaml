@@ -1,6 +1,6 @@
 name: "clp-package-build"
 
-on: ["workflow_dispatch"]
+on: ["push", "workflow_dispatch"]
 
 # Currency group to prevent multiple workflow instances from trying to publish packages
 concurrency: "${{github.workflow}}-${{github.ref}}"
