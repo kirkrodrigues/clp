@@ -6,8 +6,11 @@ on: ["push"]
 # Currency group to prevent multiple workflow instances from trying to publish packages
 concurrency: "${{github.workflow}}-${{github.ref}}"
 
+env:
+  CONTAINER_IMAGE_REGISTRY: "ghcr.io"
+
 jobs:
-  clp-package:
+  build:
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v3"
