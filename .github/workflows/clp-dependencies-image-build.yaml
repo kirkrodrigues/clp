@@ -1,0 +1,48 @@
+name: "clp-dependencies-image-build"
+
+# TODO
+on: ["push"]
+
+# Currency group to prevent multiple workflow instances from trying to publish packages
+concurrency: "${{github.workflow}}-${{github.ref}}"
+
+jobs:
+  clp-package:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@v3"
+        with:
+          submodules: "recursive"
+
+      - name: "Work around actions/runner-images/issues/6775"
+        run: "chown $(id -u):$(id -g) -R ."
+        shell: "bash"
+
+      - uses: "docker/login-action@v3"
+        with:
+          registry: "${{env.CONTAINER_IMAGE_REGISTRY}}"
+          username: "${{github.actor}}"
+          password: "${{secrets.GITHUB_TOKEN}}"
+
+      - id: "sanitization"
+        shell: "bash"
+        run: |
+          # Docker doesn't support repository names with uppercase characters, so we convert the
+          # name to lowercase here.
+          echo "REPOSITORY=$(echo '${{github.repository}}' | tr '[:upper:]' '[:lower:]')" \
+            >> "$GITHUB_OUTPUT"
+
+      - id: "meta"
+        uses: "docker/metadata-action@v5"
+        with:
+          images: "${{env.CONTAINER_IMAGE_REGISTRY}}/${{steps.sanitization.outputs.REPOSITORY}}\
+            /clp-dependencies-x86-ubuntu-focal"
+
+      # TODO if: "github.event_name != 'pull_request' && github.ref == 'refs/heads/main'"
+      - uses: "docker/build-push-action@v5"
+        with:
+          context: "./"
+          file: "./tools/docker-images/clp-dependencies-x86-ubuntu-focal/Dockerfile"
+          push: true
+          tags: "${{steps.meta.outputs.tags}}"
+          labels: "${{steps.meta.outputs.labels}}"
