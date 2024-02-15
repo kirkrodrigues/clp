@@ -4,13 +4,13 @@ on:
   pull_request:
     paths:
       - ".github/actions/**"
-      - ".github/workflows/clp-core-build.yaml"
+      - ".github/workflows/clp-core-build-2.yaml"
       - "components/core/**"
       - "!components/core/tools/scripts/lib_install/macos-12/**"
   push:
     paths:
       - ".github/actions/**"
-      - ".github/workflows/clp-core-build.yaml"
+      - ".github/workflows/clp-core-build-2.yaml"
       - "components/core/**"
       - "!components/core/tools/scripts/lib_install/macos-12/**"
   workflow_dispatch:
@@ -111,7 +111,7 @@ jobs:
       - name: "Load image"
         run: |-
           docker load --input /tmp/myimage.tar
-          docker image ls -a 
+          docker image ls -a
 
       - shell: "bash"
         working-directory: "./components/core"
