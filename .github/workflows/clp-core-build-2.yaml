@@ -103,6 +103,18 @@ jobs:
     needs: "ubuntu-jammy"
     runs-on: "ubuntu-latest"
     steps:
+      - uses: "actions/checkout@v3"
+        with:
+          submodules: "recursive"
+
+      - name: "Work around actions/runner-images/issues/6775"
+        run: "chown $(id -u):$(id -g) -R ."
+        shell: "bash"
+
+      - shell: "bash"
+        working-directory: "./components/core"
+        run: "./tools/scripts/deps-download/download-all.sh"
+
       - uses: "actions/download-artifact@v3"
         with:
           name: "clp-core-dependencies-x86-ubuntu-jammy"
@@ -112,10 +124,6 @@ jobs:
         run: |-
           docker load --input /tmp/myimage.tar
           docker image ls -a
-
-      - shell: "bash"
-        working-directory: "./components/core"
-        run: "./tools/scripts/deps-download/download-all.sh"
 
       - shell: "bash"
         run: >-
