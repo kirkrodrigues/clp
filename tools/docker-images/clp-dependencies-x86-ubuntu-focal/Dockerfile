@@ -1,4 +1,4 @@
-FROM ghcr.io/y-scope/clp/clp-core-dependencies-x86-ubuntu-focal:main
+FROM ghcr.io/y-scope/clp/clp-core-dependencies-x86-ubuntu-focal:main AS BASE
 
 ARG CONTAINER_GID=1000
 ARG CONTAINER_UID=1000
@@ -6,7 +6,9 @@ ARG CONTAINER_USER=clp-user
 
 RUN apt-get update \
     && apt-get install -y \
-    python3-venv
+    python3-venv \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Install Task
 RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
@@ -39,3 +41,7 @@ RUN . "${NVM_DIR}/nvm.sh" \
 RUN echo "export PATH=/home/\${USER}/.meteor:\${PATH}" > ~/new.bashrc
 RUN cat ~/.bashrc >> ~/new.bashrc
 RUN mv ~/new.bashrc ~/.bashrc
+
+# Flatten the image
+FROM scratch
+COPY --from=BASE / /
