@@ -2,16 +2,57 @@ name: "clp-core-build"
 description: "Builds CLP-core in the given container"
 
 inputs:
-  image_name:
-    description: "Container image to use"
+  os_name:
+    description: "Name of container OS"
+    required: true
+  use_published_image:
+    description: "Whether to use the published image"
+    required: true
+  upload_binaries:
+    description: "Whether to upload the core binaries"
     required: true
 
 runs:
   using: "composite"
   steps:
+    - uses: "actions/checkout@v3"
+      with:
+        submodules: "recursive"
+
+    - name: "Work around actions/runner-images/issues/6775"
+      run: "chown $(id -u):$(id -g) -R ."
+      shell: "bash"
+
     - shell: "bash"
       working-directory: "./components/core"
       run: "./tools/scripts/deps-download/download-all.sh"
+
+    - if: "inputs.use_published_image == 'false'"
+      uses: "actions/download-artifact@v4"
+      with:
+        name: "clp-core-dependencies-x86-${{inputs.os_name}}"
+        path: "/tmp"
+
+    - if: "inputs.use_published_image == 'false'"
+      name: "Load image"
+      run: |-
+        docker load --input /tmp/image.tar
+        docker image ls -a
+
+    - id: "get_image_props"
+      shell: "bash"
+      run: |
+        # Docker doesn't support repository names with uppercase characters, so we convert to
+        # lowercase here.
+        repository=$(echo '${{github.repository}}' | tr '[:upper:]' '[:lower:]')
+        container_name="clp-core-dependencies-x86-${{inputs.os_name}}"
+        if [[ "${{inputs.push_deps_image}}" == "true" ]] ; then
+          echo "NAME=ghcr.io/${repository}/${container_name}" >> "$GITHUB_OUTPUT"
+          echo "BRANCH=${{github.ref_name}}" >> "$GITHUB_OUTPUT"
+        else
+          echo "NAME=${container_name}" >> "$GITHUB_OUTPUT"
+          echo "BRANCH=latest" >> "$GITHUB_OUTPUT"
+        fi
 
     - shell: "bash"
       run: >-
@@ -19,5 +60,23 @@ runs:
         --user $(id -u):$(id -g)
         --volume "$GITHUB_WORKSPACE/components/core":/mnt/clp
         --workdir /mnt/clp
-        ${{inputs.image_name}}
+        ${{steps.get_image_props.outputs.NAME}}
         /mnt/clp/tools/scripts/utils/build-and-run-unit-tests.sh . build
+
+    - if: "inputs.upload_binaries == 'true'"
+      id: "output_binaries"
+      run: |-
+        output_dir="/tmp/core-binaries"
+        echo "OUTPUT_DIR=${output_dir}" >> "GITHUB_OUTPUT"
+        
+        mkdir -p "${output_dir}"
+        cd "$GITHUB_WORKSPACE/components/core/build"
+        cp clg clp clp-s glt make-dictionaries-readable "${output_dir}"
+      shell: "bash"
+
+    - if: "inputs.upload_binaries == 'true'"
+      uses: "actions/upload-artifact@v4"
+      with:
+        name: "core-binaries-${{inputs.os_name}}"
+        path: "${{steps.output_binaries.outputs.OUTPUT_DIR}}"
+        retention-days: 1

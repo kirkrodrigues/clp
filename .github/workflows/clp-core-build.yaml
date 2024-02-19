@@ -1,4 +1,4 @@
-name: "clp-core-build"
+name: "clp-core-build-2"
 
 on:
   pull_request:
@@ -40,12 +40,8 @@ env:
 concurrency: "${{github.workflow}}-${{github.ref}}"
 
 jobs:
-  centos74:
+  centos74-image-build:
     runs-on: "ubuntu-latest"
-    services:
-      registry:
-        image: "registry:2"
-        ports: ["5000:5000"]
     env:
       OS_NAME: "centos7.4"
     steps:
@@ -71,20 +67,28 @@ jobs:
               - "components/core/tools/scripts/lib_install/${{env.OS_NAME}}/**"
             ${{inputs.PATHS_FILTER_CLP_FILTER}}
 
-      - uses: "./.github/actions/clp-core-build-deps-and-binaries"
+      - if: "steps.filter.outputs.image == 'true'"
+        uses: "./.github/actions/clp-core-build-containers"
         with:
           os_name: "${{env.OS_NAME}}"
-          deps_image_changed: "${{steps.filter.outputs.image}}"
-          push_binaries_image: false
-          local_registry_port: "5000"
+          clp_core_dir: "components/core"
+          push_deps_image: >-
+            ${{github.event_name != 'pull_request' && github.ref == 'refs/heads/main'}}
           token: "${{secrets.GITHUB_TOKEN}}"
 
-  ubuntu-focal:
+  centos74-core-build:
+    needs: "centos74-image-build"
     runs-on: "ubuntu-latest"
-    services:
-      registry:
-        image: "registry:2"
-        ports: ["5000:5000"]
+    steps:
+      - uses: "./.github/actions/clp-core-build"
+        with:
+          os_name: "centos7.4"
+          use_published_image: >-
+            ${{github.event_name != 'pull_request' && github.ref == 'refs/heads/main'}}
+          upload_binaries: "false"
+
+  ubuntu-focal-image-build:
+    runs-on: "ubuntu-latest"
     env:
       OS_NAME: "ubuntu-focal"
     steps:
@@ -106,25 +110,32 @@ jobs:
               - ".github/actions/**"
               - ".github/workflows/clp-core-build.yaml"
               - ${{env.PATHS_FILTER_LIB_INSTALL_GLOB}}
-              - "components/core/tools/docker-images/clp-core-${{env.OS_NAME}}/**"
               - "components/core/tools/docker-images/clp-env-base-${{env.OS_NAME}}/**"
               - "components/core/tools/scripts/lib_install/${{env.OS_NAME}}/**"
             ${{inputs.PATHS_FILTER_CLP_FILTER}}
 
-      - uses: "./.github/actions/clp-core-build-deps-and-binaries"
+      - if: "steps.filter.outputs.image == 'true'"
+        uses: "./.github/actions/clp-core-build-containers"
         with:
           os_name: "${{env.OS_NAME}}"
-          deps_image_changed: "${{steps.filter.outputs.image}}"
-          push_binaries_image: true
-          local_registry_port: "5000"
+          clp_core_dir: "components/core"
+          push_deps_image: >-
+            ${{github.event_name != 'pull_request' && github.ref == 'refs/heads/main'}}
           token: "${{secrets.GITHUB_TOKEN}}"
 
-  ubuntu-jammy:
+  ubuntu-focal-core-build:
+    needs: "ubuntu-focal-image-build"
     runs-on: "ubuntu-latest"
-    services:
-      registry:
-        image: "registry:2"
-        ports: ["5000:5000"]
+    steps:
+      - uses: "./.github/actions/clp-core-build"
+        with:
+          os_name: "ubuntu-focal"
+          use_published_image: >-
+            ${{github.event_name != 'pull_request' && github.ref == 'refs/heads/main'}}
+          upload_binaries: "true"
+
+  ubuntu-jammy-image-build:
+    runs-on: "ubuntu-latest"
     env:
       OS_NAME: "ubuntu-jammy"
     steps:
@@ -150,10 +161,22 @@ jobs:
               - "components/core/tools/scripts/lib_install/${{env.OS_NAME}}/**"
             ${{inputs.PATHS_FILTER_CLP_FILTER}}
 
-      - uses: "./.github/actions/clp-core-build-deps-and-binaries"
+      - if: "steps.filter.outputs.image == 'true'"
+        uses: "./.github/actions/clp-core-build-containers"
         with:
           os_name: "${{env.OS_NAME}}"
-          deps_image_changed: "${{steps.filter.outputs.image}}"
-          push_binaries_image: false
-          local_registry_port: "5000"
+          clp_core_dir: "components/core"
+          push_deps_image: >-
+            ${{github.event_name != 'pull_request' && github.ref == 'refs/heads/main'}}
           token: "${{secrets.GITHUB_TOKEN}}"
+
+  ubuntu-jammy-core-build:
+    needs: "ubuntu-jammy-image-build"
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "./.github/actions/clp-core-build"
+        with:
+          os_name: "ubuntu-jammy"
+          use_published_image: >-
+            ${{github.event_name != 'pull_request' && github.ref == 'refs/heads/main'}}
+          upload_binaries: "false"
