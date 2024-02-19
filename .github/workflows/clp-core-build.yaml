@@ -23,10 +23,6 @@ env:
   # that on every push to the PR, we can detect if the image was changed and use it to build
   # and test CLP.
   PATHS_FILTER_BASE: "main"
-  PATHS_FILTER_IMAGE_BASE_FILTER: |
-      - ".github/actions/**"
-      - ".github/workflows/clp-core-build.yaml"
-      - components/core/tools/scripts/lib_install/*.sh
   PATHS_FILTER_CLP_FILTER: |
     clp:
       - ".github/actions/**"
@@ -66,15 +62,21 @@ jobs:
           base: "${{env.PATHS_FILTER_BASE}}"
           filters: |
             centos74_image:
-              ${{env.PATHS_FILTER_IMAGE_BASE_FILTER}}
+              - ".github/actions/**"
+              - ".github/workflows/clp-core-build.yaml"
+              - components/core/tools/scripts/lib_install/*.sh
               - "components/core/tools/docker-images/clp-env-base-centos7.4/**"
               - "components/core/tools/scripts/lib_install/centos7.4/**"
             ubuntu_focal_image:
-              ${{env.PATHS_FILTER_IMAGE_BASE_FILTER}}
+              - ".github/actions/**"
+              - ".github/workflows/clp-core-build.yaml"
+              - components/core/tools/scripts/lib_install/*.sh
               - "components/core/tools/docker-images/clp-env-base-ubuntu-focal/**"
               - "components/core/tools/scripts/lib_install/ubuntu-focal/**"
             ubuntu_jammy_image:
-              ${{env.PATHS_FILTER_IMAGE_BASE_FILTER}}
+              - ".github/actions/**"
+              - ".github/workflows/clp-core-build.yaml"
+              - components/core/tools/scripts/lib_install/*.sh
               - "components/core/tools/docker-images/clp-env-base-ubuntu-jammy/**"
               - "components/core/tools/scripts/lib_install/ubuntu-jammy/**"
             clp:
