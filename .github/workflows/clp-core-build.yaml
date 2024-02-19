@@ -42,10 +42,10 @@ jobs:
   filter-relevant-changes:
     runs-on: "ubuntu-latest"
     outputs:
-      centos74_image_changed: "${{steps.filter.outputs.centos74_image_changed}}"
-      ubuntu_focal_image_changed: "${{steps.filter.outputs.ubuntu_focal_image_changed}}"
-      ubuntu_jammy_image_changed: "${{steps.filter.outputs.ubuntu_jammy_image_changed}}"
-      clp_changed: "${{steps.filter.outputs.clp_changed}}"
+      centos74_image_changed: "${{steps.filter.outputs.centos74_image}}"
+      ubuntu_focal_image_changed: "${{steps.filter.outputs.ubuntu_focal_image}}"
+      ubuntu_jammy_image_changed: "${{steps.filter.outputs.ubuntu_jammy_image}}"
+      clp_changed: "${{steps.filter.outputs.clp}}"
     steps:
       - uses: "actions/checkout@v3"
         with:
@@ -89,15 +89,6 @@ jobs:
               - "components/core/tests/**"
               - "components/core/tools/scripts/deps-download/**"
               - "components/core/tools/scripts/utils/build-and-run-unit-tests.sh"
-
-      - run: |-
-          echo "centos74_image_changed=${{steps.filter.outputs.centos74_image}}" >> "$GITHUB_OUTPUT"
-          echo "ubuntu_focal_image_changed=${{steps.filter.outputs.ubuntu_focal_image}}" \
-            >> "$GITHUB_OUTPUT"
-          echo "ubuntu_jammy_image_changed=${{steps.filter.outputs.ubuntu_jammy_image}}" \
-            >> "$GITHUB_OUTPUT"
-          echo "clp_changed=${{steps.filter.outputs.clp}}" >> "$GITHUB_OUTPUT"
-        shell: "bash"
 
   centos74-image-build:
     if: "needs.filter-relevant-changes.outputs.centos74_image_changed == 'true'"
