@@ -1,4 +1,4 @@
-name: "clp-core-build-2"
+name: "clp-core-build"
 
 on:
   pull_request:
@@ -23,7 +23,10 @@ env:
   # that on every push to the PR, we can detect if the image was changed and use it to build
   # and test CLP.
   PATHS_FILTER_BASE: "main"
-  PATHS_FILTER_LIB_INSTALL_GLOB: "components/core/tools/scripts/lib_install/*.sh"
+  PATHS_FILTER_IMAGE_BASE_FILTER: |
+    - ".github/actions/**"
+    - ".github/workflows/clp-core-build.yaml"
+    - components/core/tools/scripts/lib_install/*.sh
   PATHS_FILTER_CLP_FILTER: |
     clp:
       - ".github/actions/**"
@@ -40,7 +43,63 @@ env:
 concurrency: "${{github.workflow}}-${{github.ref}}"
 
 jobs:
+  filter-relevant-changes:
+    runs-on: "ubuntu-latest"
+    outputs:
+      centos74_image_changed: "${{steps.filter.outputs.centos74_image_changed}}"
+      ubuntu_focal_image_changed: "${{steps.filter.outputs.ubuntu_focal_image_changed}}"
+      ubuntu_jammy_image_changed: "${{steps.filter.outputs.ubuntu_jammy_image_changed}}"
+      clp_changed: "${{steps.filter.outputs.clp_changed}}"
+    steps:
+      - uses: "actions/checkout@v3"
+        with:
+          submodules: "recursive"
+
+      - name: "Work around actions/runner-images/issues/6775"
+        run: "chown $(id -u):$(id -g) -R ."
+        shell: "bash"
+
+      - name: "Filter relevant changes"
+        uses: "dorny/paths-filter@v2"
+        id: "filter"
+        with:
+          base: "${{env.PATHS_FILTER_BASE}}"
+          filters: |
+            centos74_image:
+              ${{env.PATHS_FILTER_IMAGE_BASE_FILTER}}
+              - "components/core/tools/docker-images/clp-env-base-centos7.4/**"
+              - "components/core/tools/scripts/lib_install/centos7.4/**"
+            ubuntu_focal_image:
+              ${{env.PATHS_FILTER_IMAGE_BASE_FILTER}}
+              - "components/core/tools/docker-images/clp-env-base-ubuntu-focal/**"
+              - "components/core/tools/scripts/lib_install/ubuntu-focal/**"
+            ubuntu_jammy_image:
+              ${{env.PATHS_FILTER_IMAGE_BASE_FILTER}}
+              - "components/core/tools/docker-images/clp-env-base-ubuntu-jammy/**"
+              - "components/core/tools/scripts/lib_install/ubuntu-jammy/**"
+            clp:
+              - ".github/actions/**"
+              - ".github/workflows/clp-core-build.yaml"
+              - ".gitmodules"
+              - "components/core/cmake/**"
+              - "components/core/CMakeLists.txt"
+              - "components/core/src/**"
+              - "components/core/tests/**"
+              - "components/core/tools/scripts/deps-download/**"
+              - "components/core/tools/scripts/utils/build-and-run-unit-tests.sh"
+
+      - run: |-
+          echo "centos74_image_changed=${{steps.filter.outputs.centos74_image}}" >> "$GITHUB_OUTPUT"
+          echo "ubuntu_focal_image_changed=${{steps.filter.outputs.ubuntu_focal_image}}" \
+            >> "$GITHUB_OUTPUT"
+          echo "ubuntu_jammy_image_changed=${{steps.filter.outputs.ubuntu_jammy_image}}" \
+            >> "$GITHUB_OUTPUT"
+          echo "clp_changed=${{steps.filter.outputs.clp}}" >> "$GITHUB_OUTPUT"
+        shell: "bash"
+
   centos74-image-build:
+    if: "needs.filter-relevant-changes.outputs.centos74_image_changed == 'true'"
+    needs: "filter-relevant-changes"
     runs-on: "ubuntu-latest"
     env:
       OS_NAME: "centos7.4"
@@ -53,22 +112,7 @@ jobs:
         run: "chown $(id -u):$(id -g) -R ."
         shell: "bash"
 
-      - name: "Filter relevant changes"
-        uses: "dorny/paths-filter@v2"
-        id: "filter"
-        with:
-          base: "${{env.PATHS_FILTER_BASE}}"
-          filters: |
-            image:
-              - ".github/actions/**"
-              - ".github/workflows/clp-core-build.yaml"
-              - ${{env.PATHS_FILTER_LIB_INSTALL_GLOB}}
-              - "components/core/tools/docker-images/clp-env-base-${{env.OS_NAME}}/**"
-              - "components/core/tools/scripts/lib_install/${{env.OS_NAME}}/**"
-            ${{inputs.PATHS_FILTER_CLP_FILTER}}
-
-      - if: "steps.filter.outputs.image == 'true'"
-        uses: "./.github/actions/clp-core-build-containers"
+      - uses: "./.github/actions/clp-core-build-containers"
         with:
           os_name: "${{env.OS_NAME}}"
           clp_core_dir: "components/core"
@@ -77,9 +121,20 @@ jobs:
           token: "${{secrets.GITHUB_TOKEN}}"
 
   centos74-core-build:
-    needs: "centos74-image-build"
+    if: "!failure() && !cancelled()"
+    needs:
+      - "centos74-image-build"
+      - "filter-relevant-changes"
     runs-on: "ubuntu-latest"
     steps:
+      - uses: "actions/checkout@v3"
+        with:
+          submodules: "recursive"
+
+      - name: "Work around actions/runner-images/issues/6775"
+        run: "chown $(id -u):$(id -g) -R ."
+        shell: "bash"
+
       - uses: "./.github/actions/clp-core-build"
         with:
           os_name: "centos7.4"
@@ -88,6 +143,8 @@ jobs:
           upload_binaries: "false"
 
   ubuntu-focal-image-build:
+    if: "needs.filter-relevant-changes.outputs.ubuntu_focal_image_changed == 'true'"
+    needs: "filter-relevant-changes"
     runs-on: "ubuntu-latest"
     env:
       OS_NAME: "ubuntu-focal"
@@ -100,22 +157,7 @@ jobs:
         run: "chown $(id -u):$(id -g) -R ."
         shell: "bash"
 
-      - name: "Filter relevant changes"
-        uses: "dorny/paths-filter@v2"
-        id: "filter"
-        with:
-          base: "${{env.PATHS_FILTER_BASE}}"
-          filters: |
-            image:
-              - ".github/actions/**"
-              - ".github/workflows/clp-core-build.yaml"
-              - ${{env.PATHS_FILTER_LIB_INSTALL_GLOB}}
-              - "components/core/tools/docker-images/clp-env-base-${{env.OS_NAME}}/**"
-              - "components/core/tools/scripts/lib_install/${{env.OS_NAME}}/**"
-            ${{inputs.PATHS_FILTER_CLP_FILTER}}
-
-      - if: "steps.filter.outputs.image == 'true'"
-        uses: "./.github/actions/clp-core-build-containers"
+      - uses: "./.github/actions/clp-core-build-containers"
         with:
           os_name: "${{env.OS_NAME}}"
           clp_core_dir: "components/core"
@@ -124,9 +166,20 @@ jobs:
           token: "${{secrets.GITHUB_TOKEN}}"
 
   ubuntu-focal-core-build:
-    needs: "ubuntu-focal-image-build"
+    if: "!failure() && !cancelled()"
+    needs:
+      - "filter-relevant-changes"
+      - "ubuntu-focal-image-build"
     runs-on: "ubuntu-latest"
     steps:
+      - uses: "actions/checkout@v3"
+        with:
+          submodules: "recursive"
+
+      - name: "Work around actions/runner-images/issues/6775"
+        run: "chown $(id -u):$(id -g) -R ."
+        shell: "bash"
+
       - uses: "./.github/actions/clp-core-build"
         with:
           os_name: "ubuntu-focal"
@@ -134,7 +187,58 @@ jobs:
             ${{github.event_name != 'pull_request' && github.ref == 'refs/heads/main'}}
           upload_binaries: "true"
 
+  ubuntu-focal-core-image-build:
+    if: "github.event_name == 'push' && github.ref == 'refs/heads/main'"
+    needs: "ubuntu-focal-core-build"
+    runs-on: "ubuntu-latest"
+    env:
+      OS_NAME: "ubuntu-focal"
+    steps:
+      - uses: "actions/checkout@v3"
+        with:
+          submodules: "recursive"
+
+      - name: "Work around actions/runner-images/issues/6775"
+        run: "chown $(id -u):$(id -g) -R ."
+        shell: "bash"
+
+      - uses: "actions/download-artifact@v4"
+        with:
+          name: "clp-core-binaries-${{env.OS_NAME}}"
+          path: "/tmp"
+
+      - uses: "docker/login-action@v3"
+        with:
+          registry: "ghcr.io"
+          username: "${{github.actor}}"
+          password: "${{inputs.token}}"
+
+      - id: "sanitize_repo_name"
+        shell: "bash"
+        run: |-
+          # Docker doesn't support repository names with uppercase characters, so we convert to
+          # lowercase here.
+          lowercase_repo=$(echo '${{github.repository}}' | tr '[:upper:]' '[:lower:]')
+          echo "repository=${lowercase_repo}" >> "$GITHUB_OUTPUT"
+
+      - id: "core_image_meta"
+        uses: "docker/metadata-action@v5"
+        with:
+          images: >-
+            ghcr.io/${{steps.sanitize_repo_name.outputs.repository}}/clp-core-x86-${{env.OS_NAME}}"
+          tags: "type=raw,value=${{github.ref_name}}"
+
+      - uses: "docker/build-push-action@v5"
+        with:
+          context: "/tmp/clp-core-binaries"
+          file: "components/core/tools/docker-images/clp-core-${{env.OS_NAME}}/Dockerfile"
+          push: true
+          tags: "${{steps.core_image_meta.outputs.tags}}"
+          labels: "${{steps.core_image_meta.outputs.labels}}"
+
   ubuntu-jammy-image-build:
+    if: "needs.filter-relevant-changes.outputs.ubuntu_jammy_image_changed == 'true'"
+    needs: "filter-relevant-changes"
     runs-on: "ubuntu-latest"
     env:
       OS_NAME: "ubuntu-jammy"
@@ -147,22 +251,7 @@ jobs:
         run: "chown $(id -u):$(id -g) -R ."
         shell: "bash"
 
-      - name: "Filter relevant changes"
-        uses: "dorny/paths-filter@v2"
-        id: "filter"
-        with:
-          base: "${{env.PATHS_FILTER_BASE}}"
-          filters: |
-            image:
-              - ".github/actions/**"
-              - ".github/workflows/clp-core-build.yaml"
-              - ${{env.PATHS_FILTER_LIB_INSTALL_GLOB}}
-              - "components/core/tools/docker-images/clp-env-base-${{env.OS_NAME}}/**"
-              - "components/core/tools/scripts/lib_install/${{env.OS_NAME}}/**"
-            ${{inputs.PATHS_FILTER_CLP_FILTER}}
-
-      - if: "steps.filter.outputs.image == 'true'"
-        uses: "./.github/actions/clp-core-build-containers"
+      - uses: "./.github/actions/clp-core-build-containers"
         with:
           os_name: "${{env.OS_NAME}}"
           clp_core_dir: "components/core"
@@ -171,9 +260,20 @@ jobs:
           token: "${{secrets.GITHUB_TOKEN}}"
 
   ubuntu-jammy-core-build:
-    needs: "ubuntu-jammy-image-build"
+    if: "!failure() && !cancelled()"
+    needs:
+      - "filter-relevant-changes"
+      - "ubuntu-jammy-image-build"
     runs-on: "ubuntu-latest"
     steps:
+      - uses: "actions/checkout@v3"
+        with:
+          submodules: "recursive"
+
+      - name: "Work around actions/runner-images/issues/6775"
+        run: "chown $(id -u):$(id -g) -R ."
+        shell: "bash"
+
       - uses: "./.github/actions/clp-core-build"
         with:
           os_name: "ubuntu-jammy"

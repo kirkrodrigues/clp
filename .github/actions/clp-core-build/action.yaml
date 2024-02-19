@@ -15,14 +15,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: "actions/checkout@v3"
-      with:
-        submodules: "recursive"
-
-    - name: "Work around actions/runner-images/issues/6775"
-      run: "chown $(id -u):$(id -g) -R ."
-      shell: "bash"
-
     - shell: "bash"
       working-directory: "./components/core"
       run: "./tools/scripts/deps-download/download-all.sh"
@@ -38,6 +30,7 @@ runs:
       run: |-
         docker load --input /tmp/image.tar
         docker image ls -a
+      shell: "bash"
 
     - id: "get_image_props"
       shell: "bash"
@@ -66,9 +59,9 @@ runs:
     - if: "inputs.upload_binaries == 'true'"
       id: "output_binaries"
       run: |-
-        output_dir="/tmp/core-binaries"
-        echo "OUTPUT_DIR=${output_dir}" >> "GITHUB_OUTPUT"
-        
+        output_dir="/tmp/clp-core-binaries"
+        echo "OUTPUT_DIR=${output_dir}" >> "$GITHUB_OUTPUT"
+
         mkdir -p "${output_dir}"
         cd "$GITHUB_WORKSPACE/components/core/build"
         cp clg clp clp-s glt make-dictionaries-readable "${output_dir}"
@@ -77,6 +70,6 @@ runs:
     - if: "inputs.upload_binaries == 'true'"
       uses: "actions/upload-artifact@v4"
       with:
-        name: "core-binaries-${{inputs.os_name}}"
+        name: "clp-core-binaries-${{inputs.os_name}}"
         path: "${{steps.output_binaries.outputs.OUTPUT_DIR}}"
         retention-days: 1
