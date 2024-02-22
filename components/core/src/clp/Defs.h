@@ -7,7 +7,7 @@
 
 namespace clp {
 // Types
-typedef int64_t epochtime_t;
+using epochtime_t = int64_t;
 constexpr epochtime_t cEpochTimeMin = std::numeric_limits<epochtime_t>::min();
 constexpr epochtime_t cEpochTimeMax = std::numeric_limits<epochtime_t>::max();
 
