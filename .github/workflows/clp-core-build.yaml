@@ -1,4 +1,4 @@
-name: "clp-core-build"
+name: "clp-build"
 
 on:
   pull_request:
@@ -18,8 +18,8 @@ on:
   workflow_dispatch:
 
 env:
-  BINARIES_ARTIFACT_NAME_PREFIX: "clp-core-binaries-"
-  DEPS_IMAGE_NAME_PREFIX: "clp-core-dependencies-x86-"
+  CORE_BINARIES_ARTIFACT_NAME_PREFIX: "clp-core-binaries-"
+  CORE_DEPS_IMG_NAME_PREFIX: "clp-core-dependencies-x86-"
 
 # Currency group to prevent multiple workflow instances from trying to publish container images
 concurrency: "${{github.workflow}}-${{github.ref}}"
@@ -28,10 +28,10 @@ jobs:
   filter-relevant-changes:
     runs-on: "ubuntu-latest"
     outputs:
-      centos74_image_changed: "${{steps.filter.outputs.centos74_image}}"
-      ubuntu_focal_image_changed: "${{steps.filter.outputs.ubuntu_focal_image}}"
-      ubuntu_jammy_image_changed: "${{steps.filter.outputs.ubuntu_jammy_image}}"
-      clp_changed: "${{steps.filter.outputs.clp}}"
+      centos74_core_img_changed: "${{steps.filter.outputs.centos74_core_img}}"
+      ubuntu_focal_core_img_changed: "${{steps.filter.outputs.ubuntu_focal_core_img}}"
+      ubuntu_jammy_core_img_changed: "${{steps.filter.outputs.ubuntu_jammy_core_img}}"
+      clp_core_changed: "${{steps.filter.outputs.clp_core}}"
     steps:
       - uses: "actions/checkout@v3"
         with:
@@ -55,25 +55,25 @@ jobs:
           # image (since it would be different from the published image).
           base: "main"
           filters: |
-            centos74_image:
+            centos74_core_img:
               - ".github/actions/**"
               - ".github/workflows/clp-core-build.yaml"
               - "components/core/tools/scripts/lib_install/*.sh"
               - "components/core/tools/docker-images/clp-env-base-centos7.4/**"
               - "components/core/tools/scripts/lib_install/centos7.4/**"
-            ubuntu_focal_image:
+            ubuntu_focal_core_img:
               - ".github/actions/**"
               - ".github/workflows/clp-core-build.yaml"
               - "components/core/tools/scripts/lib_install/*.sh"
               - "components/core/tools/docker-images/clp-env-base-ubuntu-focal/**"
               - "components/core/tools/scripts/lib_install/ubuntu-focal/**"
-            ubuntu_jammy_image:
+            ubuntu_jammy_core_img:
               - ".github/actions/**"
               - ".github/workflows/clp-core-build.yaml"
               - "components/core/tools/scripts/lib_install/*.sh"
               - "components/core/tools/docker-images/clp-env-base-ubuntu-jammy/**"
               - "components/core/tools/scripts/lib_install/ubuntu-jammy/**"
-            clp:
+            clp_core:
               - ".github/actions/**"
               - ".github/workflows/clp-core-build.yaml"
               - ".gitmodules"
@@ -84,8 +84,8 @@ jobs:
               - "components/core/tools/scripts/deps-download/**"
               - "components/core/tools/scripts/utils/build-and-run-unit-tests.sh"
 
-  centos74-deps-image:
-    if: "needs.filter-relevant-changes.outputs.centos74_image_changed == 'true'"
+  centos74-core-deps-img:
+    if: "needs.filter-relevant-changes.outputs.centos74_core_img_changed == 'true'"
     needs: "filter-relevant-changes"
     runs-on: "ubuntu-latest"
     steps:
@@ -101,7 +101,7 @@ jobs:
         env:
           OS_NAME: "centos7.4"
         with:
-          image_name: "${{env.DEPS_IMAGE_NAME_PREFIX}}${{env.OS_NAME}}"
+          image_name: "${{env.CORE_DEPS_IMG_NAME_PREFIX}}${{env.OS_NAME}}"
           docker_context: "components/core"
           docker_file: "components/core/tools/docker-images/clp-env-base-${{env.OS_NAME}}\
             /Dockerfile"
@@ -109,8 +109,8 @@ jobs:
             ${{github.event_name != 'pull_request' && github.ref == 'refs/heads/main'}}
           token: "${{secrets.GITHUB_TOKEN}}"
 
-  ubuntu-focal-deps-image:
-    if: "needs.filter-relevant-changes.outputs.ubuntu_focal_image_changed == 'true'"
+  ubuntu-focal-core-deps-img:
+    if: "needs.filter-relevant-changes.outputs.ubuntu_focal_core_img_changed == 'true'"
     needs: "filter-relevant-changes"
     runs-on: "ubuntu-latest"
     steps:
@@ -126,7 +126,7 @@ jobs:
         env:
           OS_NAME: "ubuntu-focal"
         with:
-          image_name: "${{env.DEPS_IMAGE_NAME_PREFIX}}${{env.OS_NAME}}"
+          image_name: "${{env.CORE_DEPS_IMG_NAME_PREFIX}}${{env.OS_NAME}}"
           docker_context: "components/core"
           docker_file: "components/core/tools/docker-images/clp-env-base-${{env.OS_NAME}}\
             /Dockerfile"
@@ -134,8 +134,8 @@ jobs:
             ${{github.event_name != 'pull_request' && github.ref == 'refs/heads/main'}}
           token: "${{secrets.GITHUB_TOKEN}}"
 
-  ubuntu-jammy-deps-image:
-    if: "needs.filter-relevant-changes.outputs.ubuntu_jammy_image_changed == 'true'"
+  ubuntu-jammy-core-deps-img:
+    if: "needs.filter-relevant-changes.outputs.ubuntu_jammy_core_img_changed == 'true'"
     needs: "filter-relevant-changes"
     runs-on: "ubuntu-latest"
     steps:
@@ -151,7 +151,7 @@ jobs:
         env:
           OS_NAME: "ubuntu-jammy"
         with:
-          image_name: "${{env.DEPS_IMAGE_NAME_PREFIX}}${{env.OS_NAME}}"
+          image_name: "${{env.CORE_DEPS_IMG_NAME_PREFIX}}${{env.OS_NAME}}"
           docker_context: "components/core"
           docker_file: "components/core/tools/docker-images/clp-env-base-${{env.OS_NAME}}\
             /Dockerfile"
@@ -159,13 +159,15 @@ jobs:
             ${{github.event_name != 'pull_request' && github.ref == 'refs/heads/main'}}
           token: "${{secrets.GITHUB_TOKEN}}"
 
-  centos74-binaries:
+  centos74-core-bins:
     # Run if the ancestor jobs succeeded OR they were skipped and clp was changed.
     if: >-
       success()
-      || (!cancelled() && !failure() && needs.filter-relevant-changes.outputs.clp_changed == 'true')
+      || (
+      !cancelled() && !failure() && needs.filter-relevant-changes.outputs.clp_core_changed == 'true'
+      )
     needs:
-      - "centos74-deps-image"
+      - "centos74-core-deps-img"
       - "filter-relevant-changes"
     runs-on: "ubuntu-latest"
     steps:
@@ -181,20 +183,22 @@ jobs:
         env:
           OS_NAME: "centos7.4"
         with:
-          image_name: "${{env.DEPS_IMAGE_NAME_PREFIX}}${{env.OS_NAME}}"
+          image_name: "${{env.CORE_DEPS_IMG_NAME_PREFIX}}${{env.OS_NAME}}"
           use_published_image: >-
-            ${{needs.filter-relevant-changes.outputs.centos74_image_changed == 'false'
+            ${{needs.filter-relevant-changes.outputs.centos74_core_img_changed == 'false'
             || (github.event_name != 'pull_request' && github.ref == 'refs/heads/main')}}
           upload_binaries: "false"
 
-  ubuntu-focal-binaries:
+  ubuntu-focal-core-bins:
     # Run if the ancestor jobs succeeded OR they were skipped and clp was changed.
     if: >-
       success()
-      || (!cancelled() && !failure() && needs.filter-relevant-changes.outputs.clp_changed == 'true')
+      || (
+      !cancelled() && !failure() && needs.filter-relevant-changes.outputs.clp_core_changed == 'true'
+      )
     needs:
       - "filter-relevant-changes"
-      - "ubuntu-focal-deps-image"
+      - "ubuntu-focal-core-deps-img"
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v3"
@@ -209,21 +213,23 @@ jobs:
         env:
           OS_NAME: "ubuntu-focal"
         with:
-          image_name: "${{env.DEPS_IMAGE_NAME_PREFIX}}${{env.OS_NAME}}"
+          image_name: "${{env.CORE_DEPS_IMG_NAME_PREFIX}}${{env.OS_NAME}}"
           use_published_image: >-
-            ${{needs.filter-relevant-changes.outputs.ubuntu_focal_image_changed == 'false'
+            ${{needs.filter-relevant-changes.outputs.ubuntu_focal_core_img_changed == 'false'
             || (github.event_name != 'pull_request' && github.ref == 'refs/heads/main')}}
           upload_binaries: "true"
-          binaries_artifact_name: "${{env.BINARIES_ARTIFACT_NAME_PREFIX}}${{env.OS_NAME}}"
+          binaries_artifact_name: "${{env.CORE_BINARIES_ARTIFACT_NAME_PREFIX}}${{env.OS_NAME}}"
 
-  ubuntu-jammy-binaries:
+  ubuntu-jammy-core-bins:
     # Run if the ancestor jobs succeeded OR they were skipped and clp was changed.
     if: >-
       success()
-      || (!cancelled() && !failure() && needs.filter-relevant-changes.outputs.clp_changed == 'true')
+      || (
+      !cancelled() && !failure() && needs.filter-relevant-changes.outputs.clp_core_changed == 'true'
+      )
     needs:
       - "filter-relevant-changes"
-      - "ubuntu-jammy-deps-image"
+      - "ubuntu-jammy-core-deps-img"
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@v3"
@@ -238,22 +244,22 @@ jobs:
         env:
           OS_NAME: "ubuntu-jammy"
         with:
-          image_name: "${{env.DEPS_IMAGE_NAME_PREFIX}}${{env.OS_NAME}}"
+          image_name: "${{env.CORE_DEPS_IMG_NAME_PREFIX}}${{env.OS_NAME}}"
           use_published_image: >-
-            ${{needs.filter-relevant-changes.outputs.ubuntu_jammy_image_changed == 'false'
+            ${{needs.filter-relevant-changes.outputs.ubuntu_jammy_core_img_changed == 'false'
             || (github.event_name != 'pull_request' && github.ref == 'refs/heads/main')}}
           upload_binaries: "false"
 
-  ubuntu-focal-binaries-image:
+  ubuntu-focal-core-bins-img:
     # Run if the ancestor jobs were successful/skipped, building clp was successful, and this is a
     # push to `main`.
     if: >-
       !cancelled()
       && !failure()
-      && needs.ubuntu-focal-binaries.result == 'success'
+      && needs.ubuntu-focal-core-bins.result == 'success'
       && github.event_name == 'push'
       && github.ref == 'refs/heads/main'
-    needs: "ubuntu-focal-binaries"
+    needs: "ubuntu-focal-core-bins"
     runs-on: "ubuntu-latest"
     env:
       OS_NAME: "ubuntu-focal"
@@ -268,8 +274,8 @@ jobs:
 
       - uses: "actions/download-artifact@v4"
         with:
-          name: "${{env.BINARIES_ARTIFACT_NAME_PREFIX}}${{env.OS_NAME}}"
-          path: "/tmp/${{env.BINARIES_ARTIFACT_NAME_PREFIX}}${{env.OS_NAME}}"
+          name: "${{env.CORE_BINARIES_ARTIFACT_NAME_PREFIX}}${{env.OS_NAME}}"
+          path: "/tmp/${{env.CORE_BINARIES_ARTIFACT_NAME_PREFIX}}${{env.OS_NAME}}"
 
       - uses: "docker/login-action@v3"
         with:
@@ -295,7 +301,7 @@ jobs:
 
       - uses: "docker/build-push-action@v5"
         with:
-          context: "/tmp/${{env.BINARIES_ARTIFACT_NAME_PREFIX}}${{env.OS_NAME}}"
+          context: "/tmp/${{env.CORE_BINARIES_ARTIFACT_NAME_PREFIX}}${{env.OS_NAME}}"
           file: "components/core/tools/docker-images/clp-core-${{env.OS_NAME}}/Dockerfile"
           push: true
           tags: "${{steps.core_image_meta.outputs.tags}}"
