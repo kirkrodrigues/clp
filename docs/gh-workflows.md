@@ -15,38 +15,39 @@ shown below.
 
 ```mermaid
 flowchart LR
-    filter-relevant-changes --> centos74-core-deps-img
-    filter-relevant-changes --> ubuntu-focal-core-deps-img
-    filter-relevant-changes --> ubuntu-jammy-core-deps-img
-    filter-relevant-changes --> centos74-core-bins
-    filter-relevant-changes --> ubuntu-focal-core-bins
-    filter-relevant-changes --> ubuntu-focal-pkg-deps-img
-    filter-relevant-changes --> ubuntu-jammy-core-bins
-    centos74-core-deps-img --> centos74-core-bins
-    ubuntu-focal-core-deps-img --> ubuntu-focal-core-bins
-    ubuntu-jammy-core-deps-img --> ubuntu-jammy-core-bins
-    ubuntu-focal-core-bins --> ubuntu-focal-core-bins-img
-    ubuntu-focal-core-deps-img --> ubuntu-focal-pkg-deps-img
+    filter-relevant-changes --> centos74-clp-core-deps-img
+    filter-relevant-changes --> ubuntu-focal-clp-core-deps-img
+    filter-relevant-changes --> ubuntu-jammy-clp-core-deps-img
+    filter-relevant-changes --> centos74-clp-core
+    filter-relevant-changes --> ubuntu-focal-clp-core
+    filter-relevant-changes --> ubuntu-focal-clp-pkg-deps-img
+    filter-relevant-changes --> ubuntu-jammy-clp-core
+    centos74-clp-core-deps-img --> centos74-clp-core
+    ubuntu-focal-clp-core-deps-img --> ubuntu-focal-clp-core
+    ubuntu-jammy-clp-core-deps-img --> ubuntu-jammy-clp-core
+    ubuntu-focal-clp-core --> ubuntu-focal-clp-core-img
+    ubuntu-focal-clp-core-deps-img --> ubuntu-focal-clp-pkg-deps-img
+    ubuntu-focal-clp-pkg-deps-img --> ubuntu-focal-clp-pkg
 ```
 
 Arrows between jobs indicate a dependency. The jobs are as follows:
 
 * `filter-relevant-changes`: Filters the changes in the pull request or commit to determine which of
   the following jobs should run.
-* `centos74-core-deps-img`: Builds a container image containing the dependencies necessary to build
+* `centos74-clp-core-deps-img`: Builds a container image containing the dependencies necessary to build
   CLP-core in a CentOS 7.4 x86 environment.
-* `ubuntu-focal-core-deps-img`: Builds a container image containing the dependencies necessary to
+* `ubuntu-focal-clp-core-deps-img`: Builds a container image containing the dependencies necessary to
   build CLP-core in an Ubuntu Focal x86 environment.
-* `ubuntu-jammy-core-deps-img`: Builds a container image containing the dependencies necessary to
+* `ubuntu-jammy-clp-core-deps-img`: Builds a container image containing the dependencies necessary to
   build CLP-core in an Ubuntu Jammy x86 environment.
-* `centos74-core-bins`: Builds the CLP-core binaries in the built CentOS 7.4 container and runs
-  core's unit tests.
-* `ubuntu-focal-core-bins`: Builds the CLP-core binaries in the built Ubuntu Focal container and
-  runs core's unit tests.
-* `ubuntu-jammy-core-bins`: Builds the CLP-core binaries in the built Ubuntu Jammy container and
-  runs core's unit tests.
-* `ubuntu-focal-core-bins-img`: Builds an Ubuntu Focal container image containing CLP-core's
-  binaries built in the `ubuntu-focal-core-bins` job.
+* `centos74-clp-core`: Builds the CLP-core binaries in the built CentOS 7.4 container and runs
+  clp-core's unit tests.
+* `ubuntu-focal-clp-core`: Builds the CLP-core binaries in the built Ubuntu Focal container and
+  runs clp-core's unit tests.
+* `ubuntu-jammy-clp-core`: Builds the CLP-core binaries in the built Ubuntu Jammy container and
+  runs clp-core's unit tests.
+* `ubuntu-focal-clp-core-img`: Builds an Ubuntu Focal container image containing CLP-core's
+  binaries built in the `ubuntu-focal-clp-core` job.
 
 When the PR or commit doesn't change any of the files that affect CLP's dependencies (or the
 dependency container images), then the dependency container images won't be rebuilt; instead the
@@ -60,7 +61,7 @@ Actions, and then dependent jobs will download and load the image(s) from there.
 
 Note that for the images containing CLP's dependencies (built by the `xxx-deps-img` jobs), we need
 to build and test an image for each Linux distro where we support building CLP natively. However,
-for the image containing CLP's binaries (built by the `ubuntu-focal-core-bins-img` job), we only
+for the image containing CLP's binaries (built by the `ubuntu-focal-clp-core-img` job), we only
 need it for one OS since users can use the container on any OS.
 
 ## [clp-core-build-macos](../.github/workflows/clp-core-build-macos.yaml)
