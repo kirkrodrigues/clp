@@ -105,6 +105,6 @@ the relevant paths on your machine.
     handling highly dynamic schemas.
   * `glt` is a version of clp specialized for searching unstructured (plain text) logs.
 
-See [Using CLP for unstructured logs](../../docs/core/clp-unstructured.md),
- [Using CLP for semi-structured logs](../../docs/core/clp-structured.md) and
- [Using GLT for unstructured logs](../../docs/core/glt.md) for usage instructions.
+See [Using CLP for unstructured logs](../../docs/src/core/clp-unstructured.md),
+ [Using CLP for semi-structured logs](../../docs/src/core/clp-structured.md) and
+ [Using GLT for unstructured logs](../../docs/src/core/glt.md) for usage instructions.

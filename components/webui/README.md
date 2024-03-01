@@ -20,7 +20,7 @@ for some other reason, you should rerun this command.
 The full functionality of the webui depends on other components in the CLP
 package:
 
-1. Build the [CLP package](../../docs/Building.md)
+1. Build the [CLP package](../../docs/src/Building.md)
 2. Start the package: `<clp-package>/sbin/start-clp.sh`
 3. Stop the webui instance started by the package: `<clp-package>/sbin/stop-clp.sh webui`
 4. Start the webui using meteor (refer to `<clp-package>/etc/clp-config.yml` for the config values):

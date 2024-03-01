@@ -12,6 +12,7 @@ and `clg` binaries described below.
 * [Utilities](#utilities)
   * [`make-dictionaries-readable`](#make-dictionaries-readable)
 
+(compression)=
 ## Compression
 
 ### `clp`
@@ -45,6 +46,7 @@ Usage:
 ./clp c --schema-path /mnt/conf/schemas.txt /mnt/data/archives1 /mnt/logs/log1.log
 ```
 
+(decompression)=
 ## Decompression
 
 Usage:
@@ -71,6 +73,7 @@ Usage:
 ./clp x /mnt/data/archives1 /mnt/data/archives1-decomp /mnt/logs/file1.log
 ```
 
+(search)=
 ## Search
 
 Usage:
@@ -112,6 +115,7 @@ Usage:
 ./clg /mnt/data/archives1 " session closed " /mnt/logs/file1
 ```
 
+(parallel-compression)=
 # Parallel Compression
 
 By default, `clp` uses an embedded SQLite database, so each directory containing archives can only
@@ -137,10 +141,12 @@ a MySQL-type database (e.g., MariaDB) as follows:
 Note that currently, decompression (`clp x`) and search (`clg`) can only be run with a single
 instance. We are in the process of open-sourcing parallelized versions of these as well.
 
+(utilities)=
 # Utilities
 
 Below are utilities for working with CLP archives. 
 
+(make-dictionaries-readable)=
 ## `make-dictionaries-readable`
 
 To convert the dictionaries of an individual archive into a human-readable form, you can use

@@ -1,0 +1,7 @@
+furo>=2024.1.29
+myst-parser>=2.0.0
+sphinx>=7.2.6
+sphinxcontrib-mermaid>=0.9.2
+sphinx_design>=0.5.0
+sphinx-copybutton>=0.5.2
+sphinx_tippy>=0.4.1

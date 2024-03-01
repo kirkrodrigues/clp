@@ -3,7 +3,7 @@
 The CLP repo includes several GitHub workflows for automating container image builds, artifact
 builds, testing, and linting. We briefly describe each workflow below.
 
-## [clp-core-build](../.github/workflows/clp-core-build.yaml)
+## [clp-core-build](https://github.com/y-scope/clp/blob/main/.github/workflows/clp-core-build.yaml)
 
 This workflow is responsible for:
 
@@ -13,7 +13,7 @@ This workflow is responsible for:
 To minimize build times, the jobs in the workflow are organized in the directed acyclic graph (DAG)
 shown below.
 
-```mermaid
+```{mermaid}
 flowchart LR
     filter-relevant-changes --> centos74-deps-image
     filter-relevant-changes --> ubuntu-focal-deps-image
@@ -61,15 +61,15 @@ to build and test an image for each Linux distro where we support building CLP n
 for the image containing CLP's binaries (built by the `ubuntu-focal-binaries-image` job), we only
 need it for one OS since users can use the container on any OS.
 
-## [clp-core-build-macos](../.github/workflows/clp-core-build-macos.yaml)
+## [clp-core-build-macos](https://github.com/y-scope/clp/blob/main/.github/workflows/clp-core-build-macos.yaml)
 
 This workflow builds CLP-core on macOS and runs its unit tests.
 
-## [clp-execution-image-build](../.github/workflows/clp-execution-image-build.yaml)
+## [clp-execution-image-build](https://github.com/y-scope/clp/blob/main/.github/workflows/clp-execution-image-build.yaml)
 
 This workflow builds a container image that contains the dependencies necessary to run the CLP
 package.
 
-## [clp-lint](../.github/workflows/clp-lint.yaml)
+## [clp-lint](https://github.com/y-scope/clp/blob/main/.github/workflows/clp-lint.yaml)
 
 This workflow runs linting checks on the codebase.

@@ -10,6 +10,7 @@ For semi-structured logs (e.g., JSON), you can compress, decompress, and search 
 * [Search](#search)
 * [Current limitations](#current-limitations)
 
+(compression)=
 ## Compression
 
 Usage:
@@ -52,6 +53,7 @@ Usage:
     /mnt/logs/log1.json
 ```
 
+(decompression)=
 ## Decompression
 
 Usage:
@@ -74,6 +76,7 @@ Usage:
 ./clp-s x /mnt/data/archives1 /mnt/data/archives1-decomp
 ```
 
+(search)=
 ## Search
 
 Usage:
@@ -120,6 +123,7 @@ compressed data:**
 ./clp-s s --ignore-case /mnt/data/archives1 'level: FATAL OR level: ERROR'
 ```
 
+(current-limitations)=
 ## Current limitations
 
 * `clp-s` currently only supports *valid* ndjson logs; it does not handle ndjson logs with trailing
