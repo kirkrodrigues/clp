@@ -39,6 +39,7 @@ html_theme_options = {
 # -- MyST extensions -----------------------------------------------------------
 # https://myst-parser.readthedocs.io/en/stable/syntax/optional.html
 myst_enable_extensions = [
+    "attrs_block",
     "colon_fence",
 ]
 
