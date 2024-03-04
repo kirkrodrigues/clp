@@ -10,7 +10,6 @@ extensions = [
     "myst_parser",
     "sphinxcontrib.mermaid",
     "sphinx_design",
-    "sphinx_tippy",
     "sphinx.ext.viewcode",
     "sphinx.ext.autodoc",
     "sphinx_copybutton",
