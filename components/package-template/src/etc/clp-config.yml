@@ -8,7 +8,7 @@
 #credentials_file_path: "etc/credentials.yml"
 #
 #package:
-#  storage_engine: "clp"
+#  storage_engine: "clp"  # "clp" or "clp-s"
 #
 #database:
 #  type: "mariadb"  # "mariadb" or "mysql"
@@ -33,6 +33,7 @@
 #  host: "localhost"
 #  port: 6379
 #  search_backend_database: 0
+#  compression_backend_database: 1
 #
 #results_cache:
 #  host: "localhost"
