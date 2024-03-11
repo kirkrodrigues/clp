@@ -1,6 +1,6 @@
 # Cluster setup
 
-To setup a CLP cluster, you’ll need to:
+To setup a CLP cluster, you'll need to:
 
 * Download a release.
 * Choose between a single or multi-node deployment.
@@ -10,7 +10,7 @@ To setup a CLP cluster, you’ll need to:
 
 ## Downloading a release
 
-Download the flavour of release that’s appropriate for your logs:
+Download the flavour of release that's appropriate for your logs:
 
 * **clp-json** for compressing and searching **JSON** logs.
 * **clp-text** for compressing and searching **free-text** logs.
@@ -29,7 +29,7 @@ A single-node deployment allows you to run CLP on a single host.
 ### Requirements
 
 * [Docker][1]
-  * If you’re not running as root, ensure `docker` can be run [without superuser privileges][2].
+  * If you're not running as root, ensure `docker` can be run [without superuser privileges][2].
 * Python 3.8 or higher
 
 ### Starting CLP
@@ -40,7 +40,7 @@ sbin/start-clp.sh
 
 :::{note}
 If CLP fails to start (e.g., due to a port conflict), try adjusting the config in
-`etc/clp-config.yml` and then running the start command again.
+`etc/clp-config.yml` and then run the start command again.
 :::
 
 ### Stopping CLP
@@ -58,7 +58,7 @@ A multi-node deployment allows you to run CLP across a distributed set of hosts.
 ### Requirements
 
 * [Docker][1]
-  * If you’re not running as root, ensure docker can be run [without superuser privileges][2].
+  * If you're not running as root, ensure docker can be run [without superuser privileges][2].
 * Python 3.8 or higher
 * One or more hosts networked together
 * A distributed filesystem (e.g. [SeaweedFS][3]) accessible by all worker hosts through a filesystem
@@ -71,7 +71,8 @@ The CLP package is composed of several components—controller components and wo
 cluster, there should be a single instance of each controller component and one or more instances of
 worker components. The tables below list the components and their functions.
 
-**Controller components**
+:::{table} Controller components
+:align: left
 
 | Component             | Description                                                      |
 |-----------------------|------------------------------------------------------------------|
@@ -82,13 +83,16 @@ worker components. The tables below list the components and their functions.
 | queue                 | Task queue for schedulers                                        |
 | redis                 | Task result storage for workers                                  |
 | results_cache         | Storage for the workers to return search results to the UI       |
+:::
 
-**Worker components**
+:::{table} Worker components
+:align: left
 
 | Component          | Description                            |
 |--------------------|----------------------------------------|
 | compression_worker | Worker processes for compression tasks |
 | search_worker      | Worker processes for search task       |
+:::
 
 Running additional workers increases the parallelism of compression and search jobs.
 
@@ -119,7 +123,7 @@ Running additional workers increases the parallelism of compression and search j
 
 For each component, on the host where you want to run the component, run:
 
-```
+```bash
 sbin/start-clp.sh <component>
 ```
 

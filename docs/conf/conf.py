@@ -2,6 +2,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "CLP"
+copyright = "2021-2024 YScope Inc"
 
 # -- General configuration -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -22,18 +23,11 @@ templates_path = ["_templates"]
 
 html_favicon = "https://docs.yscope.com/_static/favicon.ico"
 html_title = "CLP"
-html_show_copyright = False
+html_logo = "https://yscope.com/img/clp-logo.png"
+html_show_copyright = True
 html_static_path = ["../src/_static"]
 
-html_theme = "furo"
-
-# -- Furo theme options --------------------------------------------------------
-# https://furo.readthedocs.io/customisation/index.html
-html_theme_options = {
-    "source_repository": "https://github.com/y-scope/clp/",
-    "source_branch": "main",
-    "source_directory": "docs/src",
-}
+html_theme = "pydata_sphinx_theme"
 
 # -- MyST extensions -----------------------------------------------------------
 # https://myst-parser.readthedocs.io/en/stable/syntax/optional.html

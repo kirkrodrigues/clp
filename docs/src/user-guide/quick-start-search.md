@@ -40,7 +40,7 @@ searches are case-**sensitive** on the command line.
 
 ## Searching JSON logs
 
-To search JSON logs, CLP’s currently supports a variant of the [Kibana Query Language (KQL)][1]. For
+To search JSON logs, CLP's currently supports a variant of the [Kibana Query Language (KQL)][1]. For
 instance, to search for error-level log events about jobs, you might enter the query:
 
 ```

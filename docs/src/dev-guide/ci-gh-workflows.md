@@ -1,7 +1,7 @@
 # GitHub Workflows
 
 The CLP repo includes several GitHub workflows for automating container image builds, artifact
-builds, testing, and linting. We briefly describe each workflow below.
+builds, testing, and linting. Each workflow is described below.
 
 ## [clp-core-build](https://github.com/y-scope/clp/blob/main/.github/workflows/clp-core-build.yaml)
 

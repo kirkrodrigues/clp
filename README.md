@@ -12,8 +12,8 @@ about it, you can read our [paper][8].
 
 # Benchmarks
 
-![CLP Benchmark on JSON Logs](docs/img/clp-json-benchmark.png)
-![CLP Benchmark on Unstructured Logs](docs/img/clp-unstructured-benchmark.png)
+![CLP Benchmark on JSON Logs](docs/src/img/clp-json-benchmark.png)
+![CLP Benchmark on Unstructured Logs](docs/src/img/clp-unstructured-benchmark.png)
 
 The figures above show CLP's compression and search performance compared to other tools. We separate
 the experiments between JSON and unstructured logs because (1) some tools can only handle one type
@@ -21,7 +21,7 @@ of logs, and (2) tools that can handle both types often have different designs f
 as CLP).
 
 Compression ratio is measured as the average across a variety of log datasets. Some of these
-datasets can be found [here](docs/src/Datasets.md). Search performance is measured using queries on the
+datasets can be found [here](docs/src/user-guide/resources-datasets). Search performance is measured using queries on the
 MongoDB logs (for JSON) and the Hadoop logs (for unstructured logs). Note that CLP uses an
 index-less design, so for a fair comparison, we disabled MongoDB and PostgreSQL's indexes; If we
 left them enabled, MongoDB and PostgreSQL's compression ratio would be worse. We didn't disable
@@ -31,7 +31,7 @@ the [CLP paper][8].
 
 # System Overview
 
-![CLP systems overview](docs/img/clp-complete-solution.png)
+![CLP systems overview](docs/src/img/clp-complete-solution.png)
 
 CLP provides an end-to-end log management pipeline consisting of compression, search, analytics, and
 viewing. The figure above shows the CLP ecosystem architecture. It consists of the following
@@ -67,13 +67,13 @@ features:
 
 You can download a [release package](https://github.com/y-scope/clp/releases) which includes support
 for distributed compression and search. Or, to quickly try CLP's *core* compression and search, you
-can use a [prebuilt container](docs/src/core/clp-core-container.md).
+can use a [prebuilt container](docs/src/user-guide/core-container).
 
-We also have guides for building the [package](docs/src/Building.md) and
+We also have guides for building the [package](docs/src/dev-guide/building-package) and
 [CLP core](components/core/README.md) from source.
 
 For some logs you can use to test CLP, check out our open-source 
-[datasets](docs/src/Datasets.md).
+[datasets](docs/src/user-guide/resources-datasets).
 
 # Providing Feedback
 

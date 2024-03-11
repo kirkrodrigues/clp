@@ -21,17 +21,10 @@ For evaluation results comparing CLP and other tools, see our
 *<sup>†</sup> We will upload the other parts soon.*
 
 [1]: https://zenodo.org/records/7114847
-
 [2]: https://zenodo.org/records/7094972
-
 [3]: https://zenodo.org/records/7094921
-
 [4]: https://zenodo.org/records/10516285
-
 [5]: https://zenodo.org/records/10516387
-
 [6]: https://zenodo.org/records/10516227
-
 [7]: https://zenodo.org/records/10516346
-
 [8]: https://zenodo.org/records/10516402
