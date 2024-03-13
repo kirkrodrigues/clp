@@ -29,6 +29,23 @@ html_static_path = ["../src/_static"]
 
 html_theme = "pydata_sphinx_theme"
 
+html_theme_options = {
+    "footer_start": ["copyright"],
+    "footer_center": [],
+    "footer_end": ["theme-version"],
+    "primary_sidebar_end": [],
+    "secondary_sidebar_items": ["page-toc", "edit-this-page"],
+    "show_prev_next": False,
+    "use_edit_page_button": True,
+}
+
+html_context = {
+    "github_user": "y-scope",
+    "github_repo": "clp",
+    "github_version": "main",
+    "doc_path": "docs/src",
+}
+
 # -- MyST extensions -----------------------------------------------------------
 # https://myst-parser.readthedocs.io/en/stable/syntax/optional.html
 myst_enable_extensions = [
@@ -42,3 +59,6 @@ myst_enable_extensions = [
 autoclass_content = "class"
 autodoc_class_signature = "separated"
 autodoc_typehints = "description"
+
+def setup(app):
+    app.add_css_file("custom.css")
