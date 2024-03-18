@@ -1,7 +1,7 @@
 version: "3"
 
 includes:
-  docs: "docs-tasks.yml"
+  docs: "docs/tasks.yml"
   lint: "lint-tasks.yml"
 
 vars:
@@ -231,6 +231,35 @@ tasks:
         diff
         <(cd '{{.OUTPUT_DIR}}' && tar cf - {{.CHECKSUM_TAR_BASE_ARGS}} . | md5sum)
         "{{.CHECKSUM_FILE}}"
+
+  build-venv:
+    internal: true
+    label: "{{.COMPONENT}}-{{.TASK}}"
+    requires:
+      vars:
+        - "COMPONENT"
+        - "OUTPUT_DIR"
+        - "REQUIREMENTS_FILE_PATH"
+    cmds:
+      - "rm -rf '{{.OUTPUT_DIR}}'"
+      - "python3 -m venv '{{.OUTPUT_DIR}}'"
+      # If the `hash` shell-command doesn't exist, remove calls to it. This is necessary for Task
+      # since it uses `gosh` which doesn't have `hash`.
+      # NOTE: Older versions of Python's venv would only call `hash` if they detected the running
+      # shell was one that had the command, but that's not the case in newer versions.
+      - |-
+        if ! command -v hash &> /dev/null ; then
+          echo "[WARN] Replacing calls to 'hash' with 'echo' since shell has no 'hash' command."
+        
+          file_path="{{.OUTPUT_DIR}}/bin/activate"
+          bak_file_path="{{.OUTPUT_DIR}}/bin/activate.bak"
+          mv "${file_path}" "${bak_file_path}"
+          echo "alias hash=echo" >> "${file_path}"
+          cat "${bak_file_path}" >> "${file_path}"
+        fi
+      - |-
+        . "{{.OUTPUT_DIR}}/bin/activate"
+        pip3 install -r "{{.REQUIREMENTS_FILE_PATH}}"
 
   core-submodules:
     internal: true

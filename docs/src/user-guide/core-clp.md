@@ -1,21 +1,9 @@
-# Using CLP for unstructured logs
+# Using clp for text logs
 
-For unstructured (plain text) logs, you can compress, decompress, and search them using the `clp`
-and `clg` binaries described below.
+For text (plain text) logs, you can compress, decompress, and search them using the `clp` and `clg`
+binaries described below.
 
-## Contents
-
-* [Compression](#compression)
-* [Decompression](#decompression)
-* [Search](#search)
-* [Parallel compression](#parallel-compression)
-* [Utilities](#utilities)
-  * [`make-dictionaries-readable`](#make-dictionaries-readable)
-
-(compression)=
 ## Compression
-
-### `clp`
 
 Usage:
 
@@ -29,18 +17,18 @@ Usage:
   * You can use the same directory repeatedly and `clp` will add to the compressed logs within.
 * `input-path` is any plain-text log file or directory containing such files.
 * `options` allow you to specify things like a path to a custom
-  [schema](../../components/core/README-Schema.md) file (`--schema-path <file-path>`).
+  [schema](core-schema.md) file (`--schema-path <file-path>`).
   * For a complete list, run `./clp c --help`
 
 ### Examples
 
-**Compress `/mnt/logs/log1.log` and output archives to `/mnt/data/archives1`:**
+**Compress `/mnt/logs/log1.log` and output archives to `/mnt/data/archives1`**
 
 ```shell
 ./clp c /mnt/data/archives1 /mnt/logs/log1.log
 ```
 
-**Compress `/mnt/logs/log1.log` using a custom schema specified in `/mnt/conf/schemas.txt`:**
+**Compress `/mnt/logs/log1.log` using a custom schema specified in `/mnt/conf/schemas.txt`**
 
 ```shell
 ./clp c --schema-path /mnt/conf/schemas.txt /mnt/data/archives1 /mnt/logs/log1.log
@@ -73,13 +61,13 @@ Usage:
 ./clp x /mnt/data/archives1 /mnt/data/archives1-decomp /mnt/logs/file1.log
 ```
 
-(search)=
 ## Search
 
 Usage:
 
-> [!NOTE]
-> Search uses a different executable (`clg`) than compression (`clp`).
+:::{note}
+Search uses a different executable (`clg`) than compression (`clp`).
+:::
 
 ```shell
 ./clg [<options>] <archives-dir> <wildcard-query> [<file-path>]
@@ -94,28 +82,28 @@ Usage:
 
 ### Examples
 
-**Search `/mnt/data/archives1` for specific ERROR logs and ignore case distinctions:**
+**Search `/mnt/data/archives1` for specific ERROR logs and ignore case distinctions**
 
 ```shell
 ./clg --ignore-case /mnt/data/archives1 " ERROR * container "
 ```
 
-**Search for logs in a time range:**
+**Search for logs in a time range**
 
 ```shell
 ./clg /mnt/data/archives1 --tge 1546344654321 --tle 1546344912345 " user1 "
 ```
 
-> [!NOTE]
-> Currently, timestamps must be specified as milliseconds since the UNIX epoch.
+:::{note}
+Currently, timestamps must be specified as milliseconds since the UNIX epoch.
+:::
 
-**Search a single file**:
+**Search a single file**
 
 ```shell
 ./clg /mnt/data/archives1 " session closed " /mnt/logs/file1
 ```
 
-(parallel-compression)=
 # Parallel Compression
 
 By default, `clp` uses an embedded SQLite database, so each directory containing archives can only
@@ -141,13 +129,11 @@ a MySQL-type database (e.g., MariaDB) as follows:
 Note that currently, decompression (`clp x`) and search (`clg`) can only be run with a single
 instance. We are in the process of open-sourcing parallelized versions of these as well.
 
-(utilities)=
 # Utilities
 
 Below are utilities for working with CLP archives. 
 
-(make-dictionaries-readable)=
-## `make-dictionaries-readable`
+## make-dictionaries-readable
 
 To convert the dictionaries of an individual archive into a human-readable form, you can use
 `make-dictionaries-readable`.

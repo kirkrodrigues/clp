@@ -1,6 +1,6 @@
 # Using CLP's core through a container
 
-To quickly try CLP's core compression, decompression, and search (outside of the package), you can
+To quickly try CLP's core compression, decompression, and search (outside the package), you can
 use the [clp-core-x86-ubuntu-focal][1] container as follows.
 
 Pull the container image:
@@ -11,8 +11,9 @@ docker pull ghcr.io/y-scope/clp/clp-core-x86-ubuntu-focal:main
 
 Start the container with mounts for your logs and output directories:
 
-> [!NOTE]
-> Be sure to change the paths in the command below before running it.
+:::{note}
+Be sure to change the paths in the command below before running it.
+:::
 
 ```shell
 docker run \
@@ -29,8 +30,9 @@ docker run \
 * Change `/my/data/dir` to the directory on your machine where you want to store the generated
   archives. It will be mounted at `/mnt/data` in the container.
 
-Follow the usage instructions in [Using CLP for unstructured logs](core-clp),
-[Using CLP for semi-structured logs](core-clp-s) or [Using GLT for unstructured logs](core-glt)
-depending on your use case.
+You can now use one of the binaries included in the container, depending on the format of your logs:
+
+* For free-text logs, you can use [clp](core-clp) or [glt](core-glt).
+* For JSON logs, you can use [clp-s](core-clp-s).
 
 [1]: https://github.com/y-scope/clp/pkgs/container/clp%2Fclp-core-x86-ubuntu-focal
