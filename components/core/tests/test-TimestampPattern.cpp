@@ -6,546 +6,452 @@ using clp::epochtime_t;
 using clp::TimestampPattern;
 using std::string;
 
+namespace {
+/**
+ * Parses a timestamp with the given pattern from the given line and validates the result.
+ * @param line Line to parse timestamp from
+ * @param pattern Pattern of timestamp to parse
+ * @param expected_timestamp
+ * @param expected_timestamp_begin_pos
+ * @param expected_timestamp_end_pos
+ * @param expected_restored_line Expected line after restoring timestamp
+ */
+void parse_and_validate_timestamp_pattern(
+        string const& line,
+        TimestampPattern const& pattern,
+        epochtime_t expected_timestamp,
+        size_t expected_timestamp_begin_pos,
+        size_t expected_timestamp_end_pos,
+        string const& expected_restored_line
+);
+
+/**
+ * Validates that the given line is parsed with the expected timestamp pattern.
+ * @param line
+ * @param expected_timestamp_pattern
+ * @param expected_timestamp
+ * @param expected_timestamp_begin_pos
+ * @param expected_timestamp_end_pos
+ */
+void search_and_validate_timestamp_pattern(
+        string const& line,
+        TimestampPattern const& expected_timestamp_pattern,
+        epochtime_t expected_timestamp,
+        size_t expected_timestamp_begin_pos,
+        size_t expected_timestamp_end_pos
+);
+
+/**
+ * Validates formatting and inserting a timestamp into a line.
+ * @param line Original line
+ * @param timestamp_begin_pos
+ * @param timestamp_end_pos
+ * @param timestamp
+ * @param pattern
+ * @param expected_restored_line
+ */
+void validate_inserting_formatted_timestamp(
+        string const& line,
+        size_t timestamp_begin_pos,
+        size_t timestamp_end_pos,
+        epochtime_t timestamp,
+        TimestampPattern const& pattern,
+        string const& expected_restored_line
+);
+
+/**
+ * Validates the result of parsing a timestamp.
+ * @param expected_timestamp
+ * @param expected_timestamp_begin_pos
+ * @param expected_timestamp_end_pos
+ * @param timestamp
+ * @param timestamp_begin_pos
+ * @param timestamp_end_pos
+ */
+void validate_timestamp_parsing_result(
+        epochtime_t expected_timestamp,
+        size_t expected_timestamp_begin_pos,
+        size_t expected_timestamp_end_pos,
+        epochtime_t timestamp,
+        size_t timestamp_begin_pos,
+        size_t timestamp_end_pos
+);
+
+void parse_and_validate_timestamp_pattern(
+        string const& line,
+        TimestampPattern const& pattern,
+        epochtime_t expected_timestamp,
+        size_t expected_timestamp_begin_pos,
+        size_t expected_timestamp_end_pos,
+        string const& expected_restored_line
+) {
+    epochtime_t timestamp{0};
+    size_t timestamp_begin_pos{0};
+    size_t timestamp_end_pos{0};
+    pattern.parse_timestamp(line, timestamp, timestamp_begin_pos, timestamp_end_pos);
+
+    validate_timestamp_parsing_result(
+            expected_timestamp,
+            expected_timestamp_begin_pos,
+            expected_timestamp_end_pos,
+            timestamp,
+            timestamp_begin_pos,
+            timestamp_end_pos
+    );
+    validate_inserting_formatted_timestamp(
+            line,
+            timestamp_begin_pos,
+            timestamp_end_pos,
+            timestamp,
+            pattern,
+            expected_restored_line
+    );
+}
+
+void search_and_validate_timestamp_pattern(
+        string const& line,
+        TimestampPattern const& expected_timestamp_pattern,
+        epochtime_t expected_timestamp,
+        size_t expected_timestamp_begin_pos,
+        size_t expected_timestamp_end_pos
+) {
+    epochtime_t timestamp{0};
+    size_t timestamp_begin_pos{0};
+    size_t timestamp_end_pos{0};
+    auto* pattern = TimestampPattern::search_known_ts_patterns(
+            line,
+            timestamp,
+            timestamp_begin_pos,
+            timestamp_end_pos
+    );
+    REQUIRE(nullptr != pattern);
+    REQUIRE(pattern->get_num_spaces_before_ts()
+            == expected_timestamp_pattern.get_num_spaces_before_ts());
+    REQUIRE(pattern->get_format() == expected_timestamp_pattern.get_format());
+
+    validate_timestamp_parsing_result(
+            expected_timestamp,
+            expected_timestamp_begin_pos,
+            expected_timestamp_end_pos,
+            timestamp,
+            timestamp_begin_pos,
+            timestamp_end_pos
+    );
+    validate_inserting_formatted_timestamp(
+            line,
+            timestamp_begin_pos,
+            timestamp_end_pos,
+            timestamp,
+            *pattern,
+            line
+    );
+}
+
+void validate_inserting_formatted_timestamp(
+        string const& line,
+        size_t timestamp_begin_pos,
+        size_t timestamp_end_pos,
+        epochtime_t timestamp,
+        TimestampPattern const& pattern,
+        string const& expected_restored_line
+) {
+    // Generate the line without the timestamp
+    string restored_line;
+    restored_line.assign(line, 0, timestamp_begin_pos);
+    restored_line.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
+
+    pattern.insert_formatted_timestamp(timestamp, restored_line);
+
+    REQUIRE(expected_restored_line == restored_line);
+}
+
+void validate_timestamp_parsing_result(
+        epochtime_t expected_timestamp,
+        size_t expected_timestamp_begin_pos,
+        size_t expected_timestamp_end_pos,
+        epochtime_t timestamp,
+        size_t timestamp_begin_pos,
+        size_t timestamp_end_pos
+) {
+    REQUIRE(expected_timestamp == timestamp);
+    REQUIRE(expected_timestamp_begin_pos == timestamp_begin_pos);
+    REQUIRE(expected_timestamp_end_pos == timestamp_end_pos);
+}
+}  // namespace
+
 TEST_CASE("Test known timestamp patterns", "[KnownTimestampPatterns]") {
     TimestampPattern::init();
 
-    string line;
-    TimestampPattern const* pattern;
-    epochtime_t timestamp;
-    size_t timestamp_begin_pos;
-    size_t timestamp_end_pos;
-    string content;
-
-    line = "2015-02-01T01:02:03.004 content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "2015-02-01T01:02:03.004 content after",
+            {0, "%Y-%m-%dT%H:%M:%S.%3"},
+            1'422'752'523'004,
+            0,
+            23
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 0);
-    REQUIRE(pattern->get_format() == "%Y-%m-%dT%H:%M:%S.%3");
-    REQUIRE(1'422'752'523'004 == timestamp);
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(23 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "2015-02-01T01:02:03,004 content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "2015-02-01T01:02:03,004 content after",
+            {0, "%Y-%m-%dT%H:%M:%S,%3"},
+            1'422'752'523'004,
+            0,
+            23
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 0);
-    REQUIRE(pattern->get_format() == "%Y-%m-%dT%H:%M:%S,%3");
-    REQUIRE(1'422'752'523'004 == timestamp);
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(23 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "[2015-02-01T01:02:03 content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "2015-02-01 01:02:03.004 content after",
+            {0, "%Y-%m-%d %H:%M:%S.%3"},
+            1'422'752'523'004,
+            0,
+            23
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 0);
-    REQUIRE(pattern->get_format() == "[%Y-%m-%dT%H:%M:%S");
-    REQUIRE(1'422'752'523'000 == timestamp);
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(20 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "[20150201-01:02:03] content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "2015-02-01 01:02:03,004 content after",
+            {0, "%Y-%m-%d %H:%M:%S,%3"},
+            1'422'752'523'004,
+            0,
+            23
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 0);
-    REQUIRE(pattern->get_format() == "[%Y%m%d-%H:%M:%S]");
-    REQUIRE(1'422'752'523'000 == timestamp);
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(19 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "2015-02-01 01:02:03,004 content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "2015/01/31T15:50:45.123 content after",
+            {0, "%Y/%m/%dT%H:%M:%S.%3"},
+            1'422'719'445'123,
+            0,
+            23
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 0);
-    REQUIRE(pattern->get_format() == "%Y-%m-%d %H:%M:%S,%3");
-    REQUIRE(1'422'752'523'004 == timestamp);
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(23 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "2015-02-01 01:02:03.004 content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "2015/01/31T15:50:45,123 content after",
+            {0, "%Y/%m/%dT%H:%M:%S,%3"},
+            1'422'719'445'123,
+            0,
+            23
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 0);
-    REQUIRE(pattern->get_format() == "%Y-%m-%d %H:%M:%S.%3");
-    REQUIRE(1'422'752'523'004 == timestamp);
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(23 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "[2015-02-01 01:02:03,004] content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "2015/01/31 15:50:45.123 content after",
+            {0, "%Y/%m/%d %H:%M:%S.%3"},
+            1'422'719'445'123,
+            0,
+            23
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 0);
-    REQUIRE(pattern->get_format() == "[%Y-%m-%d %H:%M:%S,%3]");
-    REQUIRE(1'422'752'523'004 == timestamp);
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(25 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "2015-02-01 01:02:03 content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "2015/01/31 15:50:45,123 content after",
+            {0, "%Y/%m/%d %H:%M:%S,%3"},
+            1'422'719'445'123,
+            0,
+            23
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 0);
-    REQUIRE(pattern->get_format() == "%Y-%m-%d %H:%M:%S");
-    REQUIRE(1'422'752'523'000 == timestamp);
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(19 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "2015/02/01 01:02:03 content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "[2015-02-01 01:02:03,004] content after",
+            {0, "[%Y-%m-%d %H:%M:%S,%3]"},
+            1'422'752'523'004,
+            0,
+            25
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 0);
-    REQUIRE(pattern->get_format() == "%Y/%m/%d %H:%M:%S");
-    REQUIRE(1'422'752'523'000 == timestamp);
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(19 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "15/02/01 01:02:03 content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "INFO [main] 2015-02-01 01:02:03,004 content after",
+            {2, "%Y-%m-%d %H:%M:%S,%3"},
+            1'422'752'523'004,
+            12,
+            35
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 0);
-    REQUIRE(pattern->get_format() == "%y/%m/%d %H:%M:%S");
-    REQUIRE(1'422'752'523'000 == timestamp);
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(17 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "150201  1:02:03 content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "<<<2015-02-01 01:02:03:004 content after",
+            {0, "<<<%Y-%m-%d %H:%M:%S:%3"},
+            1'422'752'523'004,
+            0,
+            26
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 0);
-    REQUIRE(pattern->get_format() == "%y%m%d %k:%M:%S");
-    REQUIRE(1'422'752'523'000 == timestamp);
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(15 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "01 Feb 2015 01:02:03,004 content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "01 Feb 2015 01:02:03,004 content after",
+            {0, "%d %b %Y %H:%M:%S,%3"},
+            1'422'752'523'004,
+            0,
+            24
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 0);
-    REQUIRE(pattern->get_format() == "%d %b %Y %H:%M:%S,%3");
-    REQUIRE(1'422'752'523'004 == timestamp);
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(24 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "Feb 01, 2015  1:02:03 AM content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "2015-01-31T15:50:45 content after",
+            {0, "%Y-%m-%dT%H:%M:%S"},
+            1'422'719'445'000,
+            0,
+            19
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 0);
-    REQUIRE(pattern->get_format() == "%b %d, %Y %l:%M:%S %p");
-    REQUIRE(1'422'752'523'000 == timestamp);
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(24 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "February 01, 2015 01:02 content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "2015-02-01 01:02:03 content after",
+            {0, "%Y-%m-%d %H:%M:%S"},
+            1'422'752'523'000,
+            0,
+            19
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 0);
-    REQUIRE(pattern->get_format() == "%B %d, %Y %H:%M");
-    REQUIRE(1'422'752'520'000 == timestamp);
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(23 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "E [01/Feb/2015:01:02:03 content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "2015/01/31T15:50:45 content after",
+            {0, "%Y/%m/%dT%H:%M:%S"},
+            1'422'719'445'000,
+            0,
+            19
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 1);
-    REQUIRE(pattern->get_format() == "[%d/%b/%Y:%H:%M:%S");
-    REQUIRE(1'422'752'523'000 == timestamp);
-    REQUIRE(2 == timestamp_begin_pos);
-    REQUIRE(23 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "localhost - - [01/Feb/2015:01:02:03 content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "2015/02/01 01:02:03 content after",
+            {0, "%Y/%m/%d %H:%M:%S"},
+            1'422'752'523'000,
+            0,
+            19
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 3);
-    REQUIRE(pattern->get_format() == "[%d/%b/%Y:%H:%M:%S");
-    REQUIRE(1'422'752'523'000 == timestamp);
-    REQUIRE(14 == timestamp_begin_pos);
-    REQUIRE(35 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "INFO [main] 2015-02-01 01:02:03,004 content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "[2015-02-01T01:02:03 content after",
+            {0, "[%Y-%m-%dT%H:%M:%S"},
+            1'422'752'523'000,
+            0,
+            20
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 2);
-    REQUIRE(pattern->get_format() == "%Y-%m-%d %H:%M:%S,%3");
-    REQUIRE(1'422'752'523'004 == timestamp);
-    REQUIRE(12 == timestamp_begin_pos);
-    REQUIRE(35 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "Started POST \"/api/v3/internal/allowed\" for 127.0.0.1 at 2015-02-01 01:02:03 content "
-           "after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "[20150201-01:02:03] content after",
+            {0, "[%Y%m%d-%H:%M:%S]"},
+            1'422'752'523'000,
+            0,
+            19
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 6);
-    REQUIRE(pattern->get_format() == "%Y-%m-%d %H:%M:%S");
-    REQUIRE(1'422'752'523'000 == timestamp);
-    REQUIRE(57 == timestamp_begin_pos);
-    REQUIRE(76 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "update-alternatives 2015-02-01 01:02:03 content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "15/02/01 01:02:03 content after",
+            {0, "%y/%m/%d %H:%M:%S"},
+            1'422'752'523'000,
+            0,
+            17
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 1);
-    REQUIRE(pattern->get_format() == "%Y-%m-%d %H:%M:%S");
-    REQUIRE(1'422'752'523'000 == timestamp);
-    REQUIRE(20 == timestamp_begin_pos);
-    REQUIRE(39 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "ERROR: apport (pid 4557) Sun Feb  1 01:02:03 2015 content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "150201  1:02:03 content after",
+            {0, "%y%m%d %k:%M:%S"},
+            1'422'752'523'000,
+            0,
+            15
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 4);
-    REQUIRE(pattern->get_format() == "%a %b %e %H:%M:%S %Y");
-    REQUIRE(1'422'752'523'000 == timestamp);
-    REQUIRE(25 == timestamp_begin_pos);
-    REQUIRE(49 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "<<<2015-02-01 01:02:03:004 content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "Feb 01, 2015  1:02:03 AM content after",
+            {0, "%b %d, %Y %l:%M:%S %p"},
+            1'422'752'523'000,
+            0,
+            24
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 0);
-    REQUIRE(pattern->get_format() == "<<<%Y-%m-%d %H:%M:%S:%3");
-    REQUIRE(1'422'752'523'004 == timestamp);
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(26 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "Jan 21 11:56:42";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "February 01, 2015 01:02 content after",
+            {0, "%B %d, %Y %H:%M"},
+            1'422'752'520'000,
+            0,
+            23
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 0);
-    REQUIRE(pattern->get_format() == "%b %d %H:%M:%S");
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(15 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "01-21 11:56:42.392";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "E [01/Feb/2015:01:02:03 content after",
+            {1, "[%d/%b/%Y:%H:%M:%S"},
+            1'422'752'523'000,
+            2,
+            23
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 0);
-    REQUIRE(pattern->get_format() == "%m-%d %H:%M:%S.%3");
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(18 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    line = "626515123 content after";
-    pattern = TimestampPattern::search_known_ts_patterns(
-            line,
-            timestamp,
-            timestamp_begin_pos,
-            timestamp_end_pos
+    search_and_validate_timestamp_pattern(
+            "localhost - - [01/Feb/2015:01:02:03 content after",
+            {3, "[%d/%b/%Y:%H:%M:%S"},
+            1'422'752'523'000,
+            14,
+            35
     );
-    REQUIRE(nullptr != pattern);
-    REQUIRE(pattern->get_num_spaces_before_ts() == 0);
-    REQUIRE(pattern->get_format() == "%#3");
-    REQUIRE(626'515'123 == timestamp);
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(9 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    pattern->insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
 
-    // The patterns below overlap with the known timestamp patterns, so we can only test them by
-    // specifying them manually
-    // NOTE: Since the timestamp's stored by CLP are in milliseconds right now, microsecond and
+    search_and_validate_timestamp_pattern(
+            "localhost - - [01/02/2015:01:02:03 content after",
+            {3, "[%d/%m/%Y:%H:%M:%S"},
+            1'422'752'523'000,
+            14,
+            34
+    );
+
+    search_and_validate_timestamp_pattern(
+            "Started POST \"/api/v3/internal/allowed\" for 127.0.0.1 at 2015-02-01 01:02:03 "
+            "content after",
+            {6, "%Y-%m-%d %H:%M:%S"},
+            1'422'752'523'000,
+            57,
+            76
+    );
+
+    search_and_validate_timestamp_pattern(
+            "update-alternatives 2015-02-01 01:02:03 content after",
+            {1, "%Y-%m-%d %H:%M:%S"},
+            1'422'752'523'000,
+            20,
+            39
+    );
+
+    search_and_validate_timestamp_pattern(
+            "ERROR: apport (pid 4557) Sun Feb  1 01:02:03 2015 content after",
+            {4, "%a %b %e %H:%M:%S %Y"},
+            1'422'752'523'000,
+            25,
+            49
+    );
+
+    search_and_validate_timestamp_pattern(
+            "Sun Feb  1 01:02:03 2015 content after",
+            {0, "%a %b %e %H:%M:%S %Y"},
+            1'422'752'523'000,
+            0,
+            24
+    );
+
+    search_and_validate_timestamp_pattern(
+            "Jan 21 11:56:42",
+            {0, "%b %d %H:%M:%S"},
+            1'771'002'000,
+            0,
+            15
+    );
+
+    search_and_validate_timestamp_pattern(
+            "01-21 11:56:42.392",
+            {0, "%m-%d %H:%M:%S.%3"},
+            1'771'002'392,
+            0,
+            18
+    );
+
+    search_and_validate_timestamp_pattern("626515123 content after", {0, "%#3"}, 626'515'123, 0, 9);
+
+    // Inputs for the patterns below get recognized as other timestamp patterns, so we can only test
+    // the patterns by specifying them manually.
+    // NOTE: Since CLP currently stores timestamps with millisecond resolution, microsecond and
     // nanosecond-precision timestamps get truncated.
-    line = "626515123 content after";
-    auto specific_pattern = TimestampPattern{0, "%#6"};
-    specific_pattern.parse_timestamp(line, timestamp, timestamp_begin_pos, timestamp_end_pos);
-    REQUIRE(specific_pattern.get_num_spaces_before_ts() == 0);
-    REQUIRE(specific_pattern.get_format() == "%#6");
-    REQUIRE(626'515 == timestamp);
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(9 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    specific_pattern.insert_formatted_timestamp(timestamp, content);
-    REQUIRE("626515000 content after" == content);
+    parse_and_validate_timestamp_pattern(
+            "626515123 content after",
+            {0, "%#6"},
+            626'515,
+            0,
+            9,
+            "626515000 content after"
+    );
 
-    line = "626515123 content after";
-    specific_pattern = TimestampPattern{0, "%#9"};
-    specific_pattern.parse_timestamp(line, timestamp, timestamp_begin_pos, timestamp_end_pos);
-    REQUIRE(specific_pattern.get_num_spaces_before_ts() == 0);
-    REQUIRE(specific_pattern.get_format() == "%#9");
-    REQUIRE(626 == timestamp);
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(9 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    specific_pattern.insert_formatted_timestamp(timestamp, content);
-    REQUIRE("626000000 content after" == content);
-
-    line = "2015/01/31 15:50:45.123 content after";
-    specific_pattern = TimestampPattern{0, "%Y/%m/%d %H:%M:%S.%3"};
-    specific_pattern.parse_timestamp(line, timestamp, timestamp_begin_pos, timestamp_end_pos);
-    REQUIRE(specific_pattern.get_num_spaces_before_ts() == 0);
-    REQUIRE(specific_pattern.get_format() == "%Y/%m/%d %H:%M:%S.%3");
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(23 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    specific_pattern.insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
-
-    line = "2015/01/31 15:50:45,123 content after";
-    specific_pattern = TimestampPattern{0, "%Y/%m/%d %H:%M:%S,%3"};
-    specific_pattern.parse_timestamp(line, timestamp, timestamp_begin_pos, timestamp_end_pos);
-    REQUIRE(specific_pattern.get_num_spaces_before_ts() == 0);
-    REQUIRE(specific_pattern.get_format() == "%Y/%m/%d %H:%M:%S,%3");
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(23 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    specific_pattern.insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
-
-    line = "2015/01/31T15:50:45 content after";
-    specific_pattern = TimestampPattern{0, "%Y/%m/%dT%H:%M:%S"};
-    specific_pattern.parse_timestamp(line, timestamp, timestamp_begin_pos, timestamp_end_pos);
-    REQUIRE(specific_pattern.get_num_spaces_before_ts() == 0);
-    REQUIRE(specific_pattern.get_format() == "%Y/%m/%dT%H:%M:%S");
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(19 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    specific_pattern.insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
-
-    line = "2015/01/31T15:50:45.123 content after";
-    specific_pattern = TimestampPattern{0, "%Y/%m/%dT%H:%M:%S.%3"};
-    specific_pattern.parse_timestamp(line, timestamp, timestamp_begin_pos, timestamp_end_pos);
-    REQUIRE(specific_pattern.get_num_spaces_before_ts() == 0);
-    REQUIRE(specific_pattern.get_format() == "%Y/%m/%dT%H:%M:%S.%3");
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(23 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    specific_pattern.insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
-
-    line = "2015/01/31T15:50:45,123 content after";
-    specific_pattern = TimestampPattern{0, "%Y/%m/%dT%H:%M:%S,%3"};
-    specific_pattern.parse_timestamp(line, timestamp, timestamp_begin_pos, timestamp_end_pos);
-    REQUIRE(specific_pattern.get_num_spaces_before_ts() == 0);
-    REQUIRE(specific_pattern.get_format() == "%Y/%m/%dT%H:%M:%S,%3");
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(23 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    specific_pattern.insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
-
-    line = "2015-01-31T15:50:45 content after";
-    specific_pattern = TimestampPattern{0, "%Y-%m-%dT%H:%M:%S"};
-    specific_pattern.parse_timestamp(line, timestamp, timestamp_begin_pos, timestamp_end_pos);
-    REQUIRE(specific_pattern.get_num_spaces_before_ts() == 0);
-    REQUIRE(specific_pattern.get_format() == "%Y-%m-%dT%H:%M:%S");
-    REQUIRE(0 == timestamp_begin_pos);
-    REQUIRE(19 == timestamp_end_pos);
-    content.assign(line, 0, timestamp_begin_pos);
-    content.append(line, timestamp_end_pos, line.length() - timestamp_end_pos);
-    specific_pattern.insert_formatted_timestamp(timestamp, content);
-    REQUIRE(line == content);
+    parse_and_validate_timestamp_pattern(
+            "626515123 content after",
+            {0, "%#9"},
+            626,
+            0,
+            9,
+            "626000000 content after"
+    );
 }

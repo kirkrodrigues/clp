@@ -144,7 +144,6 @@ void TimestampPattern::init() {
     patterns.emplace_back(0, "<<<%Y-%m-%d %H:%M:%S:%3");
     // E.g. 01 Jan 2016 15:50:17,085
     patterns.emplace_back(0, "%d %b %Y %H:%M:%S,%3");
-
     // E.g. 2015-01-31T15:50:45
     patterns.emplace_back(0, "%Y-%m-%dT%H:%M:%S");
     // E.g. 2015-01-31 15:50:45
@@ -157,8 +156,6 @@ void TimestampPattern::init() {
     patterns.emplace_back(0, "[%Y-%m-%dT%H:%M:%S");
     // E.g. [20170106-16:56:41]
     patterns.emplace_back(0, "[%Y%m%d-%H:%M:%S]");
-    // E.g. Start-Date: 2015-01-31  15:50:45
-    patterns.emplace_back(1, "%Y-%m-%d  %H:%M:%S");
     // E.g. 15/01/31 15:50:45
     patterns.emplace_back(0, "%y/%m/%d %H:%M:%S");
     // E.g. 150131  9:50:45
