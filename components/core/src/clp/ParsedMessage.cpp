@@ -5,12 +5,14 @@ using std::string;
 namespace clp {
 void ParsedMessage::clear() {
     m_ts_patt = nullptr;
-    clear_except_ts_patt();
+    m_utc_offset = UtcOffset{0};
+    clear_except_time_pattern_and_offset();
 }
 
-void ParsedMessage::clear_except_ts_patt() {
+void ParsedMessage::clear_except_time_pattern_and_offset() {
     m_ts_patt_changed = false;
     m_ts = 0;
+    m_utc_offset_changed = false;
     m_content.clear();
     m_orig_num_bytes = 0;
     m_is_set = false;
@@ -19,6 +21,7 @@ void ParsedMessage::clear_except_ts_patt() {
 void ParsedMessage::set(
         TimestampPattern const* timestamp_pattern,
         epochtime_t const timestamp,
+        UtcOffset utc_offset,
         string const& line,
         size_t timestamp_begin_pos,
         size_t timestamp_end_pos
@@ -28,6 +31,10 @@ void ParsedMessage::set(
         m_ts_patt_changed = true;
     }
     m_ts = timestamp;
+    if (utc_offset != m_utc_offset) {
+        m_utc_offset = utc_offset;
+        m_utc_offset_changed = true;
+    }
     if (timestamp_begin_pos == timestamp_end_pos) {
         m_content.assign(line);
     } else {
@@ -49,6 +56,10 @@ void ParsedMessage::consume(ParsedMessage& message) {
         m_ts_patt_changed = true;
     }
     m_ts = message.m_ts;
+    if (message.m_utc_offset != m_utc_offset) {
+        m_utc_offset = message.m_utc_offset;
+        m_utc_offset_changed = true;
+    }
     m_content.swap(message.m_content);
     m_orig_num_bytes = message.m_orig_num_bytes;
     m_is_set = true;

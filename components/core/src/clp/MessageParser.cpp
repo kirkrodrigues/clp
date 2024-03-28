@@ -1,5 +1,7 @@
 #include "MessageParser.hpp"
 
+#include <chrono>
+
 #include "Defs.h"
 #include "TimestampPattern.hpp"
 
@@ -13,7 +15,7 @@ bool MessageParser::parse_next_message(
         size_t& buf_pos,
         ParsedMessage& message
 ) {
-    message.clear_except_ts_patt();
+    message.clear_except_time_pattern_and_offset();
 
     while (true) {
         // Check if the buffer was exhausted
@@ -50,7 +52,7 @@ bool MessageParser::parse_next_message(
         ReaderInterface& reader,
         ParsedMessage& message
 ) {
-    message.clear_except_ts_patt();
+    message.clear_except_time_pattern_and_offset();
 
     while (true) {
         // Read message
@@ -98,6 +100,7 @@ bool MessageParser::parse_line(ParsedMessage& message) {
     // Parse timestamp and content
     TimestampPattern const* timestamp_pattern = message.get_ts_patt();
     epochtime_t timestamp = 0;
+    UtcOffset utc_offset{0};
     size_t timestamp_begin_pos;
     size_t timestamp_end_pos;
     if (nullptr == timestamp_pattern
@@ -105,6 +108,7 @@ bool MessageParser::parse_line(ParsedMessage& message) {
                    == timestamp_pattern->parse_timestamp(
                            m_line,
                            timestamp,
+                           utc_offset,
                            timestamp_begin_pos,
                            timestamp_end_pos
                    ))
@@ -112,6 +116,7 @@ bool MessageParser::parse_line(ParsedMessage& message) {
         timestamp_pattern = TimestampPattern::search_known_ts_patterns(
                 m_line,
                 timestamp,
+                utc_offset,
                 timestamp_begin_pos,
                 timestamp_end_pos
         );
@@ -124,6 +129,7 @@ bool MessageParser::parse_line(ParsedMessage& message) {
             m_buffered_msg.set(
                     timestamp_pattern,
                     timestamp,
+                    utc_offset,
                     m_line,
                     timestamp_begin_pos,
                     timestamp_end_pos
@@ -136,6 +142,7 @@ bool MessageParser::parse_line(ParsedMessage& message) {
             m_buffered_msg.set(
                     timestamp_pattern,
                     timestamp,
+                    utc_offset,
                     m_line,
                     timestamp_begin_pos,
                     timestamp_end_pos
@@ -149,6 +156,7 @@ bool MessageParser::parse_line(ParsedMessage& message) {
             message.set(
                     timestamp_pattern,
                     timestamp,
+                    utc_offset,
                     m_line,
                     timestamp_begin_pos,
                     timestamp_end_pos

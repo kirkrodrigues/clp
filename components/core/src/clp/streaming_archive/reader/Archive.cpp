@@ -209,6 +209,7 @@ bool Archive::decompress_message(
         }
         timestamp_patterns[file.get_current_ts_pattern_ix()].second.insert_formatted_timestamp(
                 compressed_msg.get_ts_in_milli(),
+                UtcOffset{0},
                 decompressed_msg
         );
     }

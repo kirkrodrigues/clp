@@ -17,6 +17,8 @@ public:
             : m_ts_patt(nullptr),
               m_ts_patt_changed(false),
               m_ts(0),
+              m_utc_offset{},
+              m_utc_offset_changed(false),
               m_content({}),
               m_orig_num_bytes(0),
               m_is_set(false) {}
@@ -30,11 +32,15 @@ public:
 
     // Methods
     void clear();
-    void clear_except_ts_patt();
+    /**
+     * Clears the parsed message except for the timestamp pattern and UTC offset.
+     */
+    void clear_except_time_pattern_and_offset();
 
     void set(
             TimestampPattern const* timestamp_pattern,
             epochtime_t timestamp,
+            UtcOffset utc_offset,
             std::string const& line,
             size_t timestamp_begin_pos,
             size_t timestamp_end_pos
@@ -58,6 +64,10 @@ public:
 
     bool has_ts_patt_changed() const { return m_ts_patt_changed; }
 
+    UtcOffset get_utc_offset() const { return m_utc_offset; }
+
+    bool has_utc_offset_changed() const { return m_utc_offset_changed; }
+
     bool is_empty() const { return false == m_is_set; }
 
 private:
@@ -65,6 +75,8 @@ private:
     TimestampPattern const* m_ts_patt;
     bool m_ts_patt_changed;
     epochtime_t m_ts;
+    UtcOffset m_utc_offset;
+    bool m_utc_offset_changed;
     std::string m_content;
     size_t m_orig_num_bytes;
     bool m_is_set;

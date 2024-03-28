@@ -199,12 +199,18 @@ void TimestampPattern::init() {
 TimestampPattern const* TimestampPattern::search_known_ts_patterns(
         string const& line,
         epochtime_t& timestamp,
+        UtcOffset& utc_offset,
         size_t& timestamp_begin_pos,
         size_t& timestamp_end_pos
 ) {
     for (size_t i = 0; i < m_known_ts_patterns_len; ++i) {
-        if (m_known_ts_patterns[i]
-                    .parse_timestamp(line, timestamp, timestamp_begin_pos, timestamp_end_pos))
+        if (m_known_ts_patterns[i].parse_timestamp(
+                    line,
+                    timestamp,
+                    utc_offset,
+                    timestamp_begin_pos,
+                    timestamp_end_pos
+            ))
         {
             return &m_known_ts_patterns[i];
         }
@@ -235,6 +241,7 @@ void TimestampPattern::clear() {
 bool TimestampPattern::parse_timestamp(
         string const& line,
         epochtime_t& timestamp,
+        UtcOffset& utc_offset,
         size_t& timestamp_begin_pos,
         size_t& timestamp_end_pos
 ) const {
@@ -738,6 +745,7 @@ bool TimestampPattern::parse_timestamp(
     auto duration_since_epoch = timestamp_point - unix_epoch_point;
     // Convert to raw milliseconds
     timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(duration_since_epoch).count();
+    utc_offset = std::chrono::seconds{0};
 
     timestamp_begin_pos = ts_begin_ix;
     timestamp_end_pos = line_ix;
@@ -745,7 +753,11 @@ bool TimestampPattern::parse_timestamp(
     return true;
 }
 
-void TimestampPattern::insert_formatted_timestamp(epochtime_t const timestamp, string& msg) const {
+void TimestampPattern::insert_formatted_timestamp(
+        epochtime_t const timestamp,
+        UtcOffset utc_offset,
+        string& msg
+) const {
     size_t msg_length = msg.length();
 
     string new_msg;

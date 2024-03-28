@@ -313,6 +313,7 @@ void Archive::write_msg(
 
 void Archive::write_msg_using_schema(LogEventView const& log_view) {
     epochtime_t timestamp = 0;
+    UtcOffset utc_offset{0};
     TimestampPattern* timestamp_pattern = nullptr;
     auto const& log_output_buffer = log_view.get_log_output_buffer();
     if (log_output_buffer->has_timestamp()) {
@@ -321,6 +322,7 @@ void Archive::write_msg_using_schema(LogEventView const& log_view) {
         timestamp_pattern = (TimestampPattern*)TimestampPattern::search_known_ts_patterns(
                 log_output_buffer->get_mutable_token(0).to_string(),
                 timestamp,
+                utc_offset,
                 start,
                 end
         );

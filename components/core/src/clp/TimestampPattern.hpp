@@ -77,6 +77,7 @@ public:
      * if found, parses the timestamp
      * @param line
      * @param timestamp Parsed timestamp
+     * @param utc_offset
      * @param timestamp_begin_pos
      * @param timestamp_end_pos
      * @return pointer to the timestamp pattern if found, nullptr otherwise
@@ -84,6 +85,7 @@ public:
     static TimestampPattern const* search_known_ts_patterns(
             std::string const& line,
             epochtime_t& timestamp,
+            UtcOffset& utc_offset,
             size_t& timestamp_begin_pos,
             size_t& timestamp_end_pos
     );
@@ -113,6 +115,7 @@ public:
      * Tries to parse the timestamp from the given line
      * @param line
      * @param timestamp Parsed timestamp
+     * @param utc_offset
      * @param timestamp_begin_pos
      * @param timestamp_end_pos
      * @return true if parsed successfully, false otherwise
@@ -120,17 +123,20 @@ public:
     bool parse_timestamp(
             std::string const& line,
             epochtime_t& timestamp,
+            UtcOffset& utc_offset,
             size_t& timestamp_begin_pos,
             size_t& timestamp_end_pos
     ) const;
     /**
      * Inserts the timestamp into the given message using this pattern
      * @param timestamp
+     * @param utc_offset
      * @param msg
      * @throw TimestampPattern::OperationFailed if the the pattern contains unsupported format
      * specifiers or the message cannot fit the timestamp pattern
      */
-    void insert_formatted_timestamp(epochtime_t timestamp, std::string& msg) const;
+    void
+    insert_formatted_timestamp(epochtime_t timestamp, UtcOffset utc_offset, std::string& msg) const;
 
     /**
      * Compares two timestamp patterns for equality
