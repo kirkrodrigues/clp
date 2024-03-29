@@ -41,6 +41,13 @@ public:
     void bind_int(std::string const& parameter_name, int value);
     void bind_int64(int parameter_index, int64_t value);
     void bind_int64(std::string const& parameter_name, int64_t value);
+    void bind_blob64(int parameter_index, void* value, size_t value_size, bool copy_parameter);
+    void bind_blob64(
+            std::string const& parameter_name,
+            void* value,
+            size_t value_size,
+            bool copy_parameter
+    );
     void bind_text(int parameter_index, std::string const& value, bool copy_parameter);
     void
     bind_text(std::string const& parameter_name, std::string const& value, bool copy_parameter);

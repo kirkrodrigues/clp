@@ -106,6 +106,42 @@ void SQLitePreparedStatement::bind_int64(string const& parameter_name, int64_t v
     bind_int64(parameter_index, value);
 }
 
+void SQLitePreparedStatement::bind_blob64(
+        int parameter_index,
+        void* value,
+        size_t value_size,
+        bool copy_parameter
+) {
+    auto return_value = sqlite3_bind_blob64(
+            m_statement_handle,
+            parameter_index,
+            value,
+            value_size,
+            copy_parameter ? SQLITE_TRANSIENT : SQLITE_STATIC
+    );
+    if (SQLITE_OK != return_value) {
+        SPDLOG_ERROR(
+                "SQLitePreparedStatement: Failed to bind blob64 to statement - {}",
+                sqlite3_errmsg(m_db_handle)
+        );
+        throw OperationFailed(ErrorCode_Failure, __FILENAME__, __LINE__);
+    }
+}
+
+void SQLitePreparedStatement::bind_blob64(
+        std::string const& parameter_name,
+        void* value,
+        size_t value_size,
+        bool copy_parameter
+) {
+    auto parameter_index = sqlite3_bind_parameter_index(m_statement_handle, parameter_name.c_str());
+    if (0 == parameter_index) {
+        throw OperationFailed(ErrorCode_BadParam, __FILENAME__, __LINE__);
+    }
+
+    bind_blob64(parameter_index, value, value_size, copy_parameter);
+}
+
 void SQLitePreparedStatement::bind_text(
         int parameter_index,
         std::string const& value,
