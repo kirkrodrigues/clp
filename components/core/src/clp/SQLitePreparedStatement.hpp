@@ -58,6 +58,9 @@ public:
     int column_int(std::string const& parameter_name) const;
     int64_t column_int64(int parameter_index) const;
     int64_t column_int64(std::string const& parameter_name) const;
+    void column_blob(int parameter_index, void const*& value, size_t& value_size) const;
+    void
+    column_blob(std::string const& parameter_name, void const*& value, size_t& value_size) const;
     void column_string(int parameter_index, std::string& value) const;
     void column_string(std::string const& parameter_name, std::string& value) const;
 

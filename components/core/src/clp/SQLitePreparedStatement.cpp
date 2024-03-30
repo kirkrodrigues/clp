@@ -237,6 +237,35 @@ int64_t SQLitePreparedStatement::column_int64(string const& parameter_name) cons
     return column_int64(parameter_index);
 }
 
+void SQLitePreparedStatement::column_blob(
+        int parameter_index,
+        void const*& value,
+        size_t& value_size
+) const {
+    if (false == m_row_ready) {
+        throw OperationFailed(ErrorCode_NotReady, __FILENAME__, __LINE__);
+    }
+
+    value = sqlite3_column_blob(m_statement_handle, parameter_index);
+    value_size = sqlite3_column_bytes(m_statement_handle, parameter_index);
+}
+
+void SQLitePreparedStatement::column_blob(
+        std::string const& parameter_name,
+        void const*& value,
+        size_t& value_size
+) const {
+    if (false == m_row_ready) {
+        throw OperationFailed(ErrorCode_NotReady, __FILENAME__, __LINE__);
+    }
+    auto parameter_index = sqlite3_bind_parameter_index(m_statement_handle, parameter_name.c_str());
+    if (0 == parameter_index) {
+        throw OperationFailed(ErrorCode_BadParam, __FILENAME__, __LINE__);
+    }
+
+    column_blob(parameter_index, value, value_size);
+}
+
 void SQLitePreparedStatement::column_string(int parameter_index, std::string& value) const {
     if (false == m_row_ready) {
         throw OperationFailed(ErrorCode_NotReady, __FILENAME__, __LINE__);
