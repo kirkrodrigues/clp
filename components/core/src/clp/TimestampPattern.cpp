@@ -278,6 +278,7 @@ bool TimestampPattern::parse_timestamp(
     long microsecond = 0;
     long nanosecond = 0;
     bool is_pm = false;
+    utc_offset = UtcOffset{0};
 
     size_t const format_length = m_format.length();
     size_t format_ix = 0;
@@ -804,6 +805,7 @@ bool TimestampPattern::parse_timestamp(
     auto unix_epoch_point = date::sys_days(date::year(1970) / 1 / 1);
     // Get timestamp since epoch
     auto duration_since_epoch = timestamp_point - unix_epoch_point;
+    duration_since_epoch -= utc_offset;
     // Convert to raw milliseconds
     timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(duration_since_epoch).count();
 
@@ -849,8 +851,8 @@ void TimestampPattern::insert_formatted_timestamp(
     new_msg.assign(msg, 0, ts_begin_ix);
 
     // Separate parts of timestamp
-    auto timestamp_point
-            = date::sys_days(date::year(1970) / 1 / 1) + std::chrono::milliseconds(timestamp);
+    auto timestamp_point = date::sys_days(date::year(1970) / 1 / 1)
+                           + std::chrono::milliseconds(timestamp) + utc_offset;
     auto timestamp_date = date::floor<date::days>(timestamp_point);
     int day_of_week_ix
             = (date::year_month_weekday(timestamp_date).weekday_indexed().weekday() - date::Sunday)
