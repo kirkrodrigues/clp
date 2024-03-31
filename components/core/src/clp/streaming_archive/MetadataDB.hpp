@@ -89,6 +89,12 @@ public:
         epochtime_t get_begin_ts() const;
         epochtime_t get_end_ts() const;
         void get_timestamp_patterns(std::string& timestamp_patterns) const;
+        /**
+         * Gets the encoded UTC offsets.
+         * @param offsets Returns the encoded UTC offsets
+         * @param num_offsets Returns the number of encoded UTC offsets
+         */
+        void get_utc_offsets(uint64_t const*& offsets, size_t& num_offsets) const;
         size_t get_num_uncompressed_bytes() const;
         size_t get_num_messages() const;
         size_t get_num_variables() const;

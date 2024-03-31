@@ -16,6 +16,7 @@ enum class FilesTableFieldIndexes : uint16_t {
     Path,
     BeginTimestamp,
     EndTimestamp,
+    UtcOffsets,
     TimestampPatterns,
     NumUncompressedBytes,
     NumMessages,
@@ -150,6 +151,8 @@ static SQLitePreparedStatement get_files_select_statement(
             = streaming_archive::cMetadataDB::File::BeginTimestamp;
     field_names[enum_to_underlying_type(FilesTableFieldIndexes::EndTimestamp)]
             = streaming_archive::cMetadataDB::File::EndTimestamp;
+    field_names[enum_to_underlying_type(FilesTableFieldIndexes::UtcOffsets)]
+            = streaming_archive::cMetadataDB::File::UtcOffsets;
     field_names[enum_to_underlying_type(FilesTableFieldIndexes::TimestampPatterns)]
             = streaming_archive::cMetadataDB::File::TimestampPatterns;
     field_names[enum_to_underlying_type(FilesTableFieldIndexes::NumUncompressedBytes)]
@@ -354,6 +357,22 @@ void MetadataDB::FileIterator::get_timestamp_patterns(string& timestamp_patterns
     );
 }
 
+void MetadataDB::FileIterator::get_utc_offsets(
+        uint64_t const*& offsets,
+        size_t& num_offsets
+) const {
+    void const* value{nullptr};
+    size_t value_size{0};
+    m_statement.column_blob(
+            enum_to_underlying_type(FilesTableFieldIndexes::UtcOffsets),
+            value,
+            value_size
+    );
+
+    offsets = static_cast<uint64_t const*>(value);
+    num_offsets = value_size / sizeof(offsets[0]);
+}
+
 size_t MetadataDB::FileIterator::get_num_uncompressed_bytes() const {
     return m_statement.column_int64(
             enum_to_underlying_type(FilesTableFieldIndexes::NumUncompressedBytes)
@@ -434,6 +453,11 @@ void MetadataDB::open(string const& path) {
             = streaming_archive::cMetadataDB::File::EndTimestamp;
     file_field_names_and_types[enum_to_underlying_type(FilesTableFieldIndexes::EndTimestamp)].second
             = "INTEGER";
+
+    file_field_names_and_types[enum_to_underlying_type(FilesTableFieldIndexes::UtcOffsets)].first
+            = streaming_archive::cMetadataDB::File::UtcOffsets;
+    file_field_names_and_types[enum_to_underlying_type(FilesTableFieldIndexes::UtcOffsets)].second
+            = "BLOB";
 
     file_field_names_and_types[enum_to_underlying_type(FilesTableFieldIndexes::TimestampPatterns)]
             .first
@@ -587,6 +611,13 @@ void MetadataDB::update_files(vector<writer::File*> const& files) {
         m_upsert_file_statement->bind_int64(
                 enum_to_underlying_type(FilesTableFieldIndexes::EndTimestamp) + 1,
                 file->get_end_ts()
+        );
+        auto encoded_utc_offsets = file->get_encoded_utc_offsets();
+        m_upsert_file_statement->bind_blob64(
+                enum_to_underlying_type(FilesTableFieldIndexes::UtcOffsets) + 1,
+                encoded_utc_offsets.data(),
+                encoded_utc_offsets.size() * sizeof(decltype(encoded_utc_offsets)::value_type),
+                true
         );
         m_upsert_file_statement->bind_text(
                 enum_to_underlying_type(FilesTableFieldIndexes::TimestampPatterns) + 1,

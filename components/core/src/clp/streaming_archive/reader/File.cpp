@@ -5,6 +5,7 @@
 
 #include "../../EncodedVariableInterpreter.hpp"
 #include "../../spdlog_with_specializations.hpp"
+#include "../../time_types.hpp"
 #include "../Constants.hpp"
 #include "SegmentManager.hpp"
 
@@ -32,6 +33,22 @@ ErrorCode File::open_me(
     file_metadata_ix.get_path(m_orig_path);
     m_begin_ts = file_metadata_ix.get_begin_ts();
     m_end_ts = file_metadata_ix.get_end_ts();
+
+    uint64_t const* encoded_utc_offsets{nullptr};
+    size_t num_utc_offsets{0};
+    file_metadata_ix.get_utc_offsets(encoded_utc_offsets, num_utc_offsets);
+    if (num_utc_offsets % 2 != 0) {
+        throw OperationFailed(ErrorCode_Corrupt, __FILENAME__, __LINE__);
+    }
+    for (size_t i = 0; i < num_utc_offsets; i += 2) {
+        uint64_t msg_num = encoded_utc_offsets[i];
+        uint64_t encoded_offset = encoded_utc_offsets[i + 1];
+        m_utc_offsets.emplace_back(
+                std::piecewise_construct,
+                std::forward_as_tuple(msg_num),
+                std::forward_as_tuple(encoded_offset)
+        );
+    }
 
     string encoded_timestamp_patterns;
     file_metadata_ix.get_timestamp_patterns(encoded_timestamp_patterns);
@@ -142,6 +159,7 @@ ErrorCode File::open_me(
     m_msgs_ix = 0;
     m_variables_ix = 0;
 
+    m_current_utc_offset_ix = 0;
     m_current_ts_pattern_ix = 0;
     m_current_ts_in_milli = m_begin_ts;
 
@@ -162,8 +180,10 @@ void File::close_me() {
     m_variables_ix = 0;
     m_num_variables = 0;
 
+    m_current_utc_offset_ix = 0;
     m_current_ts_pattern_ix = 0;
     m_current_ts_in_milli = 0;
+    m_utc_offsets.clear();
     m_timestamp_patterns.clear();
 
     m_begin_ts = cEpochTimeMax;
@@ -190,12 +210,47 @@ epochtime_t File::get_current_ts_in_milli() const {
     return m_current_ts_in_milli;
 }
 
-size_t File::get_current_ts_pattern_ix() const {
-    return m_current_ts_pattern_ix;
-}
+void File::get_timestamp_pattern_and_utc_offset(
+        uint64_t msg_num,
+        TimestampPattern const*& pattern,
+        UtcOffset& offset
+) {
+    pattern = nullptr;
+    if (false == m_timestamp_patterns.empty()
+        && msg_num >= m_timestamp_patterns[m_current_ts_pattern_ix].first)
+    {
+        while (true) {
+            if (m_current_ts_pattern_ix >= m_timestamp_patterns.size() - 1) {
+                // Already at last timestamp pattern
+                break;
+            }
+            auto next_pattern_begin_msg_num
+                    = m_timestamp_patterns[m_current_ts_pattern_ix + 1].first;
+            if (msg_num < next_pattern_begin_msg_num) {
+                // Not yet time for next timestamp pattern
+                break;
+            }
+            ++m_current_ts_pattern_ix;
+        }
+        pattern = &(m_timestamp_patterns[m_current_ts_pattern_ix].second);
+    }
 
-void File::increment_current_ts_pattern_ix() {
-    ++m_current_ts_pattern_ix;
+    offset = UtcOffset{0};
+    if (false == m_utc_offsets.empty() && msg_num >= m_utc_offsets[m_current_utc_offset_ix].first) {
+        while (true) {
+            if (m_current_utc_offset_ix >= m_utc_offsets.size() - 1) {
+                // Already at last UTC offset
+                break;
+            }
+            auto next_utc_offset_begin_msg_num = m_utc_offsets[m_current_utc_offset_ix + 1].first;
+            if (msg_num < next_utc_offset_begin_msg_num) {
+                // Not yet time for next UTC offset
+                break;
+            }
+            ++m_current_utc_offset_ix;
+        }
+        offset = m_utc_offsets[m_current_utc_offset_ix].second;
+    }
 }
 
 bool File::find_message_in_time_range(

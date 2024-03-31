@@ -121,6 +121,10 @@ namespace clp {
 void TimestampPattern::init() {
     // First create vector of observed patterns so that it's easy to maintain
     vector<TimestampPattern> patterns;
+    // E.g. 2015-01-31T15:50:45.392-0500
+    patterns.emplace_back(0, "%Y-%m-%dT%H:%M:%S.%3%z");
+    // E.g. 2015-01-31T15:50:45,392-0500
+    patterns.emplace_back(0, "%Y-%m-%dT%H:%M:%S,%3%z");
     // E.g. 2015-01-31T15:50:45.392
     patterns.emplace_back(0, "%Y-%m-%dT%H:%M:%S.%3");
     // E.g. 2015-01-31T15:50:45,392
@@ -649,6 +653,62 @@ bool TimestampPattern::parse_timestamp(
                     case '#':
                         state = ParserState::RelativeTimestampUnit;
                         break;
+                    case 'z': {
+                        constexpr int cFieldLength = 5;
+                        if (line_ix + cFieldLength > line_length) {
+                            // Too short
+                            return false;
+                        }
+
+                        char sign = line[line_ix];
+                        if ('+' != sign && '-' != sign) {
+                            // Not a sign
+                            return false;
+                        }
+                        bool is_negative = ('-' == sign);
+                        ++line_ix;
+
+                        int value;
+                        if (false
+                                    == convert_string_to_number(
+                                            line,
+                                            line_ix,
+                                            line_ix + 2,
+                                            '0',
+                                            value
+                                    )
+                            || value < 0 || value > 14)
+                        {
+                            return false;
+                        }
+                        std::chrono::hours utc_offset_hours{value};
+                        line_ix += 2;
+
+                        if (false
+                                    == convert_string_to_number(
+                                            line,
+                                            line_ix,
+                                            line_ix + 2,
+                                            '0',
+                                            value
+                                    )
+                            || value < 0 || value > 59)
+                        {
+                            return false;
+                        }
+                        std::chrono::minutes utc_offset_minutes{value};
+                        line_ix += 2;
+
+                        utc_offset = utc_offset_hours + utc_offset_minutes;
+                        if (is_negative) {
+                            if (utc_offset.count() == 0) {
+                                // -0000 is not a valid UTC offset
+                                return false;
+                            }
+                            utc_offset *= -1;
+                        }
+                        break;
+                    }
                     default:
                         return false;
                 }
@@ -746,7 +806,6 @@ bool TimestampPattern::parse_timestamp(
     auto duration_since_epoch = timestamp_point - unix_epoch_point;
     // Convert to raw milliseconds
     timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(duration_since_epoch).count();
-    utc_offset = std::chrono::seconds{0};
 
     timestamp_begin_pos = ts_begin_ix;
     timestamp_end_pos = line_ix;
@@ -904,6 +963,23 @@ void TimestampPattern::insert_formatted_timestamp(
                     case '#':  // Relative timestamp
                         state = ParserState::RelativeTimestampUnit;
                         break;
+                    case 'z': {  // UTC offset
+                        auto utc_offset_hours
+                                = std::chrono::duration_cast<std::chrono::hours>(utc_offset);
+                        auto utc_offset_minutes = std::chrono::duration_cast<std::chrono::minutes>(
+                                utc_offset - utc_offset_hours
+                        );
+                        if (utc_offset_hours.count() >= 0) {
+                            new_msg += '+';
+                        } else {
+                            new_msg += '-';
+                            utc_offset_hours *= -1;
+                            utc_offset_minutes *= -1;
+                        }
+                        append_padded_value(utc_offset_hours.count(), '0', 2, new_msg);
+                        append_padded_value(utc_offset_minutes.count(), '0', 2, new_msg);
+                        break;
+                    }
                     default:
                         throw OperationFailed(ErrorCode_Unsupported, __FILENAME__, __LINE__);
                 }

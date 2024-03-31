@@ -47,6 +47,7 @@ public:
               m_logtypes(nullptr),
               m_timestamps(nullptr),
               m_variables(nullptr),
+              m_current_utc_offset_ix(0),
               m_current_ts_pattern_ix(0),
               m_current_ts_in_milli(0) {}
 
@@ -91,11 +92,27 @@ private:
      */
     void reset_indices();
 
+    std::vector<std::pair<uint64_t, UtcOffset>> const& get_utc_offsets() const {
+        return m_utc_offsets;
+    }
+
     std::vector<std::pair<uint64_t, TimestampPattern>> const& get_timestamp_patterns() const;
     epochtime_t get_current_ts_in_milli() const;
-    size_t get_current_ts_pattern_ix() const;
 
-    void increment_current_ts_pattern_ix();
+    /**
+     * Gets the timestamp pattern and UTC offset corresponding to the message with the given index.
+     * NOTE: This method assumes that the caller will only provide monotonically increasing message
+     * indices until the file's indices have been reset.
+     * @param msg_num
+     * @param pattern Returns the corresponding timestamp pattern. The pointer is valid as long as
+     * the file is open.
+     * @param offset Returns the corresponding UTC offset
+     */
+    void get_timestamp_pattern_and_utc_offset(
+            uint64_t msg_num,
+            TimestampPattern const*& pattern,
+            UtcOffset& offset
+    );
 
     /**
      * Finds message that falls in given time range
@@ -129,6 +146,7 @@ private:
 
     epochtime_t m_begin_ts;
     epochtime_t m_end_ts;
+    std::vector<std::pair<uint64_t, UtcOffset>> m_utc_offsets;
     std::vector<std::pair<uint64_t, TimestampPattern>> m_timestamp_patterns;
     std::string m_id_as_string;
     std::string m_orig_file_id_as_string;
@@ -153,6 +171,7 @@ private:
     epochtime_t* m_timestamps;
     encoded_variable_t* m_variables;
 
+    size_t m_current_utc_offset_ix;
     size_t m_current_ts_pattern_ix;
     epochtime_t m_current_ts_in_milli;
 

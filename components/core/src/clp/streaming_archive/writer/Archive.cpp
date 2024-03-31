@@ -282,6 +282,13 @@ void Archive::set_file_is_split(bool is_split) {
     m_file->set_is_split(is_split);
 }
 
+void Archive::change_utc_offset(UtcOffset utc_offset) {
+    if (nullptr == m_file) {
+        throw OperationFailed(ErrorCode_Unsupported, __FILENAME__, __LINE__);
+    }
+    m_file->change_utc_offset(utc_offset);
+}
+
 void Archive::change_ts_pattern(TimestampPattern const* pattern) {
     if (m_file == nullptr) {
         throw OperationFailed(ErrorCode_Unsupported, __FILENAME__, __LINE__);
@@ -317,6 +324,7 @@ void Archive::write_msg_using_schema(LogEventView const& log_view) {
     UtcOffset utc_offset{0};
     TimestampPattern* timestamp_pattern = nullptr;
     auto const& log_output_buffer = log_view.get_log_output_buffer();
+    // TODO Handle parsing and setting UTC offset
     if (log_output_buffer->has_timestamp()) {
         size_t start;
         size_t end;

@@ -19,6 +19,7 @@
 #include "../../GlobalMetadataDB.hpp"
 #include "../../ir/LogEvent.hpp"
 #include "../../LogTypeDictionaryWriter.hpp"
+#include "../../time_types.hpp"
 #include "../../VariableDictionaryWriter.hpp"
 #include "../ArchiveMetadata.hpp"
 #include "../MetadataDB.hpp"
@@ -129,10 +130,16 @@ public:
     void set_file_is_split(bool is_split);
 
     /**
+     * Wrapper for streaming_archive::writer::File::change_utc_offset.
+     * @param utc_offset
+     */
+    void change_utc_offset(UtcOffset utc_offset);
+    /**
      * Wrapper for streaming_archive::writer::File::change_ts_pattern
      * @param pattern
      */
     void change_ts_pattern(TimestampPattern const* pattern);
+
     /**
      * Encodes and writes a message to the current encoded file
      * @param timestamp

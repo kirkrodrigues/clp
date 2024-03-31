@@ -25,6 +25,7 @@ auto split_file(
         Archive& archive_writer
 ) -> void {
     auto const& encoded_file = archive_writer.get_file();
+    auto last_utc_offset = encoded_file.get_current_utc_offset();
     auto has_ts_pattern = encoded_file.has_ts_pattern();
     auto orig_file_id = encoded_file.get_orig_file_id();
     auto split_ix = encoded_file.get_split_ix();
@@ -36,6 +37,9 @@ auto split_file(
         // Initialize the file's timestamp pattern to the previous split's pattern
         archive_writer.change_ts_pattern(last_timestamp_pattern);
     }
+    if (last_utc_offset.count() != 0) {
+        archive_writer.change_utc_offset(last_utc_offset);
+    }
 }
 
 auto split_file_and_archive(
@@ -46,6 +50,7 @@ auto split_file_and_archive(
         Archive& archive_writer
 ) -> void {
     auto const& encoded_file = archive_writer.get_file();
+    auto last_utc_offset = encoded_file.get_current_utc_offset();
     auto has_ts_pattern = encoded_file.has_ts_pattern();
     auto orig_file_id = encoded_file.get_orig_file_id();
     auto split_ix = encoded_file.get_split_ix();
@@ -58,6 +63,9 @@ auto split_file_and_archive(
     if (has_ts_pattern) {
         // Initialize the file's timestamp pattern to the previous split's pattern
         archive_writer.change_ts_pattern(last_timestamp_pattern);
+    }
+    if (last_utc_offset.count() != 0) {
+        archive_writer.change_utc_offset(last_utc_offset);
     }
 }
 

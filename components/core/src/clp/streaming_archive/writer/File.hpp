@@ -93,6 +93,12 @@ public:
     );
 
     /**
+     * Changes the UTC offset in use at the current message in the file.
+     * @param utc_offset
+     */
+    void change_utc_offset(UtcOffset utc_offset);
+
+    /**
      * Changes timestamp pattern in use at current message in file
      * @param pattern
      */
@@ -171,6 +177,10 @@ public:
         return m_timestamp_patterns;
     }
 
+    UtcOffset get_current_utc_offset() const;
+
+    std::vector<uint64_t> get_encoded_utc_offsets() const;
+
     std::string get_encoded_timestamp_patterns() const;
 
     uint64_t get_num_messages() const { return m_num_messages; }
@@ -223,6 +233,7 @@ private:
 
     epochtime_t m_begin_ts;
     epochtime_t m_end_ts;
+    std::vector<std::pair<int64_t, UtcOffset>> m_utc_offsets;
     std::vector<std::pair<int64_t, TimestampPattern>> m_timestamp_patterns;
 
     group_id_t m_group_id;

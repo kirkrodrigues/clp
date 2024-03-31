@@ -16,6 +16,7 @@
 #include "../LogSurgeonReader.hpp"
 #include "../Profiler.hpp"
 #include "../streaming_archive/writer/utils.hpp"
+#include "../time_types.hpp"
 #include "utils.hpp"
 
 using clp::ir::eight_byte_encoded_variable_t;
@@ -101,6 +102,9 @@ static void write_message_to_encoded_file(
 ) {
     if (msg.has_ts_patt_changed()) {
         archive.change_ts_pattern(msg.get_ts_patt());
+    }
+    if (msg.has_utc_offset_changed()) {
+        archive.change_utc_offset(msg.get_utc_offset());
     }
 
     archive.write_msg(msg.get_ts(), msg.get_content(), msg.get_orig_num_bytes());
@@ -522,6 +526,8 @@ std::error_code FileCompressor::compress_ir_stream_by_encoding(
     auto timestamp_pattern = log_event_deserializer.get_timestamp_pattern();
     archive.change_ts_pattern(&timestamp_pattern);
 
+    UtcOffset utc_offset{0};
+
     std::error_code error_code{};
     while (true) {
         auto result = log_event_deserializer.deserialize_log_event();
@@ -544,6 +550,15 @@ std::error_code FileCompressor::compress_ir_stream_by_encoding(
             );
         } else if (archive.get_file().get_encoded_size_in_bytes() >= target_encoded_file_size) {
             split_file(path, group_id, &timestamp_pattern, archive);
+        }
+
+        // TODO This is inefficient and should be replaced with a callback mechanism where
+        // LogEventDeserializer calls archive.change_utc_offset when it finds a UTC offset change
+        // packet in the IR stream.
+        auto deserialized_utc_offset = log_event_deserializer.get_current_utc_offset();
+        if (deserialized_utc_offset != utc_offset) {
+            utc_offset = deserialized_utc_offset;
+            archive.change_utc_offset(utc_offset);
         }
 
         archive.write_log_event_ir(result.value());

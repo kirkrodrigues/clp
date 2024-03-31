@@ -36,6 +36,7 @@ constexpr char OrigFileId[] = "orig_file_id";
 constexpr char Path[] = "path";
 constexpr char BeginTimestamp[] = "begin_timestamp";
 constexpr char EndTimestamp[] = "end_timestamp";
+constexpr char UtcOffsets[] = "utc_offsets";
 constexpr char TimestampPatterns[] = "timestamp_patterns";
 constexpr char NumUncompressedBytes[] = "num_uncompressed_bytes";
 constexpr char NumMessages[] = "num_messages";

@@ -11,6 +11,7 @@
 #include "../../EncodedVariableInterpreter.hpp"
 #include "../../spdlog_with_specializations.hpp"
 #include "../../time_types.hpp"
+#include "../../TimestampPattern.hpp"
 #include "../../Utils.hpp"
 #include "../ArchiveMetadata.hpp"
 #include "../Constants.hpp"
@@ -189,28 +190,18 @@ bool Archive::decompress_message(
         return false;
     }
 
-    // Determine which timestamp pattern to use
-    auto const& timestamp_patterns = file.get_timestamp_patterns();
-    if (!timestamp_patterns.empty()
-        && compressed_msg.get_message_number()
-                   >= timestamp_patterns[file.get_current_ts_pattern_ix()].first)
-    {
-        while (true) {
-            if (file.get_current_ts_pattern_ix() >= timestamp_patterns.size() - 1) {
-                // Already at last timestamp pattern
-                break;
-            }
-            auto next_patt_start_message_num
-                    = timestamp_patterns[file.get_current_ts_pattern_ix() + 1].first;
-            if (compressed_msg.get_message_number() < next_patt_start_message_num) {
-                // Not yet time for next timestamp pattern
-                break;
-            }
-            file.increment_current_ts_pattern_ix();
-        }
-        timestamp_patterns[file.get_current_ts_pattern_ix()].second.insert_formatted_timestamp(
+    TimestampPattern const* timestamp_pattern{nullptr};
+    UtcOffset utc_offset{0};
+    file.get_timestamp_pattern_and_utc_offset(
+            compressed_msg.get_message_number(),
+            timestamp_pattern,
+            utc_offset
+    );
+
+    if (nullptr != timestamp_pattern) {
+        timestamp_pattern->insert_formatted_timestamp(
                 compressed_msg.get_ts_in_milli(),
-                UtcOffset{0},
+                utc_offset,
                 decompressed_msg
         );
     }

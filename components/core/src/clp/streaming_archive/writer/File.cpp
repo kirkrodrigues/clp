@@ -1,6 +1,7 @@
 #include "File.hpp"
 
 #include "../../EncodedVariableInterpreter.hpp"
+#include "../../time_types.hpp"
 
 using std::string;
 using std::to_string;
@@ -84,6 +85,11 @@ void File::write_encoded_msg(
     m_is_metadata_clean = false;
 }
 
+void File::change_utc_offset(UtcOffset utc_offset) {
+    m_utc_offsets.emplace_back(m_num_messages, utc_offset);
+    m_is_metadata_clean = false;
+}
+
 void File::change_ts_pattern(TimestampPattern const* pattern) {
     if (nullptr == pattern) {
         m_timestamp_patterns.emplace_back(m_num_messages, TimestampPattern());
@@ -107,6 +113,25 @@ bool File::is_metadata_dirty() const {
 
 void File::mark_metadata_as_clean() {
     m_is_metadata_clean = true;
+}
+
+UtcOffset File::get_current_utc_offset() const {
+    if (m_utc_offsets.empty()) {
+        return UtcOffset{0};
+    }
+    return m_utc_offsets.back().second;
+}
+
+vector<uint64_t> File::get_encoded_utc_offsets() const {
+    vector<uint64_t> encoded_offsets;
+
+    // TODO We could build this procedurally
+    for (auto const& pair : m_utc_offsets) {
+        encoded_offsets.emplace_back(pair.first);
+        encoded_offsets.emplace_back(pair.second.count());
+    }
+
+    return encoded_offsets;
 }
 
 string File::get_encoded_timestamp_patterns() const {

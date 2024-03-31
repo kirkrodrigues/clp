@@ -46,6 +46,7 @@ namespace clp {
  *      - 3  Milliseconds
  *      - 6  Microseconds
  *      - 9  Nanoseconds
+ * - z  A UTC offset of the form [+-]hhmm
  */
 class TimestampPattern {
 public:
