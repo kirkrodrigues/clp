@@ -73,7 +73,7 @@ private:
               m_prev_msg_timestamp{ref_timestamp} {}
 
     // Variables
-    TimestampPattern m_timestamp_pattern{0, "%Y-%m-%dT%H:%M:%S.%3"};
+    TimestampPattern m_timestamp_pattern{0, "%Y-%m-%dT%H:%M:%S.%3%z"};
     UtcOffset m_utc_offset{0};
     [[no_unique_address]] std::conditional_t<
             std::is_same_v<encoded_variable_t, four_byte_encoded_variable_t>,
