@@ -212,7 +212,7 @@ TEST_CASE("Test known timestamp patterns", "[KnownTimestampPatterns]") {
     search_and_validate_timestamp_pattern(
             "2015-02-01T01:02:03.004-0500 content after",
             {0, "%Y-%m-%dT%H:%M:%S.%3%z"},
-            1'422'752'523'004,
+            1'422'770'523'004,
             UtcOffset{std::chrono::seconds{-5 * 60 * 60}},
             0,
             28
@@ -221,7 +221,7 @@ TEST_CASE("Test known timestamp patterns", "[KnownTimestampPatterns]") {
     search_and_validate_timestamp_pattern(
             "2015-02-01T01:02:03,004+0500 content after",
             {0, "%Y-%m-%dT%H:%M:%S,%3%z"},
-            1'422'752'523'004,
+            1'422'734'523'004,
             UtcOffset{std::chrono::seconds{5 * 60 * 60}},
             0,
             28
