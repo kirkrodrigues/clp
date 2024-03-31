@@ -10,6 +10,7 @@
 
 #include "../../EncodedVariableInterpreter.hpp"
 #include "../../spdlog_with_specializations.hpp"
+#include "../../time_types.hpp"
 #include "../../Utils.hpp"
 #include "../ArchiveMetadata.hpp"
 #include "../Constants.hpp"

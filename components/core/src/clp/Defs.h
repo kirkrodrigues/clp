@@ -11,8 +11,6 @@ namespace clp {
 typedef int64_t epochtime_t;
 constexpr epochtime_t cEpochTimeMin = std::numeric_limits<epochtime_t>::min();
 constexpr epochtime_t cEpochTimeMax = std::numeric_limits<epochtime_t>::max();
-// We use seconds resolution to support GPS clock offsets
-using UtcOffset = std::chrono::seconds;
 
 typedef uint64_t variable_dictionary_id_t;
 constexpr variable_dictionary_id_t cVariableDictionaryIdMax

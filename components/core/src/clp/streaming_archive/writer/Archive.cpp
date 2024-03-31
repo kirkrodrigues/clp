@@ -17,6 +17,7 @@
 #include "../../EncodedVariableInterpreter.hpp"
 #include "../../ir/types.hpp"
 #include "../../spdlog_with_specializations.hpp"
+#include "../../time_types.hpp"
 #include "../../Utils.hpp"
 #include "../Constants.hpp"
 #include "utils.hpp"

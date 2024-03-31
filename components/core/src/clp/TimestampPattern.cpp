@@ -7,6 +7,7 @@
 #include <date/include/date/date.h>
 
 #include "spdlog_with_specializations.hpp"
+#include "time_types.hpp"
 
 using std::string;
 using std::to_string;

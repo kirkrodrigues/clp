@@ -1,5 +1,6 @@
 #include <Catch2/single_include/catch2/catch.hpp>
 
+#include "../src/clp/time_types.hpp"
 #include "../src/clp/TimestampPattern.hpp"
 
 using clp::epochtime_t;

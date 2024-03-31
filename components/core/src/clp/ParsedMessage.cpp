@@ -1,5 +1,7 @@
 #include "ParsedMessage.hpp"
 
+#include "time_types.hpp"
+
 using std::string;
 
 namespace clp {

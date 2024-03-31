@@ -7,6 +7,7 @@
 
 #include "Defs.h"
 #include "FileWriter.hpp"
+#include "time_types.hpp"
 #include "TraceableException.hpp"
 
 namespace clp {

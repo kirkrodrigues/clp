@@ -3,6 +3,7 @@
 #include <chrono>
 
 #include "Defs.h"
+#include "time_types.hpp"
 #include "TimestampPattern.hpp"
 
 constexpr char cLineDelimiter = '\n';
