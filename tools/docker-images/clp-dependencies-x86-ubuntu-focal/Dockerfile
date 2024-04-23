@@ -13,13 +13,14 @@ RUN apt-get update \
     python3-venv \
     rsync
 
+# Install Task
+RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+
 # Remove cached files
 RUN apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Install Task
-RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
-
+# Add user and group
 RUN groupadd -g "${CONTAINER_GID}" "${CONTAINER_USER}"
 RUN useradd \
     --uid "${CONTAINER_UID}" \
@@ -55,7 +56,9 @@ RUN mv ~/new.bashrc ~/.bashrc
 FROM scratch
 COPY --from=BASE / /
 
-# TODO
-WORKDIR "/home/clp-user"
+# We need to repeat the arg since we flattened the image above
+ARG CONTAINER_USER=clp-user
+
+WORKDIR "/home/${CONTAINER_USER}"
 
 CMD bash
