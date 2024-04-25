@@ -21,7 +21,7 @@ of logs, and (2) tools that can handle both types often have different designs f
 as CLP).
 
 Compression ratio is measured as the average across a variety of log datasets. Some of these
-datasets can be found [here](docs/Datasets.md). Search performance is measured using queries on the
+datasets can be found [here](docs/src/user-guide/resources-datasets). Search performance is measured using queries on the
 MongoDB logs (for JSON) and the Hadoop logs (for unstructured logs). Note that CLP uses an
 index-less design, so for a fair comparison, we disabled MongoDB and PostgreSQL's indexes; If we
 left them enabled, MongoDB and PostgreSQL's compression ratio would be worse. We didn't disable
@@ -69,11 +69,11 @@ You can download a [release package](https://github.com/y-scope/clp/releases) wh
 for distributed compression and search. Or, to quickly try CLP's *core* compression and search, you
 can use a [prebuilt container](docs/core/clp-core-container.md).
 
-We also have guides for building the [package](docs/Building.md) and
+We also have guides for building the [package](docs/src/dev-guide/building-package) and
 [CLP core](components/core/README.md) from source.
 
 For some logs you can use to test CLP, check out our open-source 
-[datasets](docs/Datasets.md).
+[datasets](docs/src/user-guide/resources-datasets).
 
 # Providing Feedback
 
