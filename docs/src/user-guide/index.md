@@ -27,8 +27,8 @@ Open-source datasets and the like.
 
 quick-start-overview
 quick-start-cluster-setup
-quick-start-compression
-quick-start-search
+quick-start-compression/index.md
+quick-start-search/index.md
 :::
 
 :::{toctree}
