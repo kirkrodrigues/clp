@@ -9,6 +9,13 @@ The sections are as follows:
 :gutter: 2
 
 :::{grid-item-card}
+:link: quick-start-overview
+Quick start
+^^^
+A quick start guide for setting up a CLP cluster, compressing your logs, and searching them.
+:::
+
+:::{grid-item-card}
 :link: core-overview
 Core
 ^^^
@@ -29,6 +36,16 @@ Reference
 Reference docs like format specifications, etc.
 :::
 ::::
+
+:::{toctree}
+:hidden:
+:caption: Quick start
+
+quick-start-overview
+quick-start-cluster-setup
+quick-start-compression/index
+quick-start-search/index
+:::
 
 :::{toctree}
 :hidden:
