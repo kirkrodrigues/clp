@@ -38,6 +38,4 @@ Text log search syntax
 
 ui-search
 cli-search
-json-search
-text-search
 :::

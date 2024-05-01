@@ -69,5 +69,7 @@ resources-datasets
 :hidden:
 :caption: Reference
 
+reference-json-search-syntax
+reference-text-search-syntax
 reference-unstructured-schema-file
 :::

@@ -1,11 +1,13 @@
 # Searching from the command line
 
+From inside the package, run:
+
 ```
 sbin/search.sh '<query>'
 ```
 
-The format of `<query>` depends on the format your logs: see [JSON](json-search) or
-[text](text-search).
+The format of `<query>` depends on the format your logs: [JSON](../reference-json-search-syntax.md)
+or [text](../reference-text-search-syntax.md).
 
 To narrow your search to a specific time range:
 
