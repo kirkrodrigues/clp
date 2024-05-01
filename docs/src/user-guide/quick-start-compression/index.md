@@ -1,12 +1,13 @@
 # Compression
 
-You can compress your logs using a script in the package. Depending on the format of your logs,
+You can compress your logs using a script in the CLP package. Depending on the format of your logs,
 choose one of the options below.
 
 :::{caution}
 If you're using the `clp-json` release, you can only compress JSON logs. If you're using the
-`clp-text` release, you should only compress text logs (you can compress JSON logs as text, but
-searches will be haphazard). This limitation will be addressed in a future version of CLP.
+`clp-text` release, you should only compress text logs (`clp-text` can compress and search JSON logs
+as text, but it cannot query individual fields). This limitation will be addressed in a future
+version of CLP.
 :::
 
 ::::{grid} 1 1 2 2

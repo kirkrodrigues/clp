@@ -1,76 +1,19 @@
-# Cluster setup
-
-To set up a cluster, you'll need to:
-
-* Download a release.
-* Choose between a single or multi-node deployment.
-* Ensure you meet the requirements for running the release.
-* Configure the release (if necessary).
-* Start CLP.
-
-## Downloading a release
-
-Download the flavour of [release][clp-releases] that's appropriate for your logs:
-
-* **clp-json** for compressing and searching **JSON** logs.
-* **clp-text** for compressing and searching **free-text** logs.
-
-:::{note}
-Both flavours contain the same binaries but are configured with different values for the
-`package.storage_engine` key.
-:::
-
-Once downloaded, extract the release into a directory.
-
-## Single-node deployment
-
-A single-node deployment allows you to run CLP on a single host.
-
-### Requirements
-
-* [Docker][1]
-  * If you're not running as root, ensure `docker` can be run [without superuser privileges][2].
-* Python 3.8 or higher
-
-### Starting CLP
-
-```bash
-sbin/start-clp.sh
-```
-
-:::{note}
-If CLP fails to start (e.g., due to a port conflict), try adjusting the settings in
-`etc/clp-config.yml` and then run the start command again.
-:::
-
-### Using CLP
-
-Once the cluster has started, check out the [compression](quick-start-compression/index) and
-[search](quick-start-search) guides.
-
-### Stopping CLP
-
-If you need to stop the cluster, run:
-
-```bash
-sbin/stop-clp.sh
-```
-
-## Multi-node Deployment
+# Multi-node deployment
 
 A multi-node deployment allows you to run CLP across a distributed set of hosts.
 
-### Requirements
+## Requirements
 
-* [Docker][1]
-  * If you're not running as root, ensure docker can be run [without superuser privileges][2].
+* [Docker]
+  * If you're not running as root, ensure docker can be run
+    [without superuser privileges][docker-non-root].
 * Python 3.8 or higher
 * One or more hosts networked together
-* A distributed filesystem (e.g. [SeaweedFS][3]) accessible by all worker hosts through a filesystem
+* A distributed filesystem (e.g. [SeaweedFS]) accessible by all worker hosts through a filesystem
   mount
   * See [below](#setting-up-seaweedfs) for how to set up a simple SeaweedFS cluster.
 
-### Cluster overview
+## Cluster overview
 
 The CLP package is composed of several components--controller components and worker components. In a
 cluster, there should be a single instance of each controller component and one or more instances of
@@ -104,7 +47,7 @@ worker components. The tables below list the components and their functions.
 Running additional workers increases the parallelism of compression and search jobs.
 :::
 
-### Configuring CLP
+## Configuring CLP
 
 1. Copy `etc/credentials.template.yml` to `etc/credentials.yml`.
 2. Edit `etc/credentials.yml`:
@@ -129,7 +72,7 @@ Running additional workers increases the parallelism of compression and search j
 6. Take the versions of `credentials.yml` and `clp-config.yml` that you created above and copy them
    into `etc` on all the hosts where you extracted the package.
 
-### Starting CLP
+## Starting CLP
 
 For each component, on the host where you want to run the component, run:
 
@@ -137,7 +80,12 @@ For each component, on the host where you want to run the component, run:
 sbin/start-clp.sh <component>
 ```
 
-### Stopping CLP
+## Using CLP
+
+Check out the [compression](../quick-start-compression/index) and
+[search](../quick-start-search/index) guides to compress and search your logs.
+
+## Stopping CLP
 
 If you need to stop the cluster, run:
 
@@ -146,12 +94,12 @@ sbin/stop-clp.sh
 ```
 
 (setting-up-seaweedfs)=
-### Setting up SeaweedFS
+## Setting up SeaweedFS
 
 The instructions below are for running a simple SeaweedFS cluster on a set of hosts. For other use
-cases, see the [SeaweedFS docs][4].
+cases, see the [SeaweedFS docs][seaweedfs-docs].
 
-1. Install [SeaweedFS][5].
+1. Install [SeaweedFS][seaweedfs-install-docs].
 2. Start the master and a filer on one of the hosts:
 
     ```bash
@@ -180,14 +128,8 @@ cases, see the [SeaweedFS docs][4].
      * `<master-host>` is the hostname/IP of the master host.
      * `<mount-path>` is the path where you want the mount to be.
 
-## Opening the UI
-
-CLP includes a web interface available at [http://localhost:4000](http://localhost:4000) by default
-(if you changed `webui.host` or `webui.port` in `etc/clp-config.yml`, use the new values).
-
-[1]: https://docs.docker.com/engine/install/
-[2]: https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user
-[3]: https://github.com/seaweedfs/seaweedfs
-[4]: https://github.com/seaweedfs/seaweedfs/blob/master/README.md
-[5]: https://github.com/seaweedfs/seaweedfs?tab=readme-ov-file#quick-start-with-single-binary
-[clp-releases]: https://github.com/y-scope/clp/releases
+[Docker]: https://docs.docker.com/engine/install/
+[docker-non-root]: https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user
+[SeaweedFS]: https://github.com/seaweedfs/seaweedfs
+[seaweedfs-docs]: https://github.com/seaweedfs/seaweedfs/blob/master/README.md
+[seaweedfs-install-docs]: https://github.com/seaweedfs/seaweedfs?tab=readme-ov-file#quick-start-with-single-binary

@@ -1,10 +1,11 @@
 # Overview
 
-Follow the guides below to set up a cluster, compress your logs, and search your logs.
+CLP operates as a distributed system, so you'll need to set up a cluster before compressing and
+searching your logs. Follow the guides below for each step:
 
-* [Cluster setup](quick-start-cluster-setup)
-* [Compression](quick-start-compression/index)
-* [Search](quick-start-search/index)
+1. [Cluster setup](quick-start-cluster-setup/index)
+2. [Compression](quick-start-compression/index)
+3. [Search](quick-start-search/index)
 
 ## Housekeeping
 

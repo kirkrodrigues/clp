@@ -42,7 +42,7 @@ Reference docs like format specifications, etc.
 :caption: Quick start
 
 quick-start-overview
-quick-start-cluster-setup
+quick-start-cluster-setup/index
 quick-start-compression/index
 quick-start-search/index
 :::
