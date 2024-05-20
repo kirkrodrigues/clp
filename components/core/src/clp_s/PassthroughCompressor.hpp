@@ -19,7 +19,7 @@ public:
     static constexpr int cDefaultCompressionLevel = 3;
 
     // Constructors
-    PassthroughCompressor() : Compressor(CompressorType::Passthrough){};
+    PassthroughCompressor() : Compressor(CompressorType::Passthrough) {};
 
     PassthroughCompressor(PassthroughCompressor const&) = delete;
     PassthroughCompressor(PassthroughCompressor const&&) = delete;
