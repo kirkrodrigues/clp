@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "PassthroughCompressor.hpp"
+
 namespace clp_s {
 void TimestampEntry::ingest_timestamp(epochtime_t timestamp) {
     if (m_encoding == DoubleEpoch) {
@@ -54,7 +56,7 @@ void TimestampEntry::merge_range(TimestampEntry const& entry) {
     }
 }
 
-void TimestampEntry::write_to_file(ZstdCompressor& compressor) const {
+void TimestampEntry::write_to_file(PassthroughCompressor& compressor) const {
     compressor.write_numeric_value<uint64_t>(m_key_name.size());
     compressor.write_string(m_key_name);
     compressor.write_numeric_value<uint64_t>(m_column_ids.size());

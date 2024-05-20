@@ -6,8 +6,8 @@
 #include <string>
 #include <utility>
 
+#include "PassthroughCompressor.hpp"
 #include "TraceableException.hpp"
-#include "ZstdCompressor.hpp"
 #include "ZstdDecompressor.hpp"
 
 namespace clp_s {
@@ -168,7 +168,7 @@ public:
      * Writes an entry to a compressed file
      * @param compressor
      */
-    void write_to_file(ZstdCompressor& compressor) const;
+    void write_to_file(PassthroughCompressor& compressor) const;
 
     /**
      * Tries to read an entry from the given decompressor
@@ -269,7 +269,7 @@ public:
      * Writes an entry to a compressed file
      * @param compressor
      */
-    void write_to_file(ZstdCompressor& compressor) const;
+    void write_to_file(PassthroughCompressor& compressor) const;
 
     /**
      * Tries to read an entry from the given decompressor

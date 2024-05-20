@@ -2,6 +2,7 @@
 
 #include "DictionaryEntry.hpp"
 
+#include "PassthroughCompressor.hpp"
 #include "Utils.hpp"
 
 using std::string;
@@ -91,7 +92,7 @@ void LogTypeDictionaryEntry::clear() {
     m_var_positions.clear();
 }
 
-void LogTypeDictionaryEntry::write_to_file(ZstdCompressor& compressor) const {
+void LogTypeDictionaryEntry::write_to_file(PassthroughCompressor& compressor) const {
     string escaped_value;
     get_value_with_unfounded_variables_escaped(escaped_value);
     compressor.write_numeric_value(escaped_value.length());
@@ -222,7 +223,7 @@ size_t VariableDictionaryEntry::get_data_size() const {
     return sizeof(m_id) + m_value.length();
 }
 
-void VariableDictionaryEntry::write_to_file(ZstdCompressor& compressor) const {
+void VariableDictionaryEntry::write_to_file(PassthroughCompressor& compressor) const {
     compressor.write_numeric_value<uint64_t>(m_value.length());
     compressor.write_string(m_value);
 }

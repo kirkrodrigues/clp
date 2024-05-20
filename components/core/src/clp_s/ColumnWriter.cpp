@@ -6,7 +6,7 @@ void Int64ColumnWriter::add_value(ParsedMessage::variable_t& value, size_t& size
     m_values.push_back(std::get<int64_t>(value));
 }
 
-size_t Int64ColumnWriter::store(ZstdCompressor& compressor) {
+size_t Int64ColumnWriter::store(PassthroughCompressor& compressor) {
     size_t size = m_values.size() * sizeof(int64_t);
     compressor.write(reinterpret_cast<char const*>(m_values.data()), size);
     return size;
@@ -17,7 +17,7 @@ void FloatColumnWriter::add_value(ParsedMessage::variable_t& value, size_t& size
     m_values.push_back(std::get<double>(value));
 }
 
-size_t FloatColumnWriter::store(ZstdCompressor& compressor) {
+size_t FloatColumnWriter::store(PassthroughCompressor& compressor) {
     size_t size = m_values.size() * sizeof(double);
     compressor.write(reinterpret_cast<char const*>(m_values.data()), size);
     return size;
@@ -28,7 +28,7 @@ void BooleanColumnWriter::add_value(ParsedMessage::variable_t& value, size_t& si
     m_values.push_back(std::get<bool>(value) ? 1 : 0);
 }
 
-size_t BooleanColumnWriter::store(ZstdCompressor& compressor) {
+size_t BooleanColumnWriter::store(PassthroughCompressor& compressor) {
     size_t size = m_values.size() * sizeof(uint8_t);
     compressor.write(reinterpret_cast<char const*>(m_values.data()), size);
     return size;
@@ -51,7 +51,7 @@ void ClpStringColumnWriter::add_value(ParsedMessage::variable_t& value, size_t& 
     size += sizeof(int64_t) * (m_encoded_vars.size() - offset);
 }
 
-size_t ClpStringColumnWriter::store(ZstdCompressor& compressor) {
+size_t ClpStringColumnWriter::store(PassthroughCompressor& compressor) {
     size_t logtypes_size = m_logtypes.size() * sizeof(int64_t);
     compressor.write(reinterpret_cast<char const*>(m_logtypes.data()), logtypes_size);
     size_t encoded_vars_size = m_encoded_vars.size() * sizeof(int64_t);
@@ -69,7 +69,7 @@ void VariableStringColumnWriter::add_value(ParsedMessage::variable_t& value, siz
     m_variables.push_back(id);
 }
 
-size_t VariableStringColumnWriter::store(ZstdCompressor& compressor) {
+size_t VariableStringColumnWriter::store(PassthroughCompressor& compressor) {
     size_t size = m_variables.size() * sizeof(int64_t);
     compressor.write(reinterpret_cast<char const*>(m_variables.data()), size);
     return size;
@@ -82,7 +82,7 @@ void DateStringColumnWriter::add_value(ParsedMessage::variable_t& value, size_t&
     m_timestamp_encodings.push_back(encoded_timestamp.first);
 }
 
-size_t DateStringColumnWriter::store(ZstdCompressor& compressor) {
+size_t DateStringColumnWriter::store(PassthroughCompressor& compressor) {
     size_t timestamps_size = m_timestamps.size() * sizeof(int64_t);
     compressor.write(reinterpret_cast<char const*>(m_timestamps.data()), timestamps_size);
     size_t encodings_size = m_timestamp_encodings.size() * sizeof(int64_t);

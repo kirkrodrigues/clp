@@ -2,7 +2,7 @@
 
 #include "archive_constants.hpp"
 #include "FileWriter.hpp"
-#include "ZstdCompressor.hpp"
+#include "PassthroughCompressor.hpp"
 
 namespace clp_s {
 int32_t SchemaTree::add_node(int32_t parent_node_id, NodeType type, std::string const& key) {
@@ -29,7 +29,7 @@ int32_t SchemaTree::add_node(int32_t parent_node_id, NodeType type, std::string 
 
 size_t SchemaTree::store(std::string const& archives_dir, int compression_level) {
     FileWriter schema_tree_writer;
-    ZstdCompressor schema_tree_compressor;
+    PassthroughCompressor schema_tree_compressor;
 
     schema_tree_writer.open(
             archives_dir + constants::cArchiveSchemaTreeFile,

@@ -2,7 +2,7 @@
 
 #include "archive_constants.hpp"
 #include "FileWriter.hpp"
-#include "ZstdCompressor.hpp"
+#include "PassthroughCompressor.hpp"
 
 namespace clp_s {
 int32_t SchemaMap::add_schema(Schema const& schema) {
@@ -16,7 +16,7 @@ int32_t SchemaMap::add_schema(Schema const& schema) {
 
 size_t SchemaMap::store(std::string const& archives_dir, int compression_level) {
     FileWriter schema_map_writer;
-    ZstdCompressor schema_map_compressor;
+    PassthroughCompressor schema_map_compressor;
 
     // TODO: rename schema_ids -> schema_map, and use int32_t for schema size
     schema_map_writer.open(

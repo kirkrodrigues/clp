@@ -9,9 +9,9 @@
 #include "DictionaryWriter.hpp"
 #include "FileWriter.hpp"
 #include "ParsedMessage.hpp"
+#include "PassthroughCompressor.hpp"
 #include "TimestampDictionaryWriter.hpp"
 #include "VariableEncoder.hpp"
-#include "ZstdCompressor.hpp"
 
 using namespace simdjson;
 
@@ -36,7 +36,7 @@ public:
      * @param compressor
      * @return the in-memory uncompressed size of the data written to the compressor
      */
-    virtual size_t store(ZstdCompressor& compressor) = 0;
+    virtual size_t store(PassthroughCompressor& compressor) = 0;
 
 protected:
     int32_t m_id;
@@ -53,7 +53,7 @@ public:
     // Methods inherited from BaseColumnWriter
     void add_value(ParsedMessage::variable_t& value, size_t& size) override;
 
-    size_t store(ZstdCompressor& compressor) override;
+    size_t store(PassthroughCompressor& compressor) override;
 
 private:
     std::vector<int64_t> m_values;
@@ -70,7 +70,7 @@ public:
     // Methods inherited from BaseColumnWriter
     void add_value(ParsedMessage::variable_t& value, size_t& size) override;
 
-    size_t store(ZstdCompressor& compressor) override;
+    size_t store(PassthroughCompressor& compressor) override;
 
 private:
     std::vector<double> m_values;
@@ -87,7 +87,7 @@ public:
     // Methods inherited from BaseColumnWriter
     void add_value(ParsedMessage::variable_t& value, size_t& size) override;
 
-    size_t store(ZstdCompressor& compressor) override;
+    size_t store(PassthroughCompressor& compressor) override;
 
 private:
     std::vector<uint8_t> m_values;
@@ -111,7 +111,7 @@ public:
     // Methods inherited from BaseColumnWriter
     void add_value(ParsedMessage::variable_t& value, size_t& size) override;
 
-    size_t store(ZstdCompressor& compressor) override;
+    size_t store(PassthroughCompressor& compressor) override;
 
     /**
      * @param encoded_id
@@ -165,7 +165,7 @@ public:
     // Methods inherited from BaseColumnWriter
     void add_value(ParsedMessage::variable_t& value, size_t& size) override;
 
-    size_t store(ZstdCompressor& compressor) override;
+    size_t store(PassthroughCompressor& compressor) override;
 
 private:
     std::shared_ptr<VariableDictionaryWriter> m_var_dict;
@@ -183,7 +183,7 @@ public:
     // Methods inherited from BaseColumnWriter
     void add_value(ParsedMessage::variable_t& value, size_t& size) override;
 
-    size_t store(ZstdCompressor& compressor) override;
+    size_t store(PassthroughCompressor& compressor) override;
 
 private:
     std::vector<int64_t> m_timestamps;

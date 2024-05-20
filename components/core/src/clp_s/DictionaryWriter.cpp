@@ -2,6 +2,8 @@
 
 #include "DictionaryWriter.hpp"
 
+#include "spdlog_with_specializations.hpp"
+
 namespace clp_s {
 bool VariableDictionaryWriter::add_entry(std::string const& value, uint64_t& id) {
     bool new_entry = false;

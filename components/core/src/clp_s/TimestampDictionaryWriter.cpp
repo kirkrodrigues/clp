@@ -5,7 +5,7 @@
 namespace clp_s {
 void TimestampDictionaryWriter::write_timestamp_entries(
         std::map<std::string, TimestampEntry> const& ranges,
-        ZstdCompressor& compressor
+        PassthroughCompressor& compressor
 ) {
     compressor.write_numeric_value<uint64_t>(ranges.size());
 

@@ -57,7 +57,7 @@ protected:
 
     // Variables related to on-disk storage
     FileWriter m_dictionary_file_writer;
-    ZstdCompressor m_dictionary_compressor;
+    PassthroughCompressor m_dictionary_compressor;
 
     value_to_id_t m_value_to_id;
     uint64_t m_next_id{};

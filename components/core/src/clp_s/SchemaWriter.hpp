@@ -6,7 +6,7 @@
 #include "ColumnWriter.hpp"
 #include "FileWriter.hpp"
 #include "ParsedMessage.hpp"
-#include "ZstdCompressor.hpp"
+#include "PassthroughCompressor.hpp"
 
 namespace clp_s {
 class SchemaWriter {
@@ -42,7 +42,7 @@ public:
      * @param compressor
      * @return the uncompressed in-memory size of the table
      */
-    [[nodiscard]] size_t store(ZstdCompressor& compressor);
+    [[nodiscard]] size_t store(PassthroughCompressor& compressor);
 
     /**
      * Closes the schema writer.

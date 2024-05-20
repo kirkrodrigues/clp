@@ -27,7 +27,7 @@ size_t SchemaWriter::append_message(ParsedMessage& message) {
     return total_size;
 }
 
-size_t SchemaWriter::store(ZstdCompressor& compressor) {
+size_t SchemaWriter::store(PassthroughCompressor& compressor) {
     size_t total_size = 0;
     for (auto& writer : m_columns) {
         total_size += writer->store(compressor);

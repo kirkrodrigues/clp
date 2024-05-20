@@ -9,6 +9,7 @@
 
 #include "../clp/GlobalMySQLMetadataDB.hpp"
 #include "DictionaryWriter.hpp"
+#include "PassthroughCompressor.hpp"
 #include "Schema.hpp"
 #include "SchemaMap.hpp"
 #include "SchemaTree.hpp"
@@ -167,8 +168,8 @@ private:
 
     FileWriter m_tables_file_writer;
     FileWriter m_table_metadata_file_writer;
-    ZstdCompressor m_tables_compressor;
-    ZstdCompressor m_table_metadata_compressor;
+    PassthroughCompressor m_tables_compressor;
+    PassthroughCompressor m_table_metadata_compressor;
 };
 }  // namespace clp_s
 

@@ -7,9 +7,9 @@
 
 #include "Defs.hpp"
 #include "ErrorCode.hpp"
+#include "PassthroughCompressor.hpp"
 #include "search/FilterOperation.hpp"
 #include "Utils.hpp"
-#include "ZstdCompressor.hpp"
 #include "ZstdDecompressor.hpp"
 
 using clp_s::search::FilterOperation;
@@ -69,7 +69,7 @@ public:
      * Write the timestamp entry to a file
      * @param compressor
      */
-    void write_to_file(ZstdCompressor& compressor) const;
+    void write_to_file(PassthroughCompressor& compressor) const;
 
     /**
      * Try to read the timestamp entry from a file

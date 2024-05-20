@@ -6,10 +6,10 @@
 #include <utility>
 
 #include "FileWriter.hpp"
+#include "PassthroughCompressor.hpp"
 #include "SchemaTree.hpp"
 #include "TimestampEntry.hpp"
 #include "TimestampPattern.hpp"
-#include "ZstdCompressor.hpp"
 
 namespace clp_s {
 class TimestampDictionaryWriter {
@@ -104,7 +104,7 @@ private:
      */
     static void write_timestamp_entries(
             std::map<std::string, TimestampEntry> const& ranges,
-            ZstdCompressor& compressor
+            PassthroughCompressor& compressor
     );
 
     typedef std::unordered_map<TimestampPattern const*, uint64_t> pattern_to_id_t;
@@ -114,9 +114,9 @@ private:
 
     // Variables related to on-disk storage
     FileWriter m_dictionary_file_writer;
-    ZstdCompressor m_dictionary_compressor;
+    PassthroughCompressor m_dictionary_compressor;
     FileWriter m_dictionary_file_writer_local;
-    ZstdCompressor m_dictionary_compressor_local;
+    PassthroughCompressor m_dictionary_compressor_local;
 
     pattern_to_id_t m_pattern_to_id;
     uint64_t m_next_id{};

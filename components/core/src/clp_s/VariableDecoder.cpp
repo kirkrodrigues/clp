@@ -2,6 +2,8 @@
 
 #include "VariableDecoder.hpp"
 
+#include "spdlog_with_specializations.hpp"
+
 namespace clp_s {
 bool VariableDecoder::decode_variables_into_message(
         LogTypeDictionaryEntry const& logtype_dict_entry,

@@ -66,6 +66,8 @@ set(
         JsonParser.hpp
         JsonSerializer.hpp
         ParsedMessage.hpp
+        PassthroughCompressor.cpp
+        PassthroughCompressor.hpp
         ReaderUtils.cpp
         ReaderUtils.hpp
         Schema.cpp
