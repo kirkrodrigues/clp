@@ -207,7 +207,7 @@ TEST_CASE("clean_up_wildcard_search_string", "[clean_up_wildcard_search_string]"
     REQUIRE(clean_up_wildcard_search_string(str) == "abc");
 }
 
-TEST_CASE("wildcard_match_unsafe_case_sensitive", "[wildcard]") {
+TEST_CASE("wildcard_match_unsafe_case_sensitive matching cases", "[wildcard]") {
     // We want to test all varieties of wildcard strings and strings that can be matched by them.
     // We do this by using a kind of template wildcard string---where each character has a set of
     // possibilities---to generate this variety. For each wildcard string, we also generate one or
@@ -264,20 +264,63 @@ TEST_CASE("wildcard_match_unsafe_case_sensitive", "[wildcard]") {
         string wild;
         generate_and_test_wildcard_str(template_wildcard_str, chosen_alphabets, wild);
     }
+}
 
-    // We test non-matching cases using a tame string that matches a diverse wildcard string as
-    // follows. We test that every substring (anchored at index 0) of tame doesn't match the
-    // complete wildcard string.
-    constexpr string_view tame{"abcdef?*?ghixyz"};
-    constexpr string_view wild{R"(*a?c*\?\*\?*x?z*)"};
-    // Sanity-check that they match.
-    REQUIRE(wildcard_match_unsafe_case_sensitive(tame, wild));
-    auto tame_begin_it = tame.cbegin();
-    for (auto it = tame.cend() - 1; tame_begin_it != it; --it) {
-        auto const tame_substr = string_view{tame_begin_it, it};
-        INFO("tame: \"" << tame_substr << "\", wild: \"" << wild << "\"");
-        REQUIRE((false == wildcard_match_unsafe_case_sensitive(tame_substr, wild)));
+void test_method2(string_view tame, string_view wild) {
+    for (size_t tame_begin_idx = 0; tame_begin_idx < tame.size(); ++tame_begin_idx) {
+        for (size_t tame_end_idx = tame_begin_idx + 1;
+             (0 == tame_begin_idx && tame_end_idx < tame.size())
+             || (0 != tame_begin_idx && tame_end_idx <= tame.size());
+             ++tame_end_idx)
+        {
+            string_view tame_substr{tame.substr(tame_begin_idx, tame_end_idx - tame_begin_idx)};
+            INFO("tame: \"" << tame_substr << "\", wild: \"" << wild << "\"");
+            REQUIRE((false == wildcard_match_unsafe_case_sensitive(tame_substr, wild)));
+        }
     }
+}
+
+void test_method3(string_view tame, string_view wild) {
+    auto prefixed_wild = string{"*"} + string{wild};
+    auto suffixed_wild = string{wild} + "*";
+    auto wrapped_wild = string{"*"} + string{wild} + string{"*"};
+    test_method2(tame, wild);
+    test_method2(tame, suffixed_wild);
+    test_method2(tame, prefixed_wild);
+    test_method2(tame, wrapped_wild);
+
+    auto prefixed_tame = string{"0"} + string{tame};
+    REQUIRE((false == wildcard_match_unsafe_case_sensitive(prefixed_tame, wild)));
+    REQUIRE((false == wildcard_match_unsafe_case_sensitive(prefixed_tame, suffixed_wild)));
+
+    auto suffixed_tame = string{tame} + "9";
+    REQUIRE((false == wildcard_match_unsafe_case_sensitive(suffixed_tame, wild)));
+    REQUIRE((false == wildcard_match_unsafe_case_sensitive(suffixed_tame, prefixed_wild)));
+}
+
+TEST_CASE("wildcard_match_unsafe_case_sensitive non-matching cases", "[wildcard]") {
+    // Cases:
+    // - Each character doesn't match, but same length
+    // - No preceding '*' and first group longer
+    // - '*' on either side and middle group longer
+    // - No succeeding '*' and last group longer
+    test_method3("a?b*c\\d", R"(a\?b\*c\\d)");
+    test_method3("?a*b\\cd\\e*f?", R"(\?a\*b\\*\\e\*f\?)");
+
+    //    // We test non-matching cases using a tame string that matches a diverse wildcard string
+    //    as
+    //    // follows. We test that every substring (anchored at index 0) of tame doesn't match the
+    //    // complete wildcard string.
+    //    constexpr string_view tame{"abcdef?*?ghixyz"};
+    //    constexpr string_view wild{R"(*a?c*\?\*\?*x?z*)"};
+    //    // Sanity-check that they match.
+    //    REQUIRE(wildcard_match_unsafe_case_sensitive(tame, wild));
+    //    auto tame_begin_it = tame.cbegin();
+    //    for (auto it = tame.cend() - 1; tame_begin_it != it; --it) {
+    //        auto const tame_substr = string_view{tame_begin_it, it};
+    //        INFO("tame: \"" << tame_substr << "\", wild: \"" << wild << "\"");
+    //        REQUIRE((false == wildcard_match_unsafe_case_sensitive(tame_substr, wild)));
+    //    }
 }
 
 TEST_CASE("wildcard_match_unsafe", "[wildcard]") {

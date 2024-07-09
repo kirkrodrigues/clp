@@ -4,6 +4,8 @@
 #include <cctype>
 #include <cstring>
 
+#include <spdlog/spdlog.h>
+
 using std::string;
 using std::string_view;
 
@@ -74,6 +76,7 @@ inline bool advance_tame_to_next_match(
     return true;
 }
 
+// TODO
 bool is_end_of_wild(string_view::const_iterator wild_it, string_view::const_iterator wild_end_it) {
     return (wild_end_it == wild_it) || (wild_end_it == wild_it + 1 && '*' == *wild_it);
 }
@@ -340,15 +343,41 @@ bool wildcard_match_unsafe_case_sensitive(string_view tame, string_view wild) {
             return is_end_of_wild(wild_it, wild_end_it);
         }
         if (wild_end_it == wild_it) {
-            // Reset to bookmarks
-            tame_it = tame_bookmark_it + 1;
-            wild_it = wild_bookmark_it;
-            if (false
-                == advance_tame_to_next_match(tame_end_it, tame_it, tame_bookmark_it, wild_it))
-            {
+            break;
+        }
+    }
+
+    // Count the number of characters to match in `wild`
+    size_t num_chars_in_last_group = 0;
+    for (wild_it = wild_bookmark_it; wild_it != wild_end_it;) {
+        if ('\\' == *wild_it) {
+            // Safe without bounds check
+            ++wild_it;
+        }
+        ++wild_it;
+        ++num_chars_in_last_group;
+    }
+
+    for (tame_it = tame_end_it - num_chars_in_last_group, wild_it = wild_bookmark_it;
+         tame_it != tame_end_it;
+         ++tame_it, ++wild_it)
+    {
+        auto w = *wild_it;
+        if ('?' != w) {
+            // Handle escaped characters
+            if ('\\' == w) {
+                // Safe without a bounds check
+                ++wild_it;
+                w = *wild_it;
+            }
+
+            // Handle a mismatch
+            if (w != *tame_it) {
                 return false;
             }
         }
     }
+
+    return true;
 }
 }  // namespace clp::string_utils
