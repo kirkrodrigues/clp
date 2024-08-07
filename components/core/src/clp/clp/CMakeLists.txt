@@ -22,7 +22,6 @@ set(
         ../ffi/ir_stream/byteswap.hpp
         ../ffi/ir_stream/decoding_methods.cpp
         ../ffi/ir_stream/decoding_methods.hpp
-        ../ffi/ir_stream/decoding_methods.inc
         ../ffi/ir_stream/encoding_methods.cpp
         ../ffi/ir_stream/encoding_methods.hpp
         ../ffi/ir_stream/utils.cpp

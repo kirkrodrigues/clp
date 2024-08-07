@@ -312,7 +312,6 @@ set(SOURCE_FILES_unitTest
         src/clp/ffi/ir_stream/byteswap.hpp
         src/clp/ffi/ir_stream/decoding_methods.cpp
         src/clp/ffi/ir_stream/decoding_methods.hpp
-        src/clp/ffi/ir_stream/decoding_methods.inc
         src/clp/ffi/ir_stream/encoding_methods.cpp
         src/clp/ffi/ir_stream/encoding_methods.hpp
         src/clp/ffi/ir_stream/protocol_constants.hpp

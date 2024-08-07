@@ -1,14 +1,13 @@
 #ifndef CLP_IR_LOGEVENTDESERIALIZER_HPP
 #define CLP_IR_LOGEVENTDESERIALIZER_HPP
 
-#include <optional>
+#include <type_traits>
 
 #include <outcome/single-header/outcome.hpp>
 
 #include "../ReaderInterface.hpp"
 #include "../time_types.hpp"
 #include "../TimestampPattern.hpp"
-#include "../TraceableException.hpp"
 #include "../type_utils.hpp"
 #include "LogEvent.hpp"
 #include "types.hpp"
@@ -37,13 +36,15 @@ public:
     static auto create(ReaderInterface& reader
     ) -> OUTCOME_V2_NAMESPACE::std_result<LogEventDeserializer<encoded_variable_t>>;
 
-    // Delete copy constructor and assignment
+    // Delete copy constructor and assignment operator
     LogEventDeserializer(LogEventDeserializer const&) = delete;
     auto operator=(LogEventDeserializer const&) -> LogEventDeserializer& = delete;
 
-    // Define default move constructor and assignment
+    // Define default move constructor
     LogEventDeserializer(LogEventDeserializer&&) = default;
-    auto operator=(LogEventDeserializer&&) -> LogEventDeserializer& = default;
+    // Delete move assignment operator since it's not possible to have one when you have a member
+    // that's a reference.
+    auto operator=(LogEventDeserializer&&) -> LogEventDeserializer& = delete;
 
     ~LogEventDeserializer() = default;
 
@@ -73,13 +74,13 @@ private:
               m_prev_msg_timestamp{ref_timestamp} {}
 
     // Variables
+    ReaderInterface& m_reader;
     TimestampPattern m_timestamp_pattern{0, "%Y-%m-%dT%H:%M:%S.%3"};
     UtcOffset m_utc_offset{0};
     [[no_unique_address]] std::conditional_t<
             std::is_same_v<encoded_variable_t, four_byte_encoded_variable_t>,
             epoch_time_ms_t,
             EmptyType> m_prev_msg_timestamp{};
-    ReaderInterface& m_reader;
 };
 }  // namespace clp::ir
 

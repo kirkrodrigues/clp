@@ -1,5 +1,8 @@
 #include "LogEventDeserializer.hpp"
 
+#include <cstdint>
+#include <string>
+#include <system_error>
 #include <vector>
 
 #include <json/single_include/nlohmann/json.hpp>
@@ -8,6 +11,8 @@
 
 #include "../ffi/ir_stream/decoding_methods.hpp"
 #include "../ffi/ir_stream/protocol_constants.hpp"
+#include "../ir/LogEvent.hpp"
+#include "../ReaderInterface.hpp"
 #include "EncodedTextAst.hpp"
 #include "types.hpp"
 
