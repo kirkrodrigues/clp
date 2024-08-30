@@ -45,6 +45,7 @@ target_link_libraries(reducer-server
         PRIVATE
         Boost::program_options
         Boost::system
+        Boost::thread
         clp::string_utils
         fmt::fmt
         ${MONGOCXX_TARGET}
