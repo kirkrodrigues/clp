@@ -16,7 +16,7 @@ if [ "$#" -lt 1 ] ; then
 fi
 version=$1
 
-package_name=fmtlib
+package_name=libfmt-dev
 temp_dir=/tmp/${package_name}-installation
 deb_output_dir=${temp_dir}
 if [[ "$#" -gt 1 ]] ; then
