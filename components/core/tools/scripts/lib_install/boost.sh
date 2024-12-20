@@ -32,7 +32,7 @@ build_boost_lib () {
 # @param {string} $3 Version of the Debian package.
 # @param {string} $4 Name of the Boost library.
 # @param {string} $5 Directory that contains the files for the Debian package.
-# @param {string} $6 Directory in which to store the Debian package archive.
+# @param {string} $6 Path of the Debian package to output.
 # @param {string} $7 If non-empty, the command that can be used to escalate privileges.
 # @return 0 on success, 1 on failure.
 build_deb_pkg_and_install () {
@@ -41,19 +41,18 @@ build_deb_pkg_and_install () {
     local pkg_version="$3"
     local lib_name="$4"
     local deb_pkg_contents_dir="$5"
-    local deb_pkg_output_dir="$6"
+    local deb_pkg_path="$6"
     local privilege_escalation_cmd="$7"
 
     if ! write_dpkg_metadata_dir "$deb_pkg_contents_dir/DEBIAN" "$pkg_name" "$pkg_version"; then
         return 1
     fi
 
-    local deb_pkg_path=$"${deb_pkg_output_dir}/${pkg_name}.deb"
-    if ! dpkg-deb --root-owner-group --build "$deb_pkg_contents_dir" "$deb_pkg_path"; then
+    if ! install_lib "$source_dir" "" ""; then
         return 1
     fi
 
-    if ! install_lib "$source_dir" "" ""; then
+    if ! dpkg-deb --root-owner-group --build "$deb_pkg_contents_dir" "$deb_pkg_path"; then
         return 1
     fi
 
@@ -264,7 +263,8 @@ for lib_name in "${libs_to_install[@]}"; do
         fi
 
         if ! build_deb_pkg_and_install "$output_extraction_dir" "$pkg_name" "$pkg_version" \
-                "$lib_name" "$deb_pkg_contents_dir" "$temp_dir" "${install_cmd_prefix[@]}"; then
+                "$lib_name" "$deb_pkg_contents_dir" "${temp_dir}/${deb_pkg_name}.deb" \
+                "${install_cmd_prefix[@]}"; then
             exit 1
         fi
     else
