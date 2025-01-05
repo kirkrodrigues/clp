@@ -241,7 +241,7 @@ mkdir --parents "$temp_dir"
 
 version_with_underscores="${pkg_version//./_}"
 tar_filename="boost_${version_with_underscores}.tar.gz"
-source_url="https://boostorg.jfrog.io/artifactory/main/release/${pkg_version}/source/${tar_filename}"
+source_url="https://archives.boost.io/ifactory/release/${pkg_version}/source/${tar_filename}"
 output_tar_path="${temp_dir}/${tar_filename}"
 output_extraction_dir="${temp_dir}/boost_${version_with_underscores}"
 if ! download_and_extract_source "$source_url" "$output_tar_path" "$output_extraction_dir" ; then
