@@ -255,6 +255,7 @@ add_subdirectory(src/clp/clo)
 add_subdirectory(src/clp/clp)
 add_subdirectory(src/glt/glt)
 add_subdirectory(src/clp/make_dictionaries_readable)
+add_subdirectory(src/clp/log_parser)
 add_subdirectory(src/clp_s)
 add_subdirectory(src/reducer)
 
