@@ -17,12 +17,17 @@ build_boost_lib () {
     local lib_name="$2"
     local install_prefix="$3"
 
-    if [[ -n "$install_prefix" ]] ; then
-        extra_build_args=("--prefix=$install_prefix")
+    extra_bootstrap_args=()
+    if [[ -n "$install_prefix" ]]; then
+        extra_bootstrap_args+=("--prefix=$install_prefix")
+    fi
+    if [[ "headers" != "$lib_name" ]]; then
+        extra_bootstrap_args+=("--without-libs=headers")
+        extra_b2_args=("--without-headers")
     fi
     cd "$source_dir" \
-            && ./bootstrap.sh --with-libraries="$lib_name" "${extra_build_args[@]}" \
-            && ./b2 -j"$(nproc)"
+            && ./bootstrap.sh --with-libraries="$lib_name" "${extra_bootstrap_args[@]}" \
+            && ./b2 -j"$(nproc)" "${extra_b2_args[@]}"
 }
 
 # Builds a Debian package archive (.deb) and installs it.
@@ -107,8 +112,15 @@ write_dpkg_metadata_dir () {
     local pkg_name="$2"
     local pkg_version="$3"
 
-    mkdir --parents "$metadata_dir" \
-            && cat <<EOF > "${metadata_dir}/control"
+    if ! mkdir --parents "$metadata_dir"; then
+        return 1
+    fi
+
+    if
+    if ! cat "Depends: libboost${pkg_version}-dev" > "${metadata_dir}/control"; then
+        return 1
+    fi
+    cat <<EOF >> "${metadata_dir}/control"
 Package: $pkg_name
 Architecture: $(dpkg --print-architecture)
 Version: $pkg_version
@@ -214,14 +226,20 @@ fi
 pkg_version=$1
 libs_concatenated="$2"
 
-libs_to_install=()
-IFS="," read -r -a libs <<< "$libs_concatenated"
+# Prepend the `headers` library since all other libraries depend on it
+libs_concatenated="headers,${libs_concatenated}"
+
+# Turn comma-separated libraries into a set of library names
+read -r -a libs <<< "$(echo "$libs_concatenated" | tr ',' '\n' | awk '!unique_libs[$0]++')"
+
+# Filter out libraries that are already installed
 for lib_name in "${libs[@]}"; do
-    pkg_name="libboost-${lib_name}-dev"
+    pkg_name="libboost-${lib_name}${pkg_version}-dev"
     if ! check_if_installed "$pkg_name" "$pkg_version" "$lib_name"; then
         libs_to_install+=("$lib_name")
     fi
 done
+
 if [ ${#libs_to_install[@]} -eq 0 ]; then
     # Nothing to do
     exit
@@ -249,7 +267,7 @@ if ! download_and_extract_source "$source_url" "$output_tar_path" "$output_extra
 fi
 
 for lib_name in "${libs_to_install[@]}"; do
-    pkg_name="libboost-${lib_name//_/-}-dev"
+    pkg_name="libboost-${lib_name//_/-}${pkg_version}-dev"
 
     if command -v dpkg-deb; then
         deb_pkg_name="${pkg_name}-${pkg_version}"
