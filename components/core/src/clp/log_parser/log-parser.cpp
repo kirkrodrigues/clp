@@ -4,7 +4,7 @@
 #include <boost/filesystem.hpp>
 #include <spdlog/sinks/stdout_sinks.h>
 
-#include "../FileWriter.hpp"
+#include "../FileReader.hpp"
 #include "../ir/types.hpp"
 #include "../spdlog_with_specializations.hpp"
 #include "CommandLineArguments.hpp"
@@ -12,7 +12,6 @@
 #include "MessageParser.hpp"
 
 using clp::CommandLineArgumentsBase;
-using clp::FileWriter;
 using clp::ir::VariablePlaceholder;
 using clp::segment_id_t;
 using std::string;
@@ -101,9 +100,6 @@ int main(int argc, char const* argv[]) {
     clp::ParsedMessage parsed_msg;
 
     while (msg_parser.parse_next_message(true, file_reader, parsed_msg)) {
-        // std::cerr << parsed_msg.get_ts() << ':' << parsed_msg.get_content() <<
-        // '\n';
-
         // Parse the message content
         auto content = parsed_msg.get_content();
         size_t var_begin_pos{0};
