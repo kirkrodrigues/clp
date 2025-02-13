@@ -9,19 +9,24 @@
 # Exit on any error
 set -e
 
-cUsage="Usage: ${BASH_SOURCE[0]} <version>[ <.deb output directory>]"
+cUsage="Usage: ${BASH_SOURCE[0]} <version> [<epoch>] [<.deb output directory>]"
 if [ "$#" -lt 1 ] ; then
     echo $cUsage
     exit
 fi
 version=$1
 
+debian_package_version=$version
+if [[ "$#" -gt 1 ]] ; then
+  debian_package_version="${2}:${version}"
+fi
+
 lib_name=spdlog
 package_name=libspdlog-dev
 temp_dir=/tmp/${package_name}-installation
 deb_output_dir=${temp_dir}
-if [[ "$#" -gt 1 ]] ; then
-  deb_output_dir="$(readlink -f "$2")"
+if [[ "$#" -gt 2 ]] ; then
+  deb_output_dir="$(readlink -f "$3")"
   if [ ! -d ${deb_output_dir} ] ; then
     echo "${deb_output_dir} does not exist or is not a directory"
     exit
@@ -88,7 +93,7 @@ if [ $checkinstall_installed -eq 0 ] ; then
     --fstrans=no
     --nodoc
     --pkgname "${package_name}"
-    --pkgversion "${version}"
+    --pkgversion "${debian_package_version}"
     --provides "${package_name}"
     --pakdir "${deb_output_dir}"
   )
