@@ -11,7 +11,7 @@ on:
       - "components/core/tools/scripts/lib_install/macos/**"
       - "components/core/tools/scripts/deps-download/**"
       - "components/core/tools/scripts/utils/build-and-run-unit-tests.py"
-      - "deps-tasks.yml"
+      - "deps-tasks.yaml"
       - "taskfile.yaml"
       - "tools/scripts/deps-download/**"
   push:
@@ -24,7 +24,7 @@ on:
       - "components/core/tools/scripts/lib_install/macos/**"
       - "components/core/tools/scripts/deps-download/**"
       - "components/core/tools/scripts/utils/build-and-run-unit-tests.py"
-      - "deps-tasks.yml"
+      - "deps-tasks.yaml"
       - "taskfile.yaml"
       - "tools/scripts/deps-download/**"
   schedule:
