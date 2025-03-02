@@ -93,7 +93,7 @@ tasks:
           components/package-template/src/etc \
           docs \
           deps-tasks.yaml \
-          lint-tasks.yml \
+          lint-tasks.yaml \
           taskfile.yaml
 
   cpp-format-check:
