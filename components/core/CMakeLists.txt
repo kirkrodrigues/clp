@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16.3)
 project(CLP LANGUAGES CXX C)
 
+message(STATUS "CMAKE_AR=${CMAKE_AR}, CMAKE_RANLIB=${CMAKE_RANLIB}")
+
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(default_build_type "Release")
     message(STATUS "No build type specified. Setting to '${default_build_type}'.")
