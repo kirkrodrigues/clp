@@ -1,0 +1,10 @@
+set(CMAKE_SYSTEM_NAME "Darwin")
+set(CMAKE_SYSTEM_PROCESSOR "${CMAKE_HOST_SYSTEM_PROCESSOR}")
+
+execute_process(COMMAND brew --prefix llvm OUTPUT_VARIABLE CLP_LLVM_HOME)
+string(STRIP "${CLP_LLVM_HOME}" CLP_LLVM_HOME)
+
+set(CMAKE_C_COMPILER "${CLP_LLVM_HOME}/bin/clang")
+set(CMAKE_CXX_COMPILER "${CLP_LLVM_HOME}/bin/clang++")
+set(CMAKE_AR "${CLP_LLVM_HOME}/bin/ar")
+set(CMAKE_RANLIB "${CLP_LLVM_HOME}/bin/ranlib")
