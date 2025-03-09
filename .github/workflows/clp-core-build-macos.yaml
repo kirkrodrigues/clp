@@ -43,7 +43,8 @@ jobs:
       matrix:
         os:
           - "macos-14"
-        use_shared_libs: true
+        use_shared_libs:
+          - true
     runs-on: "${{matrix.os}}"
     steps:
       - uses: "actions/checkout@v4"
