@@ -42,10 +42,8 @@ jobs:
     strategy:
       matrix:
         os:
-          - "macos-13"
           - "macos-14"
-          - "macos-15"
-        use_shared_libs: [true, false]
+        use_shared_libs: true
     runs-on: "${{matrix.os}}"
     steps:
       - uses: "actions/checkout@v4"
@@ -78,17 +76,10 @@ jobs:
           echo "USE_LLVM_COMPILER=true" >> $GITHUB_ENV
           echo "LLVM_INSTALL_BINDIR=$(brew --prefix llvm@16)/bin" >> $GITHUB_ENV
 
-      - shell: "bash"
-        run: >-
-          echo "${{env.LLVM_INSTALL_BINDIR}}" >> "$GITHUB_PATH"
-
       - name: "Build CLP-core and run unit tests"
         shell: "bash"
         working-directory: "./components/core"
         # NOTE: We omit the Stopwatch tests since GH's macOS runner is too slow
-        env:
-          CC: "${{ env.LLVM_INSTALL_BINDIR }}/clang"
-          CXX: "${{ env.LLVM_INSTALL_BINDIR }}/clang++"
         run: >-
           python3 ./tools/scripts/utils/build-and-run-unit-tests.py
           ${{matrix.use_shared_libs == 'true' && '--use-shared-libs' || ''}}
