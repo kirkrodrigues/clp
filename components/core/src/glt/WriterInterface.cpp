@@ -1,34 +1,39 @@
 #include "WriterInterface.hpp"
 
-#include "Defs.h"
+#include <sys/types.h>
+
+#include <cstddef>
+#include <string>
+
+#include "ErrorCode.hpp"
+#include "TraceableException.hpp"
 
 namespace glt {
-void WriterInterface::write_char(char c) {
+auto WriterInterface::write_char(char c) -> void {
     write(&c, 1);
 }
 
-void WriterInterface::write_string(std::string const& str) {
+auto WriterInterface::write_string(std::string const& str) -> void {
     write(str.c_str(), str.length());
 }
 
-void WriterInterface::seek_from_begin(size_t pos) {
+auto WriterInterface::seek_from_begin(size_t pos) -> void {
     auto error_code = try_seek_from_begin(pos);
     if (ErrorCode_Success != error_code) {
         throw OperationFailed(error_code, __FILENAME__, __LINE__);
     }
 }
 
-void WriterInterface::seek_from_current(off_t offset) {
+auto WriterInterface::seek_from_current(off_t offset) -> void {
     auto error_code = try_seek_from_current(offset);
     if (ErrorCode_Success != error_code) {
         throw OperationFailed(error_code, __FILENAME__, __LINE__);
     }
 }
 
-size_t WriterInterface::get_pos() const {
-    size_t pos;
-    ErrorCode error_code = try_get_pos(pos);
-    if (ErrorCode_Success != error_code) {
+auto WriterInterface::get_pos() const -> size_t {
+    size_t pos{0};
+    if (auto const error_code = try_get_pos(pos); ErrorCode_Success != error_code) {
         throw OperationFailed(error_code, __FILENAME__, __LINE__);
     }
 

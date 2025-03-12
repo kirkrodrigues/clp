@@ -1,6 +1,8 @@
 #ifndef GLT_WRITERINTERFACE_HPP
 #define GLT_WRITERINTERFACE_HPP
 
+#include <sys/types.h>
+
 #include <cstddef>
 #include <string>
 
@@ -18,8 +20,22 @@ public:
                 : TraceableException(error_code, filename, line_number) {}
 
         // Methods
-        char const* what() const noexcept override { return "WriterInterface operation failed"; }
+        [[nodiscard]] auto what() const noexcept -> char const* override {
+            return "WriterInterface operation failed";
+        }
     };
+
+    // Constructors
+    WriterInterface() = default;
+
+    // Delete copy & move constructors and assignment operators
+    WriterInterface(WriterInterface const&) = delete;
+    WriterInterface(WriterInterface&&) = delete;
+    auto operator=(WriterInterface const&) -> WriterInterface& = delete;
+    auto operator=(WriterInterface&&) -> WriterInterface& = delete;
+
+    // Destructor
+    virtual ~WriterInterface() = default;
 
     // Methods
     /**
@@ -27,51 +43,53 @@ public:
      * @param data
      * @param data_length
      */
-    virtual void write(char const* data, size_t data_length) = 0;
-    virtual void flush() = 0;
-    virtual ErrorCode try_seek_from_begin(size_t pos) = 0;
-    virtual ErrorCode try_seek_from_current(off_t offset) = 0;
-    virtual ErrorCode try_get_pos(size_t& pos) const = 0;
+    virtual auto write(char const* data, size_t data_length) -> void = 0;
+    virtual auto flush() -> void = 0;
+    virtual auto try_seek_from_begin(size_t pos) -> ErrorCode = 0;
+    virtual auto try_seek_from_current(off_t offset) -> ErrorCode = 0;
+    virtual auto try_get_pos(size_t& pos) const -> ErrorCode = 0;
 
     /**
      * Writes a numeric value
      * @param val Value to write
      */
     template <typename ValueType>
-    void write_numeric_value(ValueType value);
+    auto write_numeric_value(ValueType value) -> void;
 
     /**
      * Writes a character to the underlying medium
      * @param c
      */
-    void write_char(char c);
+    auto write_char(char c) -> void;
     /**
      * Writes a string to the underlying medium
      * @param str
      */
-    void write_string(std::string const& str);
+    auto write_string(std::string const& str) -> void;
 
     /**
      * Seeks from the beginning to the given position
      * @param pos
      */
-    void seek_from_begin(size_t pos);
+    auto seek_from_begin(size_t pos) -> void;
 
     /**
      * Offsets from the current position by the given amount
      * @param offset
      */
-    void seek_from_current(off_t offset);
+    auto seek_from_current(off_t offset) -> void;
 
     /**
      * Gets the current position of the write head
      * @return Position of the write head
      */
-    size_t get_pos() const;
+    [[nodiscard]] auto get_pos() const -> size_t;
 };
 
 template <typename ValueType>
-void WriterInterface::write_numeric_value(ValueType val) {
+auto WriterInterface::write_numeric_value(ValueType val) -> void {
+    // Pointer casts to char* are safe
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     write(reinterpret_cast<char*>(&val), sizeof(val));
 }
 }  // namespace glt
