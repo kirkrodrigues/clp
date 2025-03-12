@@ -1,6 +1,12 @@
 #include "WriterInterface.hpp"
 
-#include "Defs.h"
+#include <sys/types.h>
+
+#include <cstddef>
+#include <string>
+
+#include "ErrorCode.hpp"
+#include "TraceableException.hpp"
 
 namespace clp {
 auto WriterInterface::write_char(char c) -> void {
