@@ -18,7 +18,7 @@ public:
                 : TraceableException(error_code, filename, line_number) {}
 
         // Methods
-        auto what() const noexcept -> char const* override {
+        [[nodiscard]] auto what() const noexcept -> char const* override {
             return "WriterInterface operation failed";
         }
     };
@@ -72,7 +72,7 @@ public:
      * Gets the current position of the write head
      * @return Position of the write head
      */
-    auto get_pos() const -> size_t;
+    [[nodiscard]] auto get_pos() const -> size_t;
 };
 
 template <typename ValueType>
