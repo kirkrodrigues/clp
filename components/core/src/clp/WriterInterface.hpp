@@ -25,6 +25,9 @@ public:
         }
     };
 
+    // Constructors
+    WriterInterface() = default;
+
     // Delete copy & move constructors and assignment operators
     WriterInterface(WriterInterface const&) = delete;
     WriterInterface(WriterInterface&&) = delete;
