@@ -25,6 +25,12 @@ public:
         }
     };
 
+    // Delete copy & move constructors and assignment operators
+    WriterInterface(WriterInterface const&) = delete;
+    WriterInterface(WriterInterface&&) = delete;
+    auto operator=(WriterInterface const&) -> WriterInterface& = delete;
+    auto operator=(WriterInterface&&) -> WriterInterface& = delete;
+
     // Destructor
     virtual ~WriterInterface() = default;
 
