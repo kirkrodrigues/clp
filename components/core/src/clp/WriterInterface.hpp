@@ -28,11 +28,11 @@ public:
     // Constructors
     WriterInterface() = default;
 
-    // Delete copy & move constructors and assignment operators
-    WriterInterface(WriterInterface const&) = delete;
-    WriterInterface(WriterInterface&&) = delete;
-    auto operator=(WriterInterface const&) -> WriterInterface& = delete;
-    auto operator=(WriterInterface&&) -> WriterInterface& = delete;
+    // Default copy & move constructors and assignment operators
+    WriterInterface(WriterInterface const&) = default;
+    WriterInterface(WriterInterface&&) = default;
+    auto operator=(WriterInterface const&) -> WriterInterface& = default;
+    auto operator=(WriterInterface&&) -> WriterInterface& = default;
 
     // Destructor
     virtual ~WriterInterface() = default;
