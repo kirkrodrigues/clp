@@ -85,6 +85,8 @@ public:
 
 template <typename ValueType>
 auto WriterInterface::write_numeric_value(ValueType val) -> void {
+    // Pointer casts to char* are safe
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     write(reinterpret_cast<char*>(&val), sizeof(val));
 }
 }  // namespace clp
