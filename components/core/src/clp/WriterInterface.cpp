@@ -26,9 +26,8 @@ auto WriterInterface::seek_from_current(off_t offset) -> void {
 }
 
 auto WriterInterface::get_pos() const -> size_t {
-    size_t pos;
-    ErrorCode error_code = try_get_pos(pos);
-    if (ErrorCode_Success != error_code) {
+    size_t pos{0};
+    if (auto const error_code = try_get_pos(pos); ErrorCode_Success != error_code) {
         throw OperationFailed(error_code, __FILENAME__, __LINE__);
     }
 
