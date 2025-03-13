@@ -17,6 +17,10 @@ endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if(ENABLE_CLANG_TIDY_IWYU_EXPORTS)
+    add_compile_definitions("ENABLE_CLANG_TIDY_IWYU_EXPORTS")
+endif()
+
 # Set general compressor
 set(GENERAL_COMPRESSOR "zstd" CACHE STRING "The general-purpose compressor used as the 2nd-stage compressor")
 set_property(CACHE GENERAL_COMPRESSOR PROPERTY STRINGS lzma passthrough zstd)

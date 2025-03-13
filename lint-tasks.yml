@@ -156,7 +156,9 @@ tasks:
   check-cpp-static-diff:
     sources: *cpp_source_files
     deps:
-      - ":core-generate"
+      - task: ":core-generate"
+        vars:
+          EXTRA_ARGS: ["-DENABLE_CLANG_TIDY_IWYU_EXPORTS=ON"]
       - "cpp-lint-configs"
       - "venv"
     cmds:
@@ -171,7 +173,9 @@ tasks:
   check-cpp-static-full:
     sources: *cpp_source_files
     deps:
-      - ":core-generate"
+      - task: ":core-generate"
+        vars:
+          EXTRA_ARGS: ["-DENABLE_CLANG_TIDY_IWYU_EXPORTS=ON"]
       - "cpp-lint-configs"
       - "venv"
     cmds:

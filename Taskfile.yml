@@ -191,6 +191,9 @@ tasks:
 
   core-generate:
     internal: true
+    vars:
+      EXTRA_ARGS:
+        ref: "default (list) .EXTRA_ARGS"
     sources: &core_source_files
       - "{{.G_DEPS_CORE_CHECKSUM_FILE}}"
       - "{{.G_CORE_COMPONENT_DIR}}/cmake/**/*"
@@ -204,6 +207,8 @@ tasks:
         vars:
           BUILD_DIR: "{{.G_CORE_COMPONENT_BUILD_DIR}}"
           SOURCE_DIR: "{{.G_CORE_COMPONENT_DIR}}"
+          EXTRA_ARGS:
+            ref: ".EXTRA_ARGS"
 
   core-build:
     internal: true
