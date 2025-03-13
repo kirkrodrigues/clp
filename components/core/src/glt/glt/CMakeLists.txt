@@ -174,7 +174,10 @@ set(
 
 add_executable(glt ${GLT_SOURCES})
 target_compile_features(glt PRIVATE cxx_std_20)
-target_include_directories(glt PRIVATE "${PROJECT_SOURCE_DIR}/submodules")
+target_include_directories(glt PRIVATE
+        "${PROJECT_SOURCE_DIR}/src"
+        "${PROJECT_SOURCE_DIR}/submodules"
+)
 target_link_libraries(glt
         PRIVATE
         Boost::filesystem Boost::iostreams Boost::program_options

@@ -264,7 +264,10 @@ target_link_libraries(
         yaml-cpp::yaml-cpp
         ZStd::ZStd
 )
-target_include_directories(clp-s PRIVATE "${PROJECT_SOURCE_DIR}/submodules")
+target_include_directories(clp-s PRIVATE
+        "${PROJECT_SOURCE_DIR}/src"
+        "${PROJECT_SOURCE_DIR}/submodules"
+)
 set_target_properties(
         clp-s
         PROPERTIES

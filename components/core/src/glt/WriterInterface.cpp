@@ -1,6 +1,6 @@
 #include "WriterInterface.hpp"
 
-#include <sys/types.h>
+#include <wrapped_facade_headers/sys/types.h>
 
 #include <cstddef>
 #include <string>

@@ -679,6 +679,7 @@ add_executable(unitTest
         )
 target_include_directories(unitTest
         PRIVATE
+        ${CMAKE_SOURCE_DIR}/src
         ${CMAKE_SOURCE_DIR}/submodules
         )
 target_link_libraries(unitTest

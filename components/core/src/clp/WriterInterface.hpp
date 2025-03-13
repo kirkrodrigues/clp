@@ -1,7 +1,7 @@
 #ifndef CLP_WRITERINTERFACE_HPP
 #define CLP_WRITERINTERFACE_HPP
 
-#include <sys/types.h>
+#include <wrapped_facade_headers/sys/types.h>
 
 #include <cstddef>
 #include <string>

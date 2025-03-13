@@ -42,7 +42,10 @@ set(
 
 add_executable(make-dictionaries-readable ${MAKE_DICTIONARIES_READABLE_SOURCES})
 target_compile_features(make-dictionaries-readable PRIVATE cxx_std_20)
-target_include_directories(make-dictionaries-readable PRIVATE "${PROJECT_SOURCE_DIR}/submodules")
+target_include_directories(make-dictionaries-readable PRIVATE
+        "${PROJECT_SOURCE_DIR}/src"
+        "${PROJECT_SOURCE_DIR}/submodules"
+)
 target_link_libraries(make-dictionaries-readable
         PRIVATE
         Boost::filesystem Boost::program_options
