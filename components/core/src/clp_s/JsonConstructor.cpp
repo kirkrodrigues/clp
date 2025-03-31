@@ -5,7 +5,7 @@
 #include <system_error>
 
 #include <fmt/core.h>
-#include <json/single_include/nlohmann/json.hpp>
+#include <nlohmann/json.hpp>
 #include <mongocxx/client.hpp>
 #include <mongocxx/collection.hpp>
 #include <mongocxx/exception/exception.hpp>

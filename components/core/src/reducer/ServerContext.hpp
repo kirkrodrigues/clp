@@ -5,7 +5,7 @@
 #include <set>
 
 #include <boost/asio.hpp>
-#include <json/single_include/nlohmann/json.hpp>
+#include <nlohmann/json.hpp>
 #include <mongocxx/client.hpp>
 #include <mongocxx/collection.hpp>
 

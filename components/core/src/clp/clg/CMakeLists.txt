@@ -117,9 +117,7 @@ set(
         ../version.hpp
         ../WriterInterface.cpp
         ../WriterInterface.hpp
-        "${PROJECT_SOURCE_DIR}/submodules/sqlite3/sqlite3.c"
-        "${PROJECT_SOURCE_DIR}/submodules/sqlite3/sqlite3.h"
-        "${PROJECT_SOURCE_DIR}/submodules/sqlite3/sqlite3ext.h"
+        "${CLP_SQLITE_SOURCE_DIRECTORY}/sqlite3.c"
         clg.cpp
         CommandLineArguments.cpp
         CommandLineArguments.hpp
@@ -131,14 +129,16 @@ target_include_directories(clg PRIVATE "${PROJECT_SOURCE_DIR}/submodules")
 target_link_libraries(clg
         PRIVATE
         Boost::filesystem Boost::program_options
+        date::date
         fmt::fmt
         log_surgeon::log_surgeon
         MariaDBClient::MariaDBClient
+        nlohmann_json::nlohmann_json
         spdlog::spdlog
         ${sqlite_LIBRARY_DEPENDENCIES}
         ${STD_FS_LIBS}
         clp::string_utils
-        yaml-cpp::yaml-cpp
+        yaml-cpp
         ZStd::ZStd
 )
 # Put the built executable at the root of the build directory

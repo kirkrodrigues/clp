@@ -84,7 +84,6 @@ set(
 
 set(
         CLP_S_SOURCES
-        "${PROJECT_SOURCE_DIR}/submodules/date/include/date/date.h"
         archive_constants.hpp
         ArchiveReader.cpp
         ArchiveReader.hpp
@@ -254,17 +253,22 @@ target_link_libraries(
         Boost::iostreams Boost::program_options Boost::regex Boost::url
         ${CURL_LIBRARIES}
         clp::string_utils
+        date::date
         kql
         MariaDBClient::MariaDBClient
         ${MONGOCXX_TARGET}
         msgpack-cxx
+        nlohmann_json::nlohmann_json
         OpenSSL::Crypto
-        simdjson
+        simdjson::simdjson
         spdlog::spdlog
-        yaml-cpp::yaml-cpp
+        yaml-cpp
         ZStd::ZStd
 )
-target_include_directories(clp-s PRIVATE "${PROJECT_SOURCE_DIR}/submodules")
+target_include_directories(clp-s PRIVATE
+        "${PROJECT_SOURCE_DIR}/submodules"
+        "${CLP_INCLUDES_DIR}"
+)
 set_target_properties(
         clp-s
         PROPERTIES

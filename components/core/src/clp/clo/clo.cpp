@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-#include <json/single_include/nlohmann/json.hpp>
+#include <nlohmann/json.hpp>
 #include <mongocxx/instance.hpp>
 #include <spdlog/sinks/stdout_sinks.h>
 

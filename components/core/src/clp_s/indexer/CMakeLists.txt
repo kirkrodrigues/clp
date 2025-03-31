@@ -87,11 +87,13 @@ target_link_libraries(indexer
         Boost::iostreams Boost::program_options Boost::url
         ${CURL_LIBRARIES}
         clp::string_utils
+        date::date
         MariaDBClient::MariaDBClient
+        nlohmann_json::nlohmann_json
         OpenSSL::Crypto
         simdjson
         spdlog::spdlog
-        yaml-cpp::yaml-cpp
+        yaml-cpp
         ZStd::ZStd
 )
 # Put the built executable at the root of the build directory

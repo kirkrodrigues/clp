@@ -1,6 +1,7 @@
 version: "3"
 
 includes:
+  deps2: "taskfiles/deps.yaml"
   deps: "deps-tasks.yml"
   docs: "docs/tasks.yml"
   lint: "lint-tasks.yml"
@@ -33,6 +34,35 @@ vars:
   G_PACKAGE_VERSION: "0.2.0-dev"
 
 tasks:
+  test:
+    vars:
+      LIBS:
+        - NAME: "ABSL"
+          FILE_SHA256: "987ce98f02eefbaf930d6e38ab16aa05737234d7afbab2d5c4ea7adbe50c28ed"
+          URL: "https://github.com/abseil/abseil-cpp/archive/refs/tags/20230802.1.tar.gz"
+          GEN_ARGS: []
+        - NAME: "FMT"
+          FILE_SHA256: "67cd23ea86ccc359693e2ce1ba8d1bab533c02d743c09b15f3131102d0c2fc1c"
+          URL: "https://github.com/fmtlib/fmt/archive/refs/tags/11.1.3.tar.gz"
+          GEN_ARGS: []
+        - NAME: "SPDLOG"
+          FILE_SHA256: "25c843860f039a1600f232c6eb9e01e6627f7d030a2ae5e232bdd3c9205d26cc"
+          URL: "https://github.com/gabime/spdlog/archive/refs/tags/v1.15.1.tar.gz"
+          GEN_ARGS: "-DSPDLOG_FMT_EXTERNAL=ON"
+    cmds:
+      - for: {var: LIBS}
+        task: "test-child"
+        vars:
+          GEN_ARGS: "{{splitList \" \" .ITEM.NAME}}"
+
+  test-child:
+    vars:
+      GEN_ARGS:
+        ref: "default (list) .GEN_ARGS"
+    cmds:
+      - >-
+        echo {{- range .GEN_ARGS}} "a{{.}}b"{{- end}}
+
   default:
     deps: ["package"]
 

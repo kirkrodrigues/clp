@@ -34,7 +34,6 @@ set(
         ../VariableDictionaryReader.hpp
         ../WriterInterface.cpp
         ../WriterInterface.hpp
-        "${PROJECT_SOURCE_DIR}/submodules/date/include/date/date.h"
         CommandLineArguments.cpp
         CommandLineArguments.hpp
         make-dictionaries-readable.cpp
@@ -46,7 +45,9 @@ target_include_directories(make-dictionaries-readable PRIVATE "${PROJECT_SOURCE_
 target_link_libraries(make-dictionaries-readable
         PRIVATE
         Boost::filesystem Boost::program_options
+        date::date
         log_surgeon::log_surgeon
+        nlohmann_json::nlohmann_json
         spdlog::spdlog
         clp::string_utils
         ZStd::ZStd

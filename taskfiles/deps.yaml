@@ -1,0 +1,140 @@
+version: "3"
+
+vars:
+  G_CORE_DEPS_DIR: "{{.G_BUILD_DIR}}/core-deps"
+  G_CORE_SQLITE_OUTPUT_DIR: "{{.G_CORE_DEPS_DIR}}/SQLITE-src"
+  G_CORE_SQLITE_ZIP_FILENAME_STEM: "sqlite-amalgamation-3360000"
+  G_CORE_SQLITE_SRC_DIR: "{{.G_CORE_SQLITE_OUTPUT_DIR}}/{{.G_CORE_SQLITE_ZIP_FILENAME_STEM}}"
+
+  # This should be kept in-sync with its usage in
+  # `components/core/CMakeLists.txt`
+  G_DEPS_CMAKE_SETTINGS_FILE: "{{.G_CORE_DEPS_DIR}}/settings.cmake"
+
+tasks:
+  all:
+    - task: "install-cmake-libs"
+    - task: "install-non-cmake-libs"
+    - task: "misc-downloads"
+    - task: "generate-cmake-settings"
+
+  install-cmake-libs:
+    deps:
+        - task: ":utils:cmake:install-remote-tar"
+          vars:
+            NAME: "ABSL"
+            FILE_SHA256: "987ce98f02eefbaf930d6e38ab16aa05737234d7afbab2d5c4ea7adbe50c28ed"
+            URL: "https://github.com/abseil/abseil-cpp/archive/refs/tags/20230802.1.tar.gz"
+            WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
+        - task: ":utils:cmake:install-remote-tar"
+          vars:
+            NAME: "CATCH2"
+            FILE_SHA256: "d54a712b7b1d7708bc7a819a8e6e47b2fde9536f487b89ccbca295072a7d9943"
+            URL: "https://github.com/catchorg/Catch2/archive/refs/tags/v2.13.10.tar.gz"
+            WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
+        - task: ":utils:cmake:install-remote-tar"
+          vars:
+            NAME: "DATE"
+            FILE_SHA256: "30de45a34a2605cca33a993a9ea54e8f140f23b1caf1acf3c2fd436c42c7d942"
+            URL: "https://github.com/HowardHinnant/date/archive/refs/tags/v3.0.3.tar.gz"
+            WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
+        - task: ":utils:cmake:install-remote-tar"
+          vars:
+            NAME: "FMT"
+            FILE_SHA256: "b06ca3130158c625848f3fb7418f235155a4d389b2abc3a6245fb01cb0eb1e01"
+            URL: "https://github.com/fmtlib/fmt/archive/refs/tags/8.0.1.tar.gz"
+            WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
+        - task: ":utils:cmake:install-remote-tar"
+          vars:
+            NAME: "NLOHMANN_JSON"
+            FILE_SHA256: "d6c65aca6b1ed68e7a182f4757257b107ae403032760ed6ef121c9d55e81757d"
+            URL: "https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz"
+            WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
+            GEN_ARGS: ["-DJSON_BuildTests=OFF"]
+        - task: ":utils:cmake:install-remote-tar"
+          vars:
+            NAME: "SIMDJSON"
+            FILE_SHA256: "afd8201cfb1abe927737d876441bb1f21730a9ee6078a1b8c6174e6463981fa3"
+            URL: "https://github.com/simdjson/simdjson/archive/refs/tags/v3.6.3.tar.gz"
+            WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
+        - task: ":utils:cmake:install-remote-tar"
+          vars:
+            NAME: "SPDLOG"
+            FILE_SHA256: "6fff9215f5cb81760be4cc16d033526d1080427d236e86d70bb02994f85e3d38"
+            URL: "https://github.com/gabime/spdlog/archive/refs/tags/v1.9.2.tar.gz"
+            WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
+            GEN_ARGS: ["-DSPDLOG_FMT_EXTERNAL=ON"]
+        - task: ":utils:cmake:install-remote-tar"
+          vars:
+            NAME: "YAML-CPP"
+            FILE_SHA256: "43e6a9fcb146ad871515f0d0873947e5d497a1c9c60c58cb102a97b47208b7c3"
+            URL: "https://github.com/jbeder/yaml-cpp/archive/refs/tags/yaml-cpp-0.7.0.tar.gz"
+            WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
+            GEN_ARGS: ["-DBUILD_TESTS=OFF", "-DYAML_CPP_BUILD_TESTS=OFF"]
+
+  install-non-cmake-libs:
+    deps:
+      # TODO: Outcome's CMake support uses some kind of script but doesn't configure the library
+      # name correctly.
+      # Outcome's CMake support seems to be broken since find_package
+      - task: ":utils:remote:download-and-extract-tar"
+        vars:
+          CHECKSUM_FILE: "{{.G_CORE_DEPS_DIR}}/outcome.md5"
+          FILE_SHA256: "2840e403b1d7a0d3a75ecc4df574ab0674284bb21d76ac5f817695f2b56905f2"
+          INCLUDE_PATTERNS: ["single-header"]
+          OUTPUT_DIR: "{{.G_CORE_DEPS_DIR}}/OUTCOME-src"
+          URL: "https://github.com/ned14/outcome/archive/refs/tags/v2.2.9.tar.gz"
+      - task: ":utils:remote:download-and-extract-tar"
+        vars:
+          CHECKSUM_FILE: "{{.G_CORE_DEPS_DIR}}/utfcpp.md5"
+          FILE_SHA256: "9633e55568da90a98dcc221245370279191754bf298804b772b3f2d1aaec3136"
+          INCLUDE_PATTERNS: ["source"]
+          OUTPUT_DIR: "{{.G_CORE_DEPS_DIR}}/UTFCPP-src"
+          URL: "https://github.com/nemtrif/utfcpp/archive/refs/tags/v4.0.6.tar.gz"
+      - task: ":utils:remote:download-and-extract-zip"
+        vars:
+          CHECKSUM_FILE: "{{.G_CORE_DEPS_DIR}}/sqlite.md5"
+          FILE_SHA256: "999826fe4c871f18919fdb8ed7ec9dd8217180854dd1fe21eea96aed36186729"
+          OUTPUT_DIR: "{{.G_CORE_SQLITE_OUTPUT_DIR}}"
+          URL: "https://www.sqlite.org/2021/{{.G_CORE_SQLITE_ZIP_FILENAME_STEM}}.zip"
+    cmds:
+      - "rm -rf '{{.G_CORE_DEPS_DIR}}/include'"
+      - "mkdir -p '{{.G_CORE_DEPS_DIR}}/include'"
+      - "cp '{{.G_CORE_DEPS_DIR}}/OUTCOME-src/single-header/outcome.hpp' '{{.G_CORE_DEPS_DIR}}/include/'"
+      - "cp -r '{{.G_CORE_DEPS_DIR}}/UTFCPP-src/source/'* '{{.G_CORE_DEPS_DIR}}/include/'"
+      - "cp '{{.G_CORE_SQLITE_SRC_DIR}}/'*.h '{{.G_CORE_DEPS_DIR}}/include/'"
+
+  generate-cmake-settings:
+    vars:
+      LIB_NAMES:
+        - "ABSL"
+        - "CATCH2"
+        - "DATE"
+        - "FMT"
+        - "NLOHMANN_JSON"
+        - "SIMDJSON"
+        - "SPDLOG"
+        - "YAML-CPP"
+    cmds:
+      - "rm -f '{{.G_DEPS_CMAKE_SETTINGS_FILE}}'"
+      - for:
+          var: "LIB_NAMES"
+        cmd: >-
+          echo "set(
+          {{.ITEM}}_ROOT \"{{.G_CORE_DEPS_DIR}}/{{.ITEM}}-install\"
+          )" >> "{{.G_DEPS_CMAKE_SETTINGS_FILE}}"
+      - >-
+        echo "set(
+        CLP_INCLUDES_DIR \"{{.G_CORE_DEPS_DIR}}/include\"
+        )" >> "{{.G_DEPS_CMAKE_SETTINGS_FILE}}"
+      - >-
+        echo "set(
+        CLP_SQLITE_SOURCE_DIRECTORY \"{{.G_CORE_SQLITE_SRC_DIR}}\"
+        )" >> "{{.G_DEPS_CMAKE_SETTINGS_FILE}}"
+
+  misc-downloads:
+    cmds:
+      - task: ":utils:remote:curl"
+        vars:
+          URL: "https://www.antlr.org/download/antlr-4.13.1-complete.jar"
+          FILE_SHA256: "bc13a9c57a8dd7d5196888211e5ede657cb64a3ce968608697e4f668251a8487"
+          OUTPUT_FILE: "{{.G_CORE_COMPONENT_DIR}}/third-party/antlr/antlr-4.13.1-complete.jar"

@@ -9,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-#include <json/single_include/nlohmann/json.hpp>
+#include <nlohmann/json.hpp>
 #include <outcome/single-header/outcome.hpp>
 
 #include "../../ErrorCode.hpp"

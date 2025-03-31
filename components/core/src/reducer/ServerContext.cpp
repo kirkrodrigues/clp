@@ -1,7 +1,7 @@
 #include "ServerContext.hpp"
 
 #include <bsoncxx/builder/stream/document.hpp>
-#include <json/single_include/nlohmann/json.hpp>
+#include <nlohmann/json.hpp>
 #include <mongocxx/bulk_write.hpp>
 #include <mongocxx/client.hpp>
 #include <mongocxx/collection.hpp>

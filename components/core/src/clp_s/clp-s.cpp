@@ -7,7 +7,7 @@
 #include <string>
 #include <utility>
 
-#include <json/single_include/nlohmann/json.hpp>
+#include <nlohmann/json.hpp>
 #include <mongocxx/instance.hpp>
 #include <spdlog/sinks/stdout_sinks.h>
 #include <spdlog/spdlog.h>

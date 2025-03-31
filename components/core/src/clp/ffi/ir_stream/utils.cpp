@@ -5,7 +5,7 @@
 #include <system_error>
 #include <vector>
 
-#include <json/single_include/nlohmann/json.hpp>
+#include <nlohmann/json.hpp>
 
 #include "../../type_utils.hpp"
 #include "decoding_methods.hpp"

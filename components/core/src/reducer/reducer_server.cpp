@@ -4,7 +4,7 @@
 #include <utility>
 
 #include <boost/asio.hpp>
-#include <json/single_include/nlohmann/json.hpp>
+#include <nlohmann/json.hpp>
 #include <mongocxx/instance.hpp>
 #include <msgpack.hpp>
 #include <spdlog/sinks/stdout_sinks.h>
