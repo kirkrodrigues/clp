@@ -38,7 +38,8 @@ jobs:
         run: "brew install coreutils"
 
       - shell: "bash"
-        run: "[ -e .task ] && ls -R .task"
+        run: "ls -R .task"
+        continue-on-error: true
 
       - name: "Restore cached clang-tidy input file checksums"
         id: "cache-restore-clang-tidy-input"
