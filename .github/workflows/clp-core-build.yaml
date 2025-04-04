@@ -327,6 +327,14 @@ jobs:
         run: "chown $(id -u):$(id -g) -R ."
         shell: "bash"
 
+      - if: "github.event_name != 'schedule'"
+        name: "Restore cached clang-tidy input file checksums"
+        id: "cache-restore-clang-tidy-input"
+        uses: "actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684"
+        with:
+          path: ".task/checksum/utils-cpp-lint-clang-tidy-*"
+          key: "main-branch-clang-tidy-input-file-checksums"
+
       - uses: "./.github/actions/run-on-image"
         env:
           OS_NAME: "ubuntu-jammy"
@@ -339,3 +347,10 @@ jobs:
           # run_command: >-
           #   task lint:check-cpp-${{(github.event_name == 'schedule') && 'full' || 'diff'}}
           run_command: "task lint:check-cpp-full"
+
+      - if: "github.event_name != 'pull_request' && github.ref == 'refs/heads/main'"
+        name: "Cache clang-tidy input file checksums"
+        uses: "actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684"
+        with:
+          path: ".task/checksum/utils-cpp-lint-clang-tidy-*"
+          key: "${{steps.cache-restore-clang-tidy-input.outputs.cache-primary-key}}"
