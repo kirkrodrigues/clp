@@ -37,6 +37,19 @@ jobs:
         name: "Install coreutils (for md5sum)"
         run: "brew install coreutils"
 
+      - shell: "bash"
+        run: "test [ -e .task ] && ls -R .task"
+
+      - name: "Restore cached clang-tidy input file checksums"
+        id: "cache-restore-clang-tidy-input"
+        uses: "actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684"
+        with:
+          path: ".task/checksum/utils-cpp-lint-clang-tidy-*"
+          key: "main-branch-clang-tidy-input-file-checksums"
+
+      - shell: "bash"
+        run: "ls -R .task"
+
       - name: "Build docs"
         shell: "bash"
         run: "task docs:site"
