@@ -8,7 +8,6 @@ vars:
   G_DEPS_LOG_VIEWER_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#log-viewer.md5"
 
   # Submodule checksum files
-  G_ANTLR4_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#antlr4.md5"
   G_CATCH2_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#Catch2.md5"
   G_DATE_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#date.md5"
   G_JSON_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#json.md5"
@@ -29,7 +28,6 @@ tasks:
   core:
     vars:
     sources:
-      - "{{.G_ANTLR4_CHECKSUM_FILE}}"
       - "{{.G_CATCH2_CHECKSUM_FILE}}"
       - "{{.G_DATE_CHECKSUM_FILE}}"
       - "{{.G_JSON_CHECKSUM_FILE}}"
@@ -44,7 +42,6 @@ tasks:
     cmds:
       - >-
         cat
-        "{{.G_ANTLR4_CHECKSUM_FILE}}"
         "{{.G_CATCH2_CHECKSUM_FILE}}"
         "{{.G_DATE_CHECKSUM_FILE}}"
         "{{.G_JSON_CHECKSUM_FILE}}"
@@ -139,33 +136,17 @@ tasks:
   antlr4:
     internal: true
     vars:
-      CHECKSUM_FILE: "{{.G_ANTLR4_CHECKSUM_FILE}}"
-      DEST_DIR: "{{.G_CORE_COMPONENT_DIR}}/third-party/antlr"
-      DEST: "{{.DEST_DIR}}/antlr-4.13.1-complete.jar"
-    sources:
-      - "{{.G_DEP_DOWNLOAD_SCRIPT}}"
-      - "{{.G_UTILS_TASKFILE}}"
-      - "{{.ROOT_DIR}}/Taskfile.yml"
-      - "{{.TASKFILE}}"
-    generates: ["{{.CHECKSUM_FILE}}"]
-    deps:
-      - ":init"
-      - task: ":utils:checksum:validate"
-        vars:
-          CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
-          INCLUDE_PATTERNS: ["{{.DEST_DIR}}"]
+      OUTPUT_FILE: "{{.G_CORE_DEPS_DIR}}/antlr-4.13.1-complete.jar"
     cmds:
-      - task: "download-dependency"
+      - task: ":utils:remote:curl"
         vars:
-          DEST: "{{.DEST}}"
-          FLAGS: "--no-submodule"
-          SRC_NAME: "antlr-4.13.1-complete.jar"
-          SRC_URL: "https://www.antlr.org/download/antlr-4.13.1-complete.jar"
-      # This command must be last
-      - task: ":utils:checksum:compute"
-        vars:
-          CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
-          INCLUDE_PATTERNS: ["{{.DEST_DIR}}"]
+          URL: "https://www.antlr.org/download/antlr-4.13.1-complete.jar"
+          FILE_SHA256: "bc13a9c57a8dd7d5196888211e5ede657cb64a3ce968608697e4f668251a8487"
+          OUTPUT_FILE: "{{.OUTPUT_FILE}}"
+      - >-
+        echo "set(
+        ANTLR_EXECUTABLE \"{{.OUTPUT_FILE}}\"
+        )" >> "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/ANTLR4.cmake"
 
   Catch2:
     internal: true
