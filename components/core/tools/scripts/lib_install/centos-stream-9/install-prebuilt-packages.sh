@@ -21,4 +21,5 @@ dnf install -y \
     openssl-devel \
     python3-pip \
     unzip \
+    xz \
     xz-devel
