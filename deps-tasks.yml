@@ -8,7 +8,6 @@ vars:
   G_DEPS_LOG_VIEWER_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#log-viewer.md5"
 
   # Submodule checksum files
-  G_JSON_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#json.md5"
   G_LOG_SURGEON_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#log-surgeon.md5"
   G_OUTCOME_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#outcome.md5"
   G_SIMDJSON_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#simdjson.md5"
@@ -26,7 +25,6 @@ tasks:
   core:
     vars:
     sources:
-      - "{{.G_JSON_CHECKSUM_FILE}}"
       - "{{.G_LOG_SURGEON_CHECKSUM_FILE}}"
       - "{{.G_OUTCOME_CHECKSUM_FILE}}"
       - "{{.G_SIMDJSON_CHECKSUM_FILE}}"
@@ -38,7 +36,6 @@ tasks:
     cmds:
       - >-
         cat
-        "{{.G_JSON_CHECKSUM_FILE}}"
         "{{.G_LOG_SURGEON_CHECKSUM_FILE}}"
         "{{.G_OUTCOME_CHECKSUM_FILE}}"
         "{{.G_SIMDJSON_CHECKSUM_FILE}}"
@@ -188,32 +185,19 @@ tasks:
   json:
     internal: true
     vars:
-      CHECKSUM_FILE: "{{.G_JSON_CHECKSUM_FILE}}"
-      DEST: "{{.G_CORE_COMPONENT_SUBMODULES_DIR}}/json"
-    sources:
-      - "{{.G_DEP_DOWNLOAD_SCRIPT}}"
-      - "{{.G_UTILS_TASKFILE}}"
-      - "{{.ROOT_DIR}}/Taskfile.yml"
-      - "{{.TASKFILE}}"
-    generates: ["{{.CHECKSUM_FILE}}"]
-    deps:
-      - ":init"
-      - task: ":utils:checksum:validate"
-        vars:
-          CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
-          INCLUDE_PATTERNS: ["{{.DEST}}"]
+      LIB_NAME: "NLOHMANN_JSON"
     cmds:
-      - task: "download-dependency"
+      - task: ":utils:cmake:install-remote-tar"
         vars:
-          DEST: "{{.DEST}}"
-          FLAGS: "--extract"
-          SRC_NAME: "json-3.11.3"
-          SRC_URL: "https://github.com/nlohmann/json/archive/refs/tags/v3.11.3.zip"
-      # This command must be last
-      - task: ":utils:checksum:compute"
+          NAME: "{{.LIB_NAME}}"
+          FILE_SHA256: "d6c65aca6b1ed68e7a182f4757257b107ae403032760ed6ef121c9d55e81757d"
+          GEN_ARGS: ["-DJSON_BuildTests=OFF"]
+          URL: "https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz"
+          WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
+      - task: "add-package-root-to-cmake-settings"
         vars:
-          CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
-          INCLUDE_PATTERNS: ["{{.DEST}}"]
+          LIB_NAME: "{{.LIB_NAME}}"
+          LIB_INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
 
   log-surgeon:
     internal: true

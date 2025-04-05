@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <sstream>
 
-#include <json/single_include/nlohmann/json.hpp>
+#include <nlohmann/json.hpp>
 
 #include "archive_constants.hpp"
 #include "Defs.hpp"

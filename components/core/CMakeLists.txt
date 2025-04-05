@@ -159,6 +159,11 @@ else()
     message(FATAL_ERROR "Could not find static libraries for fmt")
 endif()
 
+find_package(nlohmann_json REQUIRED)
+if(nlohmann_json_FOUND)
+    message(STATUS "Found nlohmann_json ${nlohmann_json_VERSION}")
+endif()
+
 # Find and setup spdlog
 if(CLP_USE_STATIC_LIBS)
     # NOTE: On some Linux distributions (e.g. Ubuntu), the spdlog package only contains a dynamic
@@ -684,6 +689,7 @@ target_link_libraries(unitTest
         LibArchive::LibArchive
         MariaDBClient::MariaDBClient
         ${MONGOCXX_TARGET}
+        nlohmann_json::nlohmann_json
         simdjson
         spdlog::spdlog
         sql

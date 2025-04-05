@@ -10,8 +10,8 @@
 #include <variant>
 #include <vector>
 
-#include <Catch2/single_include/catch2/catch.hpp>
-#include <json/single_include/nlohmann/json.hpp>
+#include <catch2/catch.hpp>
+#include <nlohmann/json.hpp>
 
 #include "../src/clp/ffi/encoding_methods.hpp"
 #include "../src/clp/ffi/KeyValuePairLogEvent.hpp"
