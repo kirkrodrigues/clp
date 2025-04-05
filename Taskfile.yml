@@ -16,6 +16,7 @@ vars:
   # Build paths
   G_BUILD_DIR: "{{.ROOT_DIR}}/build"
   G_CORE_COMPONENT_BUILD_DIR: "{{.G_BUILD_DIR}}/core"
+  G_CORE_DEPS_DIR: "{{.G_BUILD_DIR}}/core-deps"
   G_LOG_VIEWER_WEBUI_BUILD_DIR: "{{.G_BUILD_DIR}}/log-viewer-webui"
   G_METEOR_BUILD_DIR: "{{.G_BUILD_DIR}}/meteor"
   G_NODEJS_14_BUILD_DIR: "{{.G_BUILD_DIR}}/nodejs-14"
@@ -25,6 +26,11 @@ vars:
   G_PACKAGE_BUILD_DIR: "{{.G_BUILD_DIR}}/clp-package"
   G_PACKAGE_VENV_DIR: "{{.G_BUILD_DIR}}/package-venv"
   G_WEBUI_BUILD_DIR: "{{.G_BUILD_DIR}}/webui"
+
+  # CMake settings paths for core's dependencies
+  # NOTE: These must be kept in-sync with their usage in CMakeLists.txt
+  G_CORE_DEPS_CMAKE_SETTINGS_DIR: "{{.G_CORE_DEPS_DIR}}/cmake-settings"
+  G_CORE_DEPS_CMAKE_SETTINGS_FILE: "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/settings.cmake"
 
   # Taskfile paths
   G_UTILS_TASKFILE: "{{.ROOT_DIR}}/tools/yscope-dev-utils/exports/taskfiles/utils.yaml"

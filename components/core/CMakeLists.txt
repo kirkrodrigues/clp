@@ -96,6 +96,13 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     endif ()
 endif ()
 
+if(PROJECT_IS_TOP_LEVEL)
+    # Include dependency settings if the project isn't being included as a subproject.
+    # NOTE: We mark the file optional because if the user happens to have the dependencies
+    # installed, this file isn't necessary.
+    include(../../build/core-deps/cmake-settings/settings.cmake OPTIONAL)
+endif()
+
 # Find and setup ANTLR Library
 # We build and link to the static library
 find_package(ANTLR REQUIRED)
@@ -370,6 +377,9 @@ set(SOURCE_FILES_reducer_unitTest
     )
 
 set(SOURCE_FILES_unitTest
+        "${CLP_SQLITE_SOURCE_DIRECTORY}/sqlite3.c"
+        "${CLP_SQLITE_SOURCE_DIRECTORY}/sqlite3.h"
+        "${CLP_SQLITE_SOURCE_DIRECTORY}/sqlite3ext.h"
         src/clp/Array.hpp
         src/clp/aws/AwsAuthenticationSigner.cpp
         src/clp/aws/AwsAuthenticationSigner.hpp
@@ -593,9 +603,6 @@ set(SOURCE_FILES_unitTest
         src/clp/version.hpp
         src/clp/WriterInterface.cpp
         src/clp/WriterInterface.hpp
-        submodules/sqlite3/sqlite3.c
-        submodules/sqlite3/sqlite3.h
-        submodules/sqlite3/sqlite3ext.h
         tests/LogSuppressor.hpp
         tests/TestOutputCleaner.hpp
         tests/test-Array.cpp

@@ -16,7 +16,6 @@ vars:
   G_LOG_SURGEON_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#log-surgeon.md5"
   G_OUTCOME_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#outcome.md5"
   G_SIMDJSON_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#simdjson.md5"
-  G_SQLITE3_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#sqlite3.md5"
   G_UTFCPP_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#utfcpp.md5"
   G_YAML_CPP_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#yaml-cpp.md5"
   G_YSCOPE_LOG_VIEWER_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#yscope-log-viewer.md5"
@@ -39,7 +38,6 @@ tasks:
       - "{{.G_LOG_SURGEON_CHECKSUM_FILE}}"
       - "{{.G_OUTCOME_CHECKSUM_FILE}}"
       - "{{.G_SIMDJSON_CHECKSUM_FILE}}"
-      - "{{.G_SQLITE3_CHECKSUM_FILE}}"
       - "{{.G_UTFCPP_CHECKSUM_FILE}}"
       - "{{.G_YAML_CPP_CHECKSUM_FILE}}"
       - "{{.G_YSTDLIB_CPP_CHECKSUM_FILE}}"
@@ -56,7 +54,6 @@ tasks:
         "{{.G_LOG_SURGEON_CHECKSUM_FILE}}"
         "{{.G_OUTCOME_CHECKSUM_FILE}}"
         "{{.G_SIMDJSON_CHECKSUM_FILE}}"
-        "{{.G_SQLITE3_CHECKSUM_FILE}}"
         "{{.G_UTFCPP_CHECKSUM_FILE}}"
         "{{.G_YAML_CPP_CHECKSUM_FILE}}"
         "{{.G_YSTDLIB_CPP_CHECKSUM_FILE}}"
@@ -90,6 +87,8 @@ tasks:
     internal: true
     run: "once"
     cmds:
+      - "rm -rf '{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}'"
+      - "mkdir -p '{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}'"
       - task: "abseil-cpp"
       - task: "antlr4"
       - task: "Catch2"
@@ -103,6 +102,7 @@ tasks:
       - task: "yaml-cpp"
       - task: "yscope-log-viewer"
       - task: "ystdlib-cpp"
+      - task: "combine-cmake-settings-files"
 
   abseil-cpp:
     internal: true
@@ -194,6 +194,16 @@ tasks:
         vars:
           CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
           INCLUDE_PATTERNS: ["{{.DEST}}"]
+
+  # Combines all CMake settings files into {{.G_CORE_DEPS_CMAKE_SETTINGS_FILE}}.
+  combine-cmake-settings-files:
+    internal: true
+    cmd: |-
+      for file in "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}"/*.cmake; do
+        if [[ "$file" != "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}" ]]; then
+          echo "include(\"$file\")" >> "{{.G_CORE_DEPS_CMAKE_SETTINGS_FILE}}"
+        fi
+      done
 
   date:
     internal: true
@@ -345,37 +355,23 @@ tasks:
           CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
           INCLUDE_PATTERNS: ["{{.DEST}}"]
 
-  # We don't use a git submodule for sqlite3 since that would require building the sqlite
-  # amalgamation
   sqlite3:
     internal: true
     vars:
-      CHECKSUM_FILE: "{{.G_SQLITE3_CHECKSUM_FILE}}"
-      DEST: "{{.G_CORE_COMPONENT_SUBMODULES_DIR}}/sqlite3"
-    sources:
-      - "{{.G_DEP_DOWNLOAD_SCRIPT}}"
-      - "{{.G_UTILS_TASKFILE}}"
-      - "{{.ROOT_DIR}}/Taskfile.yml"
-      - "{{.TASKFILE}}"
-    generates: ["{{.CHECKSUM_FILE}}"]
-    deps:
-      - ":init"
-      - task: ":utils:checksum:validate"
-        vars:
-          CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
-          INCLUDE_PATTERNS: ["{{.DEST}}"]
+      G_CORE_SQLITE3_OUTPUT_DIR: "{{.G_CORE_DEPS_DIR}}/SQLITE3-src"
+      G_CORE_SQLITE3_ZIP_FILENAME_STEM: "sqlite-amalgamation-3360000"
+      G_CORE_SQLITE3_SRC_DIR: "{{.G_CORE_SQLITE3_OUTPUT_DIR}}/{{.G_CORE_SQLITE3_ZIP_FILENAME_STEM}}"
     cmds:
-      - task: "download-dependency"
+      - task: ":utils:remote:download-and-extract-zip"
         vars:
-          DEST: "{{.DEST}}"
-          FLAGS: "--extract --no-submodule"
-          SRC_NAME: "sqlite-amalgamation-3360000"
-          SRC_URL: "https://www.sqlite.org/2021/sqlite-amalgamation-3360000.zip"
-      # This command must be last
-      - task: ":utils:checksum:compute"
-        vars:
-          CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
-          INCLUDE_PATTERNS: ["{{.DEST}}"]
+          CHECKSUM_FILE: "{{.G_CORE_DEPS_DIR}}/sqlite3.md5"
+          FILE_SHA256: "999826fe4c871f18919fdb8ed7ec9dd8217180854dd1fe21eea96aed36186729"
+          OUTPUT_DIR: "{{.G_CORE_SQLITE3_OUTPUT_DIR}}"
+          URL: "https://www.sqlite.org/2021/{{.G_CORE_SQLITE3_ZIP_FILENAME_STEM}}.zip"
+      - >-
+        echo "set(
+        CLP_SQLITE_SOURCE_DIRECTORY \"{{.G_CORE_SQLITE3_SRC_DIR}}\"
+        )" >> "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/SQLITE3.cmake"
 
   utfcpp:
     internal: true
