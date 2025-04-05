@@ -100,7 +100,22 @@ if(PROJECT_IS_TOP_LEVEL)
     # Include dependency settings if the project isn't being included as a subproject.
     # NOTE: We mark the file optional because if the user happens to have the dependencies
     # installed, this file isn't necessary.
-    include(../../build/core-deps/cmake-settings/settings.cmake OPTIONAL)
+    include(../../build/core-deps/cmake-settings/settings.cmake
+            OPTIONAL
+            RESULT_VARIABLE CLP_DEPS_SETTINGS_FILE_PATH
+    )
+
+    if(NOT CLP_DEPS_SETTINGS_FILE_PATH STREQUAL "NOTFOUND")
+        # Set CMP0144 since our minimum required CMake version is less than 3.27.
+        if(POLICY "CMP0144")
+            cmake_policy(SET "CMP0144" "NEW")
+        endif()
+    endif()
+endif()
+
+find_package(absl REQUIRED)
+if (absl_FOUND)
+    message(STATUS "Found absl ${absl_VERSION}")
 endif()
 
 # Find and setup ANTLR Library
@@ -218,10 +233,6 @@ if(msgpack-cxx_FOUND)
 else()
     message(FATAL_ERROR "Could not find msgpack-cxx")
 endif()
-
-# Add abseil-cpp
-set(ABSL_PROPAGATE_CXX_STD ON)
-add_subdirectory(submodules/abseil-cpp EXCLUDE_FROM_ALL)
 
 # Add simdjson
 add_subdirectory(submodules/simdjson EXCLUDE_FROM_ALL)
