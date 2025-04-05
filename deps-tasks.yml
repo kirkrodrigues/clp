@@ -94,8 +94,8 @@ tasks:
       - task: ":utils:cmake:install-remote-tar"
         vars:
           NAME: "{{.LIB_NAME}}"
-          FILE_SHA256: "987ce98f02eefbaf930d6e38ab16aa05737234d7afbab2d5c4ea7adbe50c28ed"
-          URL: "https://github.com/abseil/abseil-cpp/archive/refs/tags/20230802.1.tar.gz"
+          FILE_SHA256: "b396401fd29e2e679cace77867481d388c807671dc2acc602a0259eeb79b7811"
+          URL: "https://github.com/abseil/abseil-cpp/releases/download/20250127.1/abseil-cpp-20250127.1.tar.gz"
           WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
       - task: "add-package-root-to-cmake-settings"
         vars:
