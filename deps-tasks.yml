@@ -111,10 +111,17 @@ tasks:
   # @param {string} LIB_INSTALL_PREFIX
   add-package-root-to-cmake-settings:
     internal: true
+    label: "{{.TASK}}-{{.LIB_NAME}}-{{.LIB_INSTALL_PREFIX}}"
     requires:
       vars:
         - "LIB_NAME"
         - "LIB_INSTALL_PREFIX"
+    vars:
+      OUTPUT_FILE: "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/{{.LIB_NAME}}.cmake"
+    sources:
+      - "{{.TASKFILE}}"
+    generates:
+      - "{{.OUTPUT_FILE}}"
     cmds:
       - >-
         echo "set(
@@ -122,7 +129,7 @@ tasks:
           \"{{.LIB_INSTALL_PREFIX}}\"
           CACHE PATH
           \"Install prefix for {{.LIB_NAME}}\"
-        )" >> "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/{{.LIB_NAME}}.cmake"
+        )" >> "{{.OUTPUT_FILE}}"
 
   antlr4:
     internal: true
