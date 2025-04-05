@@ -8,7 +8,6 @@ vars:
   G_DEPS_LOG_VIEWER_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#log-viewer.md5"
 
   # Submodule checksum files
-  G_CATCH2_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#Catch2.md5"
   G_DATE_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#date.md5"
   G_JSON_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#json.md5"
   G_LOG_SURGEON_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#log-surgeon.md5"
@@ -28,7 +27,6 @@ tasks:
   core:
     vars:
     sources:
-      - "{{.G_CATCH2_CHECKSUM_FILE}}"
       - "{{.G_DATE_CHECKSUM_FILE}}"
       - "{{.G_JSON_CHECKSUM_FILE}}"
       - "{{.G_LOG_SURGEON_CHECKSUM_FILE}}"
@@ -42,7 +40,6 @@ tasks:
     cmds:
       - >-
         cat
-        "{{.G_CATCH2_CHECKSUM_FILE}}"
         "{{.G_DATE_CHECKSUM_FILE}}"
         "{{.G_JSON_CHECKSUM_FILE}}"
         "{{.G_LOG_SURGEON_CHECKSUM_FILE}}"
@@ -85,7 +82,7 @@ tasks:
       - "mkdir -p '{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}'"
       - task: "absl"
       - task: "antlr4"
-      - task: "Catch2"
+      - task: "catch2"
       - task: "date"
       - task: "json"
       - task: "log-surgeon"
@@ -148,35 +145,22 @@ tasks:
         ANTLR_EXECUTABLE \"{{.OUTPUT_FILE}}\"
         )" >> "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/ANTLR4.cmake"
 
-  Catch2:
+  catch2:
     internal: true
     vars:
-      CHECKSUM_FILE: "{{.G_CATCH2_CHECKSUM_FILE}}"
-      DEST: "{{.G_CORE_COMPONENT_SUBMODULES_DIR}}/Catch2"
-    sources:
-      - "{{.G_DEP_DOWNLOAD_SCRIPT}}"
-      - "{{.G_UTILS_TASKFILE}}"
-      - "{{.ROOT_DIR}}/Taskfile.yml"
-      - "{{.TASKFILE}}"
-    generates: ["{{.CHECKSUM_FILE}}"]
-    deps:
-      - ":init"
-      - task: ":utils:checksum:validate"
-        vars:
-          CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
-          INCLUDE_PATTERNS: ["{{.DEST}}"]
+      LIB_NAME: "CATCH2"
     cmds:
-      - task: "download-dependency"
+      - task: ":utils:cmake:install-remote-tar"
         vars:
-          DEST: "{{.DEST}}"
-          FLAGS: "--extract"
-          SRC_NAME: "Catch2-2.13.7"
-          SRC_URL: "https://github.com/catchorg/Catch2/archive/refs/tags/v2.13.7.zip"
-      # This command must be last
-      - task: ":utils:checksum:compute"
+          NAME: "{{.LIB_NAME}}"
+          GEN_ARGS: ["-DBUILD_TESTING=OFF"]
+          FILE_SHA256: "3cdb4138a072e4c0290034fe22d9f0a80d3bcfb8d7a8a5c49ad75d3a5da24fae"
+          URL: "https://github.com/catchorg/Catch2/archive/refs/tags/v2.13.7.tar.gz"
+          WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
+      - task: "add-package-root-to-cmake-settings"
         vars:
-          CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
-          INCLUDE_PATTERNS: ["{{.DEST}}"]
+          LIB_NAME: "{{.LIB_NAME}}"
+          LIB_INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
 
   # Combines all CMake settings files into {{.G_CORE_DEPS_CMAKE_SETTINGS_FILE}}.
   combine-cmake-settings-files:
