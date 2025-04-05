@@ -8,7 +8,6 @@ vars:
   G_DEPS_LOG_VIEWER_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#log-viewer.md5"
 
   # Submodule checksum files
-  G_DATE_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#date.md5"
   G_JSON_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#json.md5"
   G_LOG_SURGEON_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#log-surgeon.md5"
   G_OUTCOME_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#outcome.md5"
@@ -27,7 +26,6 @@ tasks:
   core:
     vars:
     sources:
-      - "{{.G_DATE_CHECKSUM_FILE}}"
       - "{{.G_JSON_CHECKSUM_FILE}}"
       - "{{.G_LOG_SURGEON_CHECKSUM_FILE}}"
       - "{{.G_OUTCOME_CHECKSUM_FILE}}"
@@ -40,7 +38,6 @@ tasks:
     cmds:
       - >-
         cat
-        "{{.G_DATE_CHECKSUM_FILE}}"
         "{{.G_JSON_CHECKSUM_FILE}}"
         "{{.G_LOG_SURGEON_CHECKSUM_FILE}}"
         "{{.G_OUTCOME_CHECKSUM_FILE}}"
@@ -175,32 +172,18 @@ tasks:
   date:
     internal: true
     vars:
-      CHECKSUM_FILE: "{{.G_DATE_CHECKSUM_FILE}}"
-      DEST: "{{.G_CORE_COMPONENT_SUBMODULES_DIR}}/date"
-    sources:
-      - "{{.G_DEP_DOWNLOAD_SCRIPT}}"
-      - "{{.G_UTILS_TASKFILE}}"
-      - "{{.ROOT_DIR}}/Taskfile.yml"
-      - "{{.TASKFILE}}"
-    generates: ["{{.CHECKSUM_FILE}}"]
-    deps:
-      - ":init"
-      - task: ":utils:checksum:validate"
-        vars:
-          CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
-          INCLUDE_PATTERNS: ["{{.DEST}}"]
+      LIB_NAME: "DATE"
     cmds:
-      - task: "download-dependency"
+      - task: ":utils:cmake:install-remote-tar"
         vars:
-          DEST: "{{.DEST}}"
-          FLAGS: "--extract"
-          SRC_NAME: "date-3.0.1"
-          SRC_URL: "https://github.com/HowardHinnant/date/archive/refs/tags/v3.0.1.zip"
-      # This command must be last
-      - task: ":utils:checksum:compute"
+          NAME: "{{.LIB_NAME}}"
+          FILE_SHA256: "7a390f200f0ccd207e8cff6757e04817c1a0aec3e327b006b7eb451c57ee3538"
+          URL: "https://github.com/HowardHinnant/date/archive/refs/tags/v3.0.1.tar.gz"
+          WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
+      - task: "add-package-root-to-cmake-settings"
         vars:
-          CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
-          INCLUDE_PATTERNS: ["{{.DEST}}"]
+          LIB_NAME: "{{.LIB_NAME}}"
+          LIB_INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
 
   json:
     internal: true

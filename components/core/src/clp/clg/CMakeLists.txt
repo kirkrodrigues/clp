@@ -131,6 +131,7 @@ target_include_directories(clg PRIVATE "${PROJECT_SOURCE_DIR}/submodules")
 target_link_libraries(clg
         PRIVATE
         Boost::filesystem Boost::program_options
+        date::date
         fmt::fmt
         log_surgeon::log_surgeon
         MariaDBClient::MariaDBClient

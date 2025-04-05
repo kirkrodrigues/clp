@@ -172,6 +172,7 @@ target_include_directories(clp PRIVATE "${PROJECT_SOURCE_DIR}/submodules")
 target_link_libraries(clp
         PRIVATE
         Boost::filesystem Boost::program_options
+        date::date
         fmt::fmt
         log_surgeon::log_surgeon
         spdlog::spdlog

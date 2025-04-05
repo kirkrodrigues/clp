@@ -138,10 +138,14 @@ else()
     message(FATAL_ERROR "Could not find ${CLP_LIBS_STRING} libraries for Boost")
 endif()
 
-
 find_package(Catch2 REQUIRED)
 if (Catch2_FOUND)
     message(STATUS "Found Catch2 ${Catch2_VERSION}")
+endif()
+
+find_package(date REQUIRED)
+if (date_FOUND)
+    message(STATUS "Found date ${date_VERSION}")
 endif()
 
 # Find and setup fmt
@@ -673,6 +677,7 @@ target_link_libraries(unitTest
         ${CURL_LIBRARIES}
         clp_s::search::ast
         clp_s::TimestampPattern
+        date::date
         fmt::fmt
         kql
         log_surgeon::log_surgeon

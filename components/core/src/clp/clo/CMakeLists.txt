@@ -159,6 +159,7 @@ target_include_directories(clo PRIVATE "${PROJECT_SOURCE_DIR}/submodules")
 target_link_libraries(clo
         PRIVATE
         Boost::filesystem Boost::program_options
+        date::date
         fmt::fmt
         log_surgeon::log_surgeon
         ${MONGOCXX_TARGET}
