@@ -90,6 +90,8 @@ tasks:
         vars:
           NAME: "{{.LIB_NAME}}"
           FILE_SHA256: "987ce98f02eefbaf930d6e38ab16aa05737234d7afbab2d5c4ea7adbe50c28ed"
+          GEN_ARGS:
+            - "-DCMAKE_CXX_STANDARD=20"
           URL: "https://github.com/abseil/abseil-cpp/archive/refs/tags/20230802.1.tar.gz"
           WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
       - task: "add-package-root-to-cmake-settings"
