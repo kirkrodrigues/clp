@@ -695,7 +695,7 @@ target_link_libraries(unitTest
         MariaDBClient::MariaDBClient
         ${MONGOCXX_TARGET}
         nlohmann_json::nlohmann_json
-        simdjson
+        simdjson::simdjson
         spdlog::spdlog
         sql
         OpenSSL::Crypto
