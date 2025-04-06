@@ -9,7 +9,6 @@ vars:
 
   # Submodule checksum files
   G_OUTCOME_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#outcome.md5"
-  G_SIMDJSON_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#simdjson.md5"
   G_UTFCPP_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#utfcpp.md5"
   G_YAML_CPP_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#yaml-cpp.md5"
   G_YSCOPE_LOG_VIEWER_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#yscope-log-viewer.md5"
@@ -25,7 +24,6 @@ tasks:
     vars:
     sources:
       - "{{.G_OUTCOME_CHECKSUM_FILE}}"
-      - "{{.G_SIMDJSON_CHECKSUM_FILE}}"
       - "{{.G_UTFCPP_CHECKSUM_FILE}}"
       - "{{.G_YAML_CPP_CHECKSUM_FILE}}"
       - "{{.G_YSTDLIB_CPP_CHECKSUM_FILE}}"
@@ -35,7 +33,6 @@ tasks:
       - >-
         cat
         "{{.G_OUTCOME_CHECKSUM_FILE}}"
-        "{{.G_SIMDJSON_CHECKSUM_FILE}}"
         "{{.G_UTFCPP_CHECKSUM_FILE}}"
         "{{.G_YAML_CPP_CHECKSUM_FILE}}"
         "{{.G_YSTDLIB_CPP_CHECKSUM_FILE}}"
