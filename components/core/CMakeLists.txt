@@ -674,6 +674,7 @@ add_executable(unitTest
         )
 target_include_directories(unitTest
         PRIVATE
+        ${CLP_SQLITE_SOURCE_DIRECTORY}
         ${CMAKE_SOURCE_DIR}/submodules
         )
 target_link_libraries(unitTest
