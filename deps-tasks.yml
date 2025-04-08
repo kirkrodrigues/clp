@@ -84,7 +84,7 @@ tasks:
   absl:
     internal: true
     vars:
-      LIB_NAME: "ABSL"
+      LIB_NAME: "absl"
     cmds:
       - task: ":utils:cmake:install-remote-tar"
         vars:
@@ -143,7 +143,7 @@ tasks:
   catch2:
     internal: true
     vars:
-      LIB_NAME: "CATCH2"
+      LIB_NAME: "catch2"
     cmds:
       - task: ":utils:cmake:install-remote-tar"
         vars:
@@ -170,7 +170,7 @@ tasks:
   date:
     internal: true
     vars:
-      LIB_NAME: "DATE"
+      LIB_NAME: "date"
     cmds:
       - task: ":utils:cmake:install-remote-tar"
         vars:
@@ -186,7 +186,7 @@ tasks:
   json:
     internal: true
     vars:
-      LIB_NAME: "NLOHMANN_JSON"
+      LIB_NAME: "nlohmann_json"
     cmds:
       - task: ":utils:cmake:install-remote-tar"
         vars:
@@ -203,7 +203,7 @@ tasks:
   log-surgeon:
     internal: true
     vars:
-      LIB_NAME: "LOG_SURGEON"
+      LIB_NAME: "log_surgeon"
     cmds:
       - task: ":utils:cmake:install-remote-tar"
         vars:
@@ -249,7 +249,7 @@ tasks:
   simdjson:
     internal: true
     vars:
-      LIB_NAME: "SIMDJSON"
+      LIB_NAME: "simdjson"
     cmds:
       - task: ":utils:cmake:install-remote-tar"
         vars:
