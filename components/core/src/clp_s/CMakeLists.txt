@@ -249,7 +249,7 @@ target_link_libraries(
         OpenSSL::Crypto
         simdjson::simdjson
         spdlog::spdlog
-        yaml-cpp
+        yaml-cpp::yaml-cpp
         ZStd::ZStd
 )
 target_include_directories(clp-s PRIVATE "${PROJECT_SOURCE_DIR}/submodules")

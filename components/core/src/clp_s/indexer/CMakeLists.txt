@@ -94,7 +94,7 @@ target_link_libraries(indexer
         OpenSSL::Crypto
         simdjson::simdjson
         spdlog::spdlog
-        yaml-cpp
+        yaml-cpp::yaml-cpp
         ZStd::ZStd
 )
 # Put the built executable at the root of the build directory
