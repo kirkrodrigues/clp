@@ -208,7 +208,7 @@ tasks:
       - task: ":utils:cmake:install-remote-tar"
         vars:
           NAME: "{{.LIB_NAME}}"
-          FILE_SHA256: "f801a3f369bb14919d82a928d9a3812006245aa0"
+          FILE_SHA256: "169b56714b620c3f8f07bf7975aba8573b9bd25e423e5c4f0cc9b52450a2403d"
           URL: "https://github.com/y-scope/log-surgeon/archive/f801a3f.tar.gz"
           WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
       - task: "add-package-root-to-cmake-settings"
