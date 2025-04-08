@@ -176,7 +176,7 @@ jobs:
             || (github.event_name != 'pull_request' && github.ref == 'refs/heads/main')}}
           run_command: >-
             task deps:core
-            && cat "${GITHUB_WORKSPACE}/build/core-deps/cmake-settings/settings.cmake" 
+            && cat "${GITHUB_WORKSPACE}/build/core-deps/cmake-settings/settings.cmake"
             && python3
             "${GITHUB_WORKSPACE}/components/core/tools/scripts/utils/build-and-run-unit-tests.py"
             ${{matrix.use_shared_libs == true && '--use-shared-libs' || ''}}
