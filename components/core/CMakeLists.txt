@@ -174,6 +174,11 @@ if(simdjson_FOUND)
     message(STATUS "Found simdjson ${simdjson_VERSION}")
 endif()
 
+find_package(yaml-cpp REQUIRED)
+if(yaml-cpp_FOUND)
+    message(STATUS "Found yaml-cpp ${yaml-cpp_VERSION}")
+endif()
+
 # Find and setup spdlog
 if(CLP_USE_STATIC_LIBS)
     # NOTE: On some Linux distributions (e.g. Ubuntu), the spdlog package only contains a dynamic
@@ -257,9 +262,6 @@ else()
 endif()
 
 find_package(Threads REQUIRED)
-
-# Add yaml-cpp
-add_subdirectory(submodules/yaml-cpp EXCLUDE_FROM_ALL)
 
 # Add ystdlib-cpp
 set(YSTDLIB_CPP_BUILD_TESTING OFF)
@@ -703,7 +705,7 @@ target_link_libraries(unitTest
         ${STD_FS_LIBS}
         clp::regex_utils
         clp::string_utils
-        yaml-cpp::yaml-cpp
+        yaml-cpp
         ystdlib::error_handling
         ${LIBLZMA_LIBRARIES}
         ZStd::ZStd
