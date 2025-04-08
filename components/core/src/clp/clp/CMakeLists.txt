@@ -185,7 +185,7 @@ target_link_libraries(clp
         nlohmann_json::nlohmann_json
         ${STD_FS_LIBS}
         clp::string_utils
-        yaml-cpp::yaml-cpp
+        yaml-cpp
         ZStd::ZStd
 )
 # Put the built executable at the root of the build directory
