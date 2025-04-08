@@ -7,7 +7,7 @@
 #include <utility>
 #include <vector>
 
-#include <nlohmann/json.hpp>
+#include <nlohmann/json_fwd.hpp>
 #include <outcome/single-header/outcome.hpp>
 
 #include "../time_types.hpp"
