@@ -6,6 +6,7 @@
 #include <string_view>
 
 #include <outcome.hpp>
+#include <outcome/config.hpp>
 #include <string_utils/string_utils.hpp>
 
 #include "constants.hpp"

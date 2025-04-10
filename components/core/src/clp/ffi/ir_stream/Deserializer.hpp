@@ -11,6 +11,7 @@
 
 #include <nlohmann/json.hpp>
 #include <outcome.hpp>
+#include <outcome/config.hpp>
 
 #include "../../ReaderInterface.hpp"
 #include "../../time_types.hpp"

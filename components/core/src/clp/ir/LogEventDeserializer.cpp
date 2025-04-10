@@ -4,6 +4,7 @@
 
 #include <nlohmann/json.hpp>
 #include <outcome.hpp>
+#include <outcome/config.hpp>
 #include <string_utils/string_utils.hpp>
 
 #include "../ffi/ir_stream/decoding_methods.hpp"

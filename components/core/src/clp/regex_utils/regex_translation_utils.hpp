@@ -5,6 +5,7 @@
 #include <string_view>
 
 #include <outcome.hpp>
+#include <outcome/config.hpp>
 
 #include "regex_utils/RegexToWildcardTranslatorConfig.hpp"
 
