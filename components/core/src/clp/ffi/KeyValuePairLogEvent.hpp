@@ -52,7 +52,7 @@ public:
 
     // Disable copy constructor and assignment operator
     KeyValuePairLogEvent(KeyValuePairLogEvent const&) = delete;
-    auto operator=(KeyValuePairLogEvent const&) -> KeyValuePairLogEvent& = delete;
+    KeyValuePairLogEvent& operator=(KeyValuePairLogEvent const&) = delete;
 
     // Default move constructor and assignment operator
     KeyValuePairLogEvent(KeyValuePairLogEvent&&) = default;
