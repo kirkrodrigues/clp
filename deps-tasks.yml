@@ -8,7 +8,6 @@ vars:
   G_DEPS_LOG_VIEWER_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#log-viewer.md5"
 
   # Submodule checksum files
-  G_OUTCOME_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#outcome.md5"
   G_UTFCPP_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#utfcpp.md5"
   G_YSCOPE_LOG_VIEWER_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#yscope-log-viewer.md5"
   G_YSTDLIB_CPP_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#ystdlib-cpp.md5"
@@ -22,7 +21,6 @@ tasks:
   core:
     vars:
     sources:
-      - "{{.G_OUTCOME_CHECKSUM_FILE}}"
       - "{{.G_UTFCPP_CHECKSUM_FILE}}"
       - "{{.G_YSTDLIB_CPP_CHECKSUM_FILE}}"
     generates: ["{{.G_DEPS_CORE_CHECKSUM_FILE}}"]
@@ -30,7 +28,6 @@ tasks:
     cmds:
       - >-
         cat
-        "{{.G_OUTCOME_CHECKSUM_FILE}}"
         "{{.G_UTFCPP_CHECKSUM_FILE}}"
         "{{.G_YSTDLIB_CPP_CHECKSUM_FILE}}"
         >> "{{.G_DEPS_CORE_CHECKSUM_FILE}}"
@@ -71,6 +68,7 @@ tasks:
       - task: "json"
       - task: "log-surgeon"
       - task: "outcome"
+      - task: "quickcpplib"
       - task: "simdjson"
       - task: "sqlite3"
       - task: "utfcpp"
@@ -216,32 +214,46 @@ tasks:
   outcome:
     internal: true
     vars:
-      CHECKSUM_FILE: "{{.G_OUTCOME_CHECKSUM_FILE}}"
-      DEST: "{{.G_CORE_COMPONENT_SUBMODULES_DIR}}/outcome"
-    sources:
-      - "{{.G_DEP_DOWNLOAD_SCRIPT}}"
-      - "{{.G_UTILS_TASKFILE}}"
-      - "{{.ROOT_DIR}}/Taskfile.yml"
-      - "{{.TASKFILE}}"
-    generates: ["{{.CHECKSUM_FILE}}"]
+      LIB_NAME: "outcome"
     deps:
-      - ":init"
-      - task: ":utils:checksum:validate"
-        vars:
-          CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
-          INCLUDE_PATTERNS: ["{{.DEST}}"]
+      - "quickcpplib"
     cmds:
-      - task: "download-dependency"
+      - task: ":utils:cmake:install-remote-tar"
         vars:
-          DEST: "{{.DEST}}"
-          FLAGS: "--extract"
-          SRC_NAME: "outcome-2.2.9"
-          SRC_URL: "https://github.com/ned14/outcome/archive/refs/tags/v2.2.9.zip"
-      # This command must be last
-      - task: ":utils:checksum:compute"
+          NAME: "{{.LIB_NAME}}"
+          FILE_SHA256: "9588c01465b287296ab647b2caf50d5137e3eeaf662e3105b858d5c5c7579428"
+          GEN_ARGS:
+            - "-C {{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/quickcpplib.cmake"
+            - "-DBUILD_TESTING=OFF"
+            - "-DCMAKE_BUILD_TYPE=Release"
+            - "-DCMAKE_POLICY_DEFAULT_CMP0074=NEW"
+          URL: "https://github.com/ned14/outcome/releases/download/v2.2.9\
+          /outcome-v2-all-sources-571f9c930e672950e99d5d30f743603aaaf8014c.tar.xz"
+          WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
+      - task: "add-package-root-to-cmake-settings"
         vars:
-          CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
-          INCLUDE_PATTERNS: ["{{.DEST}}"]
+          LIB_NAME: "{{.LIB_NAME}}"
+          LIB_INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
+
+  quickcpplib:
+    internal: true
+    vars:
+      LIB_NAME: "quickcpplib"
+    run: "once"
+    cmds:
+      - task: ":utils:cmake:install-remote-tar"
+        vars:
+          NAME: "{{.LIB_NAME}}"
+          FILE_SHA256: "bb9da86efa2f262e6a292453775fa9b999b422700eb1c1ac390b7cbe5f0ec92f"
+          GEN_ARGS:
+            - "-DBUILD_TESTING=OFF"
+            - "-DCMAKE_BUILD_TYPE=Release"
+          URL: "https://github.com/ned14/quickcpplib/archive/72277c7.tar.gz"
+          WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
+      - task: "add-package-root-to-cmake-settings"
+        vars:
+          LIB_NAME: "{{.LIB_NAME}}"
+          LIB_INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
 
   simdjson:
     internal: true

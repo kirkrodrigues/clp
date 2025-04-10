@@ -168,6 +168,7 @@ target_link_libraries(clo
         ${MONGOCXX_TARGET}
         msgpack-cxx
         nlohmann_json::nlohmann_json
+        outcome::hl
         spdlog::spdlog
         ${sqlite_LIBRARY_DEPENDENCIES}
         ${STD_FS_LIBS}

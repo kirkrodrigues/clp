@@ -139,6 +139,7 @@ target_link_libraries(clg
         log_surgeon::log_surgeon
         MariaDBClient::MariaDBClient
         nlohmann_json::nlohmann_json
+        outcome::hl
         spdlog::spdlog
         ${sqlite_LIBRARY_DEPENDENCIES}
         ${STD_FS_LIBS}

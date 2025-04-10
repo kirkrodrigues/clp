@@ -188,6 +188,7 @@ target_link_libraries(glt
         LibArchive::LibArchive
         MariaDBClient::MariaDBClient
         nlohmann_json::nlohmann_json
+        outcome::hl
         ${STD_FS_LIBS}
         clp::string_utils
         yaml-cpp

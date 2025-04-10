@@ -169,6 +169,11 @@ if(nlohmann_json_FOUND)
     message(STATUS "Found nlohmann_json ${nlohmann_json_VERSION}")
 endif()
 
+find_package(outcome REQUIRED)
+if(outcome_FOUND)
+    message(STATUS "Found outcome ${outcome_VERSION}.")
+endif()
+
 find_package(simdjson REQUIRED)
 if(simdjson_FOUND)
     message(STATUS "Found simdjson ${simdjson_VERSION}")
@@ -697,6 +702,7 @@ target_link_libraries(unitTest
         MariaDBClient::MariaDBClient
         ${MONGOCXX_TARGET}
         nlohmann_json::nlohmann_json
+        outcome::hl
         simdjson::simdjson
         spdlog::spdlog
         sql

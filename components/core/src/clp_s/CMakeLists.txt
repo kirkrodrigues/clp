@@ -247,6 +247,7 @@ target_link_libraries(
         nlohmann_json::nlohmann_json
         msgpack-cxx
         OpenSSL::Crypto
+        outcome::hl
         simdjson::simdjson
         spdlog::spdlog
         yaml-cpp

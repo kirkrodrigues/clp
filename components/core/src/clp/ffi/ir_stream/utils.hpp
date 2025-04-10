@@ -10,7 +10,7 @@
 #include <vector>
 
 #include <nlohmann/json.hpp>
-#include <outcome/single-header/outcome.hpp>
+#include <outcome.hpp>
 
 #include "../../ErrorCode.hpp"
 #include "../../ir/types.hpp"

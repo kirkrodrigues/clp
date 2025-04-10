@@ -19,6 +19,7 @@ target_include_directories(regex_utils
 )
 target_link_libraries(regex_utils
         PUBLIC
+        outcome::hl
         ystdlib::error_handling
         PRIVATE
         clp::string_utils
