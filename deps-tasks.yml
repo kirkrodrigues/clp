@@ -10,7 +10,6 @@ vars:
   # Submodule checksum files
   G_UTFCPP_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#utfcpp.md5"
   G_YSCOPE_LOG_VIEWER_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#yscope-log-viewer.md5"
-  G_YSTDLIB_CPP_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#ystdlib-cpp.md5"
 
 tasks:
   default:
@@ -22,14 +21,12 @@ tasks:
     vars:
     sources:
       - "{{.G_UTFCPP_CHECKSUM_FILE}}"
-      - "{{.G_YSTDLIB_CPP_CHECKSUM_FILE}}"
     generates: ["{{.G_DEPS_CORE_CHECKSUM_FILE}}"]
     deps: ["all-internal-deps"]
     cmds:
       - >-
         cat
         "{{.G_UTFCPP_CHECKSUM_FILE}}"
-        "{{.G_YSTDLIB_CPP_CHECKSUM_FILE}}"
         >> "{{.G_DEPS_CORE_CHECKSUM_FILE}}"
 
   log-viewer:
@@ -73,7 +70,7 @@ tasks:
       - task: "sqlite3"
       - task: "utfcpp"
       - task: "yaml-cpp"
-      - task: "ystdlib-cpp"
+      - task: "ystdlib"
       - task: "combine-cmake-settings-files"
 
   absl:
@@ -337,36 +334,22 @@ tasks:
           LIB_NAME: "{{.LIB_NAME}}"
           LIB_INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
 
-  ystdlib-cpp:
+  ystdlib:
     internal: true
     vars:
-      CHECKSUM_FILE: "{{.G_YSTDLIB_CPP_CHECKSUM_FILE}}"
-      DEST: "{{.G_CORE_COMPONENT_SUBMODULES_DIR}}/ystdlib-cpp"
-    sources:
-      - "{{.G_DEP_DOWNLOAD_SCRIPT}}"
-      - "{{.G_UTILS_TASKFILE}}"
-      - "{{.ROOT_DIR}}/Taskfile.yml"
-      - "{{.TASKFILE}}"
-    generates: ["{{.CHECKSUM_FILE}}"]
-    deps:
-      - ":init"
-      - task: ":utils:checksum:validate"
-        vars:
-          CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
-          INCLUDE_PATTERNS: ["{{.DEST}}"]
+      LIB_NAME: "ystdlib"
+      YSTDLIB_OUTPUT_DIR: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-src"
     cmds:
-      - task: "download-dependency"
+      - task: ":utils:remote:download-and-extract-tar"
         vars:
-          DEST: "{{.DEST}}"
-          FLAGS: "--extract"
-          SRC_NAME: "ystdlib-cpp-d1b4ae0"
-          SRC_URL: "https://github.com/y-scope/ystdlib-cpp/archive/d1b4ae0.zip"
-      # This command must be last
-      - task: ":utils:checksum:compute"
-        vars:
-          CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
-          INCLUDE_PATTERNS: ["{{.DEST}}"]
-
+          CHECKSUM_FILE: "{{.G_CORE_DEPS_DIR}}/ystdlib.md5"
+          FILE_SHA256: "367e0ccc8f46fcba93a8e7b508296686715c0875f9f882ca64013fe90b6a282f"
+          OUTPUT_DIR: "{{.YSTDLIB_OUTPUT_DIR}}"
+          URL: "https://github.com/y-scope/ystdlib-cpp/archive/d1b4ae0.tar.gz"
+      - >-
+        echo "set(
+        CLP_YSTDLIB_SOURCE_DIRECTORY \"{{.YSTDLIB_OUTPUT_DIR}}\"
+        )" >> "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/{{.LIB_NAME}}.cmake"
 
   download-dependency:
     internal: true

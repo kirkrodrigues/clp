@@ -268,9 +268,9 @@ endif()
 
 find_package(Threads REQUIRED)
 
-# Add ystdlib-cpp
+# Add ystdlib
 set(YSTDLIB_CPP_BUILD_TESTING OFF)
-add_subdirectory(submodules/ystdlib-cpp EXCLUDE_FROM_ALL)
+add_subdirectory("${CLP_YSTDLIB_SOURCE_DIRECTORY}" "${CMAKE_BINARY_DIR}/ystdlib" EXCLUDE_FROM_ALL)
 
 # Find and setup ZStd Library
 if(CLP_USE_STATIC_LIBS)
