@@ -4,11 +4,9 @@ vars:
   G_DEP_DOWNLOAD_SCRIPT: "{{.ROOT_DIR}}/tools/scripts/deps-download/download-dep.py"
 
   # Target checksum files
-  G_DEPS_CORE_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#core.md5"
   G_DEPS_LOG_VIEWER_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#log-viewer.md5"
 
   # Submodule checksum files
-  G_UTFCPP_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#utfcpp.md5"
   G_YSCOPE_LOG_VIEWER_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#yscope-log-viewer.md5"
 
 tasks:
@@ -18,16 +16,7 @@ tasks:
       - task: "log-viewer"
 
   core:
-    vars:
-    sources:
-      - "{{.G_UTFCPP_CHECKSUM_FILE}}"
-    generates: ["{{.G_DEPS_CORE_CHECKSUM_FILE}}"]
     deps: ["all-internal-deps"]
-    cmds:
-      - >-
-        cat
-        "{{.G_UTFCPP_CHECKSUM_FILE}}"
-        >> "{{.G_DEPS_CORE_CHECKSUM_FILE}}"
 
   log-viewer:
     cmds:
@@ -289,32 +278,19 @@ tasks:
   utfcpp:
     internal: true
     vars:
-      CHECKSUM_FILE: "{{.G_UTFCPP_CHECKSUM_FILE}}"
-      DEST: "{{.G_CORE_COMPONENT_SUBMODULES_DIR}}/utfcpp"
-    sources:
-      - "{{.G_DEP_DOWNLOAD_SCRIPT}}"
-      - "{{.G_UTILS_TASKFILE}}"
-      - "{{.ROOT_DIR}}/Taskfile.yml"
-      - "{{.TASKFILE}}"
-    generates: ["{{.CHECKSUM_FILE}}"]
-    deps:
-      - ":init"
-      - task: ":utils:checksum:validate"
-        vars:
-          CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
-          INCLUDE_PATTERNS: ["{{.DEST}}"]
+      LIB_NAME: "utfcpp"
+      UTFCPP_OUTPUT_DIR: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-src"
     cmds:
-      - task: "download-dependency"
+      - task: ":utils:remote:download-and-extract-tar"
         vars:
-          DEST: "{{.DEST}}"
-          FLAGS: "--extract"
-          SRC_NAME: "utfcpp-4.0.6"
-          SRC_URL: "https://github.com/nemtrif/utfcpp/archive/refs/tags/v4.0.6.zip"
-      # This command must be last
-      - task: ":utils:checksum:compute"
-        vars:
-          CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
-          INCLUDE_PATTERNS: ["{{.DEST}}"]
+          CHECKSUM_FILE: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}.md5"
+          FILE_SHA256: "6920a6a5d6a04b9a89b2a89af7132f8acefd46e0c2a7b190350539e9213816c0"
+          OUTPUT_DIR: "{{.UTFCPP_OUTPUT_DIR}}"
+          URL: "https://github.com/nemtrif/utfcpp/archive/refs/tags/v4.0.6.tar.gz"
+      - >-
+        echo "set(
+        CLP_UTFCPP_SOURCE_DIRECTORY \"{{.UTFCPP_OUTPUT_DIR}}\"
+        )" >> "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/{{.LIB_NAME}}.cmake"
 
   yaml-cpp:
     internal: true
