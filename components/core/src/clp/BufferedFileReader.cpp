@@ -90,7 +90,7 @@ void BufferedFileReader::open(string const& path) {
                     error_code,
                     __FILENAME__,
                     __LINE__,
-                    "File not found: " + boost::filesystem::weakly_canonical(path).string()
+                    "File not found!: " + boost::filesystem::weakly_canonical(path).string()
             );
         }
         throw OperationFailed(error_code, __FILENAME__, __LINE__);
