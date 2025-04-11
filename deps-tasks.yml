@@ -297,6 +297,7 @@ tasks:
           GEN_ARGS:
             - "-C {{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/fmt.cmake"
             - "-DCMAKE_BUILD_TYPE=Release"
+            - "-DCMAKE_POLICY_DEFAULT_CMP0074=NEW"
             - "-DSPDLOG_BUILD_EXAMPLE=OFF"
             - "-DSPDLOG_BUILD_EXAMPLE_HO=OFF"
             - "-DSPDLOG_FMT_EXTERNAL=ON"
