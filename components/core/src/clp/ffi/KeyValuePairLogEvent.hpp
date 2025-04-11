@@ -9,6 +9,8 @@
 
 #include <nlohmann/json_fwd.hpp>
 #include <outcome.hpp>
+#include <outcome/config.hpp>
+#include <outcome/std_result.hpp>
 
 #include "../time_types.hpp"
 #include "SchemaTree.hpp"

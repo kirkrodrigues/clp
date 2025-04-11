@@ -11,6 +11,8 @@
 #include <vector>
 
 #include <outcome.hpp>
+#include <outcome/config.hpp>
+#include <outcome/std_result.hpp>
 
 #include "../../ErrorCode.hpp"
 #include "../../ir/EncodedTextAst.hpp"

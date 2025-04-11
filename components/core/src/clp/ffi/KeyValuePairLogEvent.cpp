@@ -15,6 +15,7 @@
 #include <nlohmann/json_fwd.hpp>
 #include <outcome.hpp>
 #include <outcome/config.hpp>
+#include <outcome/std_result.hpp>
 
 #include "../ir/EncodedTextAst.hpp"
 #include "../time_types.hpp"

@@ -7,6 +7,8 @@
 #include <utility>
 
 #include <outcome.hpp>
+#include <outcome/config.hpp>
+#include <outcome/std_result.hpp>
 
 #include "../../ReaderInterface.hpp"
 #include "../../time_types.hpp"

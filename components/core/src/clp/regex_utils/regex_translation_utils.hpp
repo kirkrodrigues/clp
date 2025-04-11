@@ -6,6 +6,7 @@
 
 #include <outcome.hpp>
 #include <outcome/config.hpp>
+#include <outcome/std_result.hpp>
 
 #include "regex_utils/RegexToWildcardTranslatorConfig.hpp"
 

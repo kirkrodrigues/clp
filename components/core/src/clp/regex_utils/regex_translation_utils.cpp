@@ -7,6 +7,7 @@
 
 #include <outcome.hpp>
 #include <outcome/config.hpp>
+#include <outcome/std_result.hpp>
 #include <string_utils/string_utils.hpp>
 
 #include "constants.hpp"
