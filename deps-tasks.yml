@@ -50,6 +50,7 @@ tasks:
     internal: true
     vars:
       LIB_NAME: "absl"
+    run: "once"
     cmds:
       - task: ":utils:cmake:install-remote-tar"
         vars:
@@ -95,6 +96,7 @@ tasks:
     internal: true
     vars:
       OUTPUT_FILE: "{{.G_CORE_DEPS_DIR}}/antlr-4.13.1-complete.jar"
+    run: "once"
     cmds:
       - task: ":utils:remote:curl"
         vars:
@@ -110,6 +112,7 @@ tasks:
     internal: true
     vars:
       LIB_NAME: "Catch2"
+    run: "once"
     cmds:
       - task: ":utils:cmake:install-remote-tar"
         vars:
@@ -139,6 +142,7 @@ tasks:
     internal: true
     vars:
       LIB_NAME: "date"
+    run: "once"
     cmds:
       - task: ":utils:cmake:install-remote-tar"
         vars:
@@ -157,6 +161,7 @@ tasks:
     internal: true
     vars:
       LIB_NAME: "fmt"
+    run: "once"
     cmds:
       - task: ":utils:cmake:install-remote-tar"
         vars:
@@ -176,6 +181,7 @@ tasks:
     internal: true
     vars:
       LIB_NAME: "nlohmann_json"
+    run: "once"
     cmds:
       - task: ":utils:cmake:install-remote-tar"
         vars:
@@ -195,6 +201,7 @@ tasks:
     internal: true
     vars:
       LIB_NAME: "log_surgeon"
+    run: "once"
     cmds:
       - task: ":utils:cmake:install-remote-tar"
         vars:
@@ -215,6 +222,7 @@ tasks:
       LIB_NAME: "outcome"
     deps:
       - "quickcpplib"
+    run: "once"
     cmds:
       - task: ":utils:cmake:install-remote-tar"
         vars:
@@ -257,6 +265,7 @@ tasks:
     internal: true
     vars:
       LIB_NAME: "simdjson"
+    run: "once"
     cmds:
       - task: ":utils:cmake:install-remote-tar"
         vars:
@@ -277,6 +286,7 @@ tasks:
       LIB_NAME: "spdlog"
     deps:
       - "fmt"
+    run: "once"
     cmds:
       - task: ":utils:cmake:install-remote-tar"
         vars:
@@ -305,6 +315,7 @@ tasks:
       G_CORE_SQLITE3_OUTPUT_DIR: "{{.G_CORE_DEPS_DIR}}/SQLITE3-src"
       G_CORE_SQLITE3_ZIP_FILENAME_STEM: "sqlite-amalgamation-3360000"
       G_CORE_SQLITE3_SRC_DIR: "{{.G_CORE_SQLITE3_OUTPUT_DIR}}/{{.G_CORE_SQLITE3_ZIP_FILENAME_STEM}}"
+    run: "once"
     cmds:
       - task: ":utils:remote:download-and-extract-zip"
         vars:
@@ -322,6 +333,7 @@ tasks:
     vars:
       LIB_NAME: "utfcpp"
       UTFCPP_OUTPUT_DIR: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-src"
+    run: "once"
     cmds:
       - task: ":utils:remote:download-and-extract-tar"
         vars:
@@ -338,6 +350,7 @@ tasks:
     internal: true
     vars:
       LIB_NAME: "yaml-cpp"
+    run: "once"
     cmds:
       - task: ":utils:cmake:install-remote-tar"
         vars:
@@ -358,6 +371,7 @@ tasks:
     vars:
       LIB_NAME: "ystdlib"
       YSTDLIB_OUTPUT_DIR: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-src"
+    run: "once"
     cmds:
       - task: ":utils:remote:download-and-extract-tar"
         vars:
