@@ -3,9 +3,6 @@ vars:
   # Target checksum files
   G_DEPS_LOG_VIEWER_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#log-viewer.md5"
 
-  # Submodule checksum files
-  G_YSCOPE_LOG_VIEWER_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#yscope-log-viewer.md5"
-
 tasks:
   default:
     cmds:
@@ -23,7 +20,7 @@ tasks:
     cmds:
       - task: ":utils:remote:download-and-extract-tar"
         vars:
-          CHECKSUM_FILE: "{{.G_YSCOPE_LOG_VIEWER_CHECKSUM_FILE}}"
+          CHECKSUM_FILE: "{{.G_DEPS_LOG_VIEWER_CHECKSUM_FILE}}"
           FILE_SHA256: "de0600b505545f1bceb7ff5725941035f7c1dc875d08249d9b6d679e3ba77f26"
           OUTPUT_DIR: "{{.G_LOG_VIEWER_WEBUI_SRC_DIR}}/yscope-log-viewer"
           URL: "https://github.com/y-scope/yscope-log-viewer/archive/969ff35.tar.gz"
