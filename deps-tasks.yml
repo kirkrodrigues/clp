@@ -1,8 +1,5 @@
 version: "3"
 vars:
-  # Utility script path
-  G_DEP_DOWNLOAD_SCRIPT: "{{.ROOT_DIR}}/tools/scripts/deps-download/download-dep.py"
-
   # Target checksum files
   G_DEPS_LOG_VIEWER_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#log-viewer.md5"
 
@@ -388,18 +385,3 @@ tasks:
         echo "set(
         CLP_YSTDLIB_SOURCE_DIRECTORY \"{{.YSTDLIB_OUTPUT_DIR}}\"
         )" >> "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/{{.LIB_NAME}}.cmake"
-
-  download-dependency:
-    internal: true
-    label: "{{.TASK}}-{{.SRC_NAME}}"
-    requires:
-      vars: ["DEST", "FLAGS", "SRC_NAME", "SRC_URL"]
-    deps:
-      - ":init"
-    cmds:
-      - >-
-        python3 "{{.G_DEP_DOWNLOAD_SCRIPT}}"
-        "{{.SRC_URL}}"
-        {{.SRC_NAME}}
-        "{{.DEST}}"
-        {{.FLAGS}}
