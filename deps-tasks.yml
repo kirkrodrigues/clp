@@ -16,7 +16,11 @@ tasks:
       - task: "log-viewer"
 
   core:
-    deps: ["all-internal-deps"]
+    cmds:
+      - "rm -rf '{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}'"
+      - "mkdir -p '{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}'"
+      - task: "all-internal-deps"
+      - task: "combine-cmake-settings-files"
 
   log-viewer:
     cmds:
@@ -44,9 +48,7 @@ tasks:
   all-internal-deps:
     internal: true
     run: "once"
-    cmds:
-      - "rm -rf '{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}'"
-      - "mkdir -p '{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}'"
+    deps:
       - task: "absl"
       - task: "antlr4"
       - task: "catch2"
@@ -62,7 +64,6 @@ tasks:
       - task: "utfcpp"
       - task: "yaml-cpp"
       - task: "ystdlib"
-      - task: "combine-cmake-settings-files"
 
   absl:
     internal: true
