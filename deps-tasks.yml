@@ -19,7 +19,7 @@ tasks:
     cmds:
       - "rm -rf '{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}'"
       - "mkdir -p '{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}'"
-      - task: "all-internal-deps"
+      - task: "core-all-parallel"
       - task: "combine-cmake-settings-files"
 
   log-viewer:
@@ -45,7 +45,7 @@ tasks:
   #
   # All higher level tasks must depend on this task instead of depending on the individual
   # submodule tasks in this file.
-  all-internal-deps:
+  core-all-parallel:
     internal: true
     run: "once"
     deps:
