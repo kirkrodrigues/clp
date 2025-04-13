@@ -297,20 +297,20 @@ tasks:
   sqlite3:
     internal: true
     vars:
-      G_CORE_SQLITE3_OUTPUT_DIR: "{{.G_CORE_DEPS_DIR}}/SQLITE3-src"
-      G_CORE_SQLITE3_ZIP_FILENAME_STEM: "sqlite-amalgamation-3360000"
-      G_CORE_SQLITE3_SRC_DIR: "{{.G_CORE_SQLITE3_OUTPUT_DIR}}/{{.G_CORE_SQLITE3_ZIP_FILENAME_STEM}}"
+      EXTRACTION_DIR: "{{.G_CORE_DEPS_DIR}}/SQLITE3-src"
+      ZIP_FILENAME_STEM: "sqlite-amalgamation-3360000"
+      SRC_DIR: "{{.EXTRACTION_DIR}}/{{.ZIP_FILENAME_STEM}}"
     run: "once"
     cmds:
       - task: ":utils:remote:download-and-extract-zip"
         vars:
           CHECKSUM_FILE: "{{.G_CORE_DEPS_DIR}}/sqlite3.md5"
           FILE_SHA256: "999826fe4c871f18919fdb8ed7ec9dd8217180854dd1fe21eea96aed36186729"
-          OUTPUT_DIR: "{{.G_CORE_SQLITE3_OUTPUT_DIR}}"
-          URL: "https://www.sqlite.org/2021/{{.G_CORE_SQLITE3_ZIP_FILENAME_STEM}}.zip"
+          OUTPUT_DIR: "{{.EXTRACTION_DIR}}"
+          URL: "https://www.sqlite.org/2021/{{.ZIP_FILENAME_STEM}}.zip"
       - >-
         echo "set(
-        CLP_SQLITE_SOURCE_DIRECTORY \"{{.G_CORE_SQLITE3_SRC_DIR}}\"
+        CLP_SQLITE_SOURCE_DIRECTORY \"{{.SRC_DIR}}\"
         )" >> "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/SQLITE3.cmake"
 
   utfcpp:
