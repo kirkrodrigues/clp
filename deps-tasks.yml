@@ -54,12 +54,12 @@ tasks:
     cmds:
       - task: "install-remote-cmake-lib"
         vars:
-          LIB_NAME: "absl"
-          TARBALL_SHA256: "987ce98f02eefbaf930d6e38ab16aa05737234d7afbab2d5c4ea7adbe50c28ed"
-          TARBALL_URL: "https://github.com/abseil/abseil-cpp/archive/refs/tags/20230802.1.tar.gz"
           CMAKE_GEN_ARGS:
             - "-DCMAKE_BUILD_TYPE=Release"
             - "-DCMAKE_CXX_STANDARD=20"
+          LIB_NAME: "absl"
+          TARBALL_SHA256: "987ce98f02eefbaf930d6e38ab16aa05737234d7afbab2d5c4ea7adbe50c28ed"
+          TARBALL_URL: "https://github.com/abseil/abseil-cpp/archive/refs/tags/20230802.1.tar.gz"
 
   # Adds a <PACKAGE>_ROOT variable for a library to a library-specific CMake settings file.
   #
@@ -105,23 +105,16 @@ tasks:
 
   catch2:
     internal: true
-    vars:
-      LIB_NAME: "Catch2"
     run: "once"
     cmds:
-      - task: ":utils:cmake:install-remote-tar"
+      - task: "install-remote-cmake-lib"
         vars:
-          FILE_SHA256: "3cdb4138a072e4c0290034fe22d9f0a80d3bcfb8d7a8a5c49ad75d3a5da24fae"
-          GEN_ARGS:
+          CMAKE_GEN_ARGS:
             - "-DBUILD_TESTING=OFF"
             - "-DCMAKE_BUILD_TYPE=Release"
-          NAME: "{{.LIB_NAME}}"
-          URL: "https://github.com/catchorg/Catch2/archive/refs/tags/v2.13.7.tar.gz"
-          WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
-      - task: "add-package-root-to-cmake-settings"
-        vars:
-          LIB_NAME: "{{.LIB_NAME}}"
-          LIB_INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
+          LIB_NAME: "Catch2"
+          TARBALL_SHA256: "3cdb4138a072e4c0290034fe22d9f0a80d3bcfb8d7a8a5c49ad75d3a5da24fae"
+          TARBALL_URL: "https://github.com/catchorg/Catch2/archive/refs/tags/v2.13.7.tar.gz"
 
   # Combines all CMake settings files into {{.G_CORE_DEPS_CMAKE_SETTINGS_FILE}}.
   combine-cmake-settings-files:
@@ -145,42 +138,28 @@ tasks:
 
   date:
     internal: true
-    vars:
-      LIB_NAME: "date"
     run: "once"
     cmds:
-      - task: ":utils:cmake:install-remote-tar"
+      - task: "install-remote-cmake-lib"
         vars:
-          FILE_SHA256: "7a390f200f0ccd207e8cff6757e04817c1a0aec3e327b006b7eb451c57ee3538"
-          GEN_ARGS:
+          CMAKE_GEN_ARGS:
             - "-DCMAKE_BUILD_TYPE=Release"
-          NAME: "{{.LIB_NAME}}"
-          URL: "https://github.com/HowardHinnant/date/archive/refs/tags/v3.0.1.tar.gz"
-          WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
-      - task: "add-package-root-to-cmake-settings"
-        vars:
-          LIB_NAME: "{{.LIB_NAME}}"
-          LIB_INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
+          LIB_NAME: "date"
+          TARBALL_SHA256: "7a390f200f0ccd207e8cff6757e04817c1a0aec3e327b006b7eb451c57ee3538"
+          TARBALL_URL: "https://github.com/HowardHinnant/date/archive/refs/tags/v3.0.1.tar.gz"
 
   fmt:
     internal: true
-    vars:
-      LIB_NAME: "fmt"
     run: "once"
     cmds:
-      - task: ":utils:cmake:install-remote-tar"
+      - task: "install-remote-cmake-lib"
         vars:
-          FILE_SHA256: "b06ca3130158c625848f3fb7418f235155a4d389b2abc3a6245fb01cb0eb1e01"
-          GEN_ARGS:
+          CMAKE_GEN_ARGS:
             - "-DCMAKE_BUILD_TYPE=Release"
             - "-DFMT_TEST=OFF"
-          NAME: "{{.LIB_NAME}}"
-          URL: "https://github.com/fmtlib/fmt/archive/refs/tags/8.0.1.tar.gz"
-          WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
-      - task: "add-package-root-to-cmake-settings"
-        vars:
-          LIB_NAME: "{{.LIB_NAME}}"
-          LIB_INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
+          LIB_NAME: "fmt"
+          TARBALL_SHA256: "b06ca3130158c625848f3fb7418f235155a4d389b2abc3a6245fb01cb0eb1e01"
+          TARBALL_URL: "https://github.com/fmtlib/fmt/archive/refs/tags/8.0.1.tar.gz"
 
   # Installs a CMake-based library from a remote tarball, generates a settings file for it, and
   # computes a checksum for the installation directory.
@@ -199,7 +178,6 @@ tasks:
       INSTALL_DIR_CHECKSUM_FILE: "{{.INSTALL_PREFIX}}.md5"
     generates:
       - "{{.INSTALL_DIR_CHECKSUM_FILE}}"
-    run: "once"
     deps:
       - task: ":utils:checksum:validate"
         vars:
@@ -228,135 +206,93 @@ tasks:
 
   json:
     internal: true
-    vars:
-      LIB_NAME: "nlohmann_json"
     run: "once"
     cmds:
-      - task: ":utils:cmake:install-remote-tar"
+      - task: "install-remote-cmake-lib"
         vars:
-          FILE_SHA256: "d6c65aca6b1ed68e7a182f4757257b107ae403032760ed6ef121c9d55e81757d"
-          GEN_ARGS:
+          CMAKE_GEN_ARGS:
             - "-DCMAKE_BUILD_TYPE=Release"
             - "-DJSON_BuildTests=OFF"
-          NAME: "{{.LIB_NAME}}"
-          URL: "https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz"
-          WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
-      - task: "add-package-root-to-cmake-settings"
-        vars:
-          LIB_NAME: "{{.LIB_NAME}}"
-          LIB_INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
+          LIB_NAME: "nlohmann_json"
+          TARBALL_SHA256: "d6c65aca6b1ed68e7a182f4757257b107ae403032760ed6ef121c9d55e81757d"
+          TARBALL_URL: "https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz"
 
   log-surgeon:
     internal: true
-    vars:
-      LIB_NAME: "log_surgeon"
     run: "once"
     cmds:
-      - task: ":utils:cmake:install-remote-tar"
+      - task: "install-remote-cmake-lib"
         vars:
-          FILE_SHA256: "169b56714b620c3f8f07bf7975aba8573b9bd25e423e5c4f0cc9b52450a2403d"
-          GEN_ARGS:
+          CMAKE_GEN_ARGS:
             - "-DCMAKE_BUILD_TYPE=Release"
-          NAME: "{{.LIB_NAME}}"
-          URL: "https://github.com/y-scope/log-surgeon/archive/f801a3f.tar.gz"
-          WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
-      - task: "add-package-root-to-cmake-settings"
-        vars:
-          LIB_NAME: "{{.LIB_NAME}}"
-          LIB_INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
+          LIB_NAME: "log_surgeon"
+          TARBALL_SHA256: "169b56714b620c3f8f07bf7975aba8573b9bd25e423e5c4f0cc9b52450a2403d"
+          TARBALL_URL: "https://github.com/y-scope/log-surgeon/archive/f801a3f.tar.gz"
 
   outcome:
     internal: true
-    vars:
-      LIB_NAME: "outcome"
     deps:
       - "quickcpplib"
     run: "once"
     cmds:
-      - task: ":utils:cmake:install-remote-tar"
+      - task: "install-remote-cmake-lib"
         vars:
-          FILE_SHA256: "9588c01465b287296ab647b2caf50d5137e3eeaf662e3105b858d5c5c7579428"
-          GEN_ARGS:
+          CMAKE_GEN_ARGS:
             - "-C {{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/quickcpplib.cmake"
             - "-DBUILD_TESTING=OFF"
             - "-DCMAKE_BUILD_TYPE=Release"
             - "-DCMAKE_POLICY_DEFAULT_CMP0074=NEW"
-          NAME: "{{.LIB_NAME}}"
-          URL: "https://github.com/ned14/outcome/releases/download/v2.2.9\
+          LIB_NAME: "outcome"
+          TARBALL_SHA256: "9588c01465b287296ab647b2caf50d5137e3eeaf662e3105b858d5c5c7579428"
+          TARBALL_URL: "https://github.com/ned14/outcome/releases/download/v2.2.9\
           /outcome-v2-all-sources-571f9c930e672950e99d5d30f743603aaaf8014c.tar.xz"
-          WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
-      - task: "add-package-root-to-cmake-settings"
-        vars:
-          LIB_NAME: "{{.LIB_NAME}}"
-          LIB_INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
 
   quickcpplib:
     internal: true
-    vars:
-      LIB_NAME: "quickcpplib"
     run: "once"
     cmds:
-      - task: ":utils:cmake:install-remote-tar"
+      - task: "install-remote-cmake-lib"
         vars:
-          FILE_SHA256: "bb9da86efa2f262e6a292453775fa9b999b422700eb1c1ac390b7cbe5f0ec92f"
-          GEN_ARGS:
+          CMAKE_GEN_ARGS:
             - "-DBUILD_TESTING=OFF"
             - "-DCMAKE_BUILD_TYPE=Release"
-          NAME: "{{.LIB_NAME}}"
-          URL: "https://github.com/ned14/quickcpplib/archive/72277c7.tar.gz"
-          WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
-      - task: "add-package-root-to-cmake-settings"
-        vars:
-          LIB_NAME: "{{.LIB_NAME}}"
-          LIB_INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
+          LIB_NAME: "quickcpplib"
+          TARBALL_SHA256: "bb9da86efa2f262e6a292453775fa9b999b422700eb1c1ac390b7cbe5f0ec92f"
+          TARBALL_URL: "https://github.com/ned14/quickcpplib/archive/72277c7.tar.gz"
 
   simdjson:
     internal: true
-    vars:
-      LIB_NAME: "simdjson"
     run: "once"
     cmds:
-      - task: ":utils:cmake:install-remote-tar"
+      - task: "install-remote-cmake-lib"
         vars:
-          FILE_SHA256: "afd8201cfb1abe927737d876441bb1f21730a9ee6078a1b8c6174e6463981fa3"
-          GEN_ARGS:
+          CMAKE_GEN_ARGS:
             - "-DCMAKE_BUILD_TYPE=Release"
-          NAME: "{{.LIB_NAME}}"
-          URL: "https://github.com/simdjson/simdjson/archive/refs/tags/v3.6.3.tar.gz"
-          WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
-      - task: "add-package-root-to-cmake-settings"
-        vars:
-          LIB_NAME: "{{.LIB_NAME}}"
-          LIB_INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
+          LIB_NAME: "simdjson"
+          TARBALL_SHA256: "afd8201cfb1abe927737d876441bb1f21730a9ee6078a1b8c6174e6463981fa3"
+          TARBALL_URL: "https://github.com/simdjson/simdjson/archive/refs/tags/v3.6.3.tar.gz"
 
   spdlog:
     internal: true
-    vars:
-      LIB_NAME: "spdlog"
     deps:
       - "fmt"
     run: "once"
     cmds:
-      - task: ":utils:cmake:install-remote-tar"
+      - task: "install-remote-cmake-lib"
         vars:
-          FILE_SHA256: "6fff9215f5cb81760be4cc16d033526d1080427d236e86d70bb02994f85e3d38"
-          GEN_ARGS:
+          CMAKE_GEN_ARGS:
             - "-C {{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/fmt.cmake"
             - "-DCMAKE_BUILD_TYPE=Release"
             - "-DCMAKE_POLICY_DEFAULT_CMP0074=NEW"
             - "-DSPDLOG_BUILD_EXAMPLE=OFF"
             - "-DSPDLOG_BUILD_EXAMPLE_HO=OFF"
             - "-DSPDLOG_FMT_EXTERNAL=ON"
-          NAME: "{{.LIB_NAME}}"
+          LIB_NAME: "spdlog"
+          TARBALL_SHA256: "6fff9215f5cb81760be4cc16d033526d1080427d236e86d70bb02994f85e3d38"
 
           # NOTE: Since spdlog depends on fmt, we need to keep their versions compatible with each
           # other.
-          URL: "https://github.com/gabime/spdlog/archive/refs/tags/v1.9.2.tar.gz"
-          WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
-      - task: "add-package-root-to-cmake-settings"
-        vars:
-          LIB_NAME: "{{.LIB_NAME}}"
-          LIB_INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
+          TARBALL_URL: "https://github.com/gabime/spdlog/archive/refs/tags/v1.9.2.tar.gz"
 
   sqlite3:
     internal: true
@@ -397,23 +333,16 @@ tasks:
 
   yaml-cpp:
     internal: true
-    vars:
-      LIB_NAME: "yaml-cpp"
     run: "once"
     cmds:
-      - task: ":utils:cmake:install-remote-tar"
+      - task: "install-remote-cmake-lib"
         vars:
-          FILE_SHA256: "43e6a9fcb146ad871515f0d0873947e5d497a1c9c60c58cb102a97b47208b7c3"
-          GEN_ARGS:
+          CMAKE_GEN_ARGS:
             - "-DBUILD_TESTING=OFF"
             - "-DCMAKE_BUILD_TYPE=Release"
-          NAME: "{{.LIB_NAME}}"
-          URL: "https://github.com/jbeder/yaml-cpp/archive/refs/tags/yaml-cpp-0.7.0.tar.gz"
-          WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
-      - task: "add-package-root-to-cmake-settings"
-        vars:
-          LIB_NAME: "{{.LIB_NAME}}"
-          LIB_INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
+          LIB_NAME: "yaml-cpp"
+          TARBALL_SHA256: "43e6a9fcb146ad871515f0d0873947e5d497a1c9c60c58cb102a97b47208b7c3"
+          TARBALL_URL: "https://github.com/jbeder/yaml-cpp/archive/refs/tags/yaml-cpp-0.7.0.tar.gz"
 
   ystdlib:
     internal: true
