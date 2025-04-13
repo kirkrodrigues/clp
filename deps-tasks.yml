@@ -258,6 +258,11 @@ tasks:
             - "-DCMAKE_BUILD_TYPE=Release"
           LIB_NAME: "quickcpplib"
           TARBALL_SHA256: "bb9da86efa2f262e6a292453775fa9b999b422700eb1c1ac390b7cbe5f0ec92f"
+
+          # NOTE: quickcpplib doesn't have official releases but if quickcpplib isn't installed,
+          # `outcome` will use the latest commit available. So we assume the `outcome` release we
+          # chose above would've been tested with the latest commit of `quickcpplib` that was
+          # available at the time of the release, and that's the commit we use here.
           TARBALL_URL: "https://github.com/ned14/quickcpplib/archive/72277c7.tar.gz"
 
   simdjson:
