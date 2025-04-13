@@ -1,6 +1,7 @@
 version: "3"
 vars:
   # Target checksum files
+  G_DEPS_CORE_CHECKSUM_FILE: "{{.G_CORE_DEPS_DIR}}/all.md5"
   G_DEPS_LOG_VIEWER_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#log-viewer.md5"
 
 tasks:
@@ -15,6 +16,7 @@ tasks:
       - "mkdir -p '{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}'"
       - task: "core-all-parallel"
       - task: "combine-cmake-settings-files"
+      - task: "combine-core-checksum-files"
 
   log-viewer:
     cmds:
@@ -48,23 +50,16 @@ tasks:
 
   absl:
     internal: true
-    vars:
-      LIB_NAME: "absl"
     run: "once"
     cmds:
-      - task: ":utils:cmake:install-remote-tar"
+      - task: "install-remote-cmake-lib"
         vars:
-          FILE_SHA256: "987ce98f02eefbaf930d6e38ab16aa05737234d7afbab2d5c4ea7adbe50c28ed"
-          GEN_ARGS:
+          LIB_NAME: "absl"
+          TARBALL_SHA256: "987ce98f02eefbaf930d6e38ab16aa05737234d7afbab2d5c4ea7adbe50c28ed"
+          TARBALL_URL: "https://github.com/abseil/abseil-cpp/archive/refs/tags/20230802.1.tar.gz"
+          CMAKE_GEN_ARGS:
             - "-DCMAKE_BUILD_TYPE=Release"
             - "-DCMAKE_CXX_STANDARD=20"
-          NAME: "{{.LIB_NAME}}"
-          URL: "https://github.com/abseil/abseil-cpp/archive/refs/tags/20230802.1.tar.gz"
-          WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
-      - task: "add-package-root-to-cmake-settings"
-        vars:
-          LIB_NAME: "{{.LIB_NAME}}"
-          LIB_INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
 
   # Adds a <PACKAGE>_ROOT variable for a library to a library-specific CMake settings file.
   #
@@ -138,6 +133,16 @@ tasks:
         fi
       done
 
+  # Combines all checksum files for core's dependencies.
+  combine-core-checksum-files:
+    internal: true
+    cmds:
+      - rm -f "{{.G_DEPS_CORE_CHECKSUM_FILE}}"
+      - |-
+        for file in "{{.G_CORE_DEPS_DIR}}"/*-install.md5; do
+          cat "$file" >> "{{.G_DEPS_CORE_CHECKSUM_FILE}}"
+        done
+
   date:
     internal: true
     vars:
@@ -176,6 +181,50 @@ tasks:
         vars:
           LIB_NAME: "{{.LIB_NAME}}"
           LIB_INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
+
+  # Installs a CMake-based library from a remote tarball, generates a settings file for it, and
+  # computes a checksum for the installation directory.
+  #
+  # @param {string} LIB_NAME
+  # @param {string} TARBALL_SHA256
+  # @param {string} TARBALL_URL
+  # @param {string[]} [CMAKE_GEN_ARGS] Any additional arguments to pass to the CMake generate
+  # command.
+  install-remote-cmake-lib:
+    internal: true
+    vars:
+      CMAKE_GEN_ARGS:
+        ref: "default (list) .CMAKE_GEN_ARGS"
+      INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
+      INSTALL_DIR_CHECKSUM_FILE: "{{.INSTALL_PREFIX}}.md5"
+    generates:
+      - "{{.INSTALL_DIR_CHECKSUM_FILE}}"
+    run: "once"
+    deps:
+      - task: ":utils:checksum:validate"
+        vars:
+          CHECKSUM_FILE: "{{.INSTALL_DIR_CHECKSUM_FILE}}"
+          INCLUDE_PATTERNS:
+            - "{{.INSTALL_PREFIX}}"
+    cmds:
+      - task: ":utils:cmake:install-remote-tar"
+        vars:
+          FILE_SHA256: "{{.TARBALL_SHA256}}"
+          GEN_ARGS:
+            ref: ".CMAKE_GEN_ARGS"
+          NAME: "{{.LIB_NAME}}"
+          URL: "{{.TARBALL_URL}}"
+          WORK_DIR: "{{.G_CORE_DEPS_DIR}}"
+      - task: "add-package-root-to-cmake-settings"
+        vars:
+          LIB_NAME: "{{.LIB_NAME}}"
+          LIB_INSTALL_PREFIX: "{{.INSTALL_PREFIX}}"
+      # This command must be last
+      - task: ":utils:checksum:compute"
+        vars:
+          CHECKSUM_FILE: "{{.INSTALL_DIR_CHECKSUM_FILE}}"
+          INCLUDE_PATTERNS:
+            - "{{.INSTALL_PREFIX}}"
 
   json:
     internal: true
