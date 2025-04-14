@@ -1,5 +1,10 @@
 version: "3"
 vars:
+  # CMake settings paths for core's dependencies
+  # NOTE: These must be kept in-sync with their usage in CMakeLists.txt
+  G_CORE_DEPS_CMAKE_SETTINGS_DIR: "{{.G_CORE_DEPS_DIR}}/cmake-settings"
+  G_CORE_DEPS_CMAKE_SETTINGS_FILE: "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/settings.cmake"
+
   # Target checksum files
   G_DEPS_CORE_CHECKSUM_FILE: "{{.G_CORE_DEPS_DIR}}/all.md5"
   G_DEPS_LOG_VIEWER_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#log-viewer.md5"
