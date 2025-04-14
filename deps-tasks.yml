@@ -130,7 +130,7 @@ tasks:
   combine-core-checksum-files:
     internal: true
     cmds:
-      - rm -f "{{.G_DEPS_CORE_CHECKSUM_FILE}}"
+      - "rm -f '{{.G_DEPS_CORE_CHECKSUM_FILE}}'"
       - |-
         for file in "{{.G_CORE_DEPS_DIR}}"/*-install.md5; do
           cat "$file" >> "{{.G_DEPS_CORE_CHECKSUM_FILE}}"
