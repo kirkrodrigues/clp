@@ -75,12 +75,12 @@ tasks:
   add-package-root-to-cmake-settings:
     internal: true
     label: "{{.TASK}}-{{.LIB_NAME}}-{{.LIB_INSTALL_PREFIX}}"
+    vars:
+      OUTPUT_FILE: "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/{{.LIB_NAME}}.cmake"
     requires:
       vars:
         - "LIB_NAME"
         - "LIB_INSTALL_PREFIX"
-    vars:
-      OUTPUT_FILE: "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/{{.LIB_NAME}}.cmake"
     sources:
       - "{{.TASKFILE}}"
     generates:
@@ -99,15 +99,15 @@ tasks:
     vars:
       CHECKSUM_FILE: "{{.G_CORE_DEPS_CHECKSUM_DIR}}/antlr.md5"
       OUTPUT_FILE: "{{.G_CORE_DEPS_DIR}}/antlr-4.13.1-complete.jar"
+    generates:
+      - "{{.CHECKSUM_FILE}}"
+    run: "once"
     deps:
       - task: ":utils:checksum:validate"
         vars:
           CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
           INCLUDE_PATTERNS:
             - "{{.OUTPUT_FILE}}"
-    generates:
-      - "{{.CHECKSUM_FILE}}"
-    run: "once"
     cmds:
       - task: ":utils:remote:curl"
         vars:
@@ -254,9 +254,9 @@ tasks:
 
   outcome:
     internal: true
+    run: "once"
     deps:
       - "quickcpplib"
-    run: "once"
     cmds:
       - task: "install-remote-cmake-lib"
         vars:
@@ -302,9 +302,9 @@ tasks:
 
   spdlog:
     internal: true
+    run: "once"
     deps:
       - "fmt"
-    run: "once"
     cmds:
       - task: "install-remote-cmake-lib"
         vars:
