@@ -1,0 +1,95 @@
+version: "3"
+
+includes:
+  yscope-dev-utils: "../../../tools/yscope-dev-utils/exports/taskfiles/utils/utils.yaml"
+
+tasks:
+  # Adds a <PACKAGE>_ROOT variable for a library to a library-specific CMake settings file.
+  #
+  # @param {string} LIB_NAME
+  # @param {string} LIB_INSTALL_PREFIX
+  add-package-root-to-cmake-settings:
+    internal: true
+    label: "{{.TASK}}-{{.LIB_NAME}}-{{.LIB_INSTALL_PREFIX}}"
+    vars:
+      OUTPUT_FILE: "{{.G_DEPS_CORE_CMAKE_SETTINGS_DIR}}/{{.LIB_NAME}}.cmake"
+    requires:
+      vars:
+        - "LIB_NAME"
+        - "LIB_INSTALL_PREFIX"
+    sources:
+      - "{{.TASKFILE}}"
+    generates:
+      - "{{.OUTPUT_FILE}}"
+    cmds:
+      - >-
+        echo "set(
+          {{.LIB_NAME}}_ROOT
+          \"{{.LIB_INSTALL_PREFIX}}\"
+          CACHE PATH
+          \"Install prefix for {{.LIB_NAME}}\"
+        )" >> "{{.OUTPUT_FILE}}"
+
+  # Combines all CMake settings files into {{.G_DEPS_CORE_CMAKE_SETTINGS_FILE}}.
+  combine-cmake-settings-files:
+    internal: true
+    cmd: |-
+      for file in "{{.G_DEPS_CORE_CMAKE_SETTINGS_DIR}}"/*.cmake; do
+        if [[ "$file" != "{{.G_DEPS_CORE_CMAKE_SETTINGS_FILE}}" ]]; then
+          echo "include(\"$file\")" >> "{{.G_DEPS_CORE_CMAKE_SETTINGS_FILE}}"
+        fi
+      done
+
+  # Combines all checksum files for core's dependencies.
+  combine-core-checksum-files:
+    internal: true
+    cmds:
+      - |-
+        for file in "{{.G_DEPS_CORE_CHECKSUMS_DIR}}"/*.md5; do
+          if [[ "$file" != "{{.G_DEPS_CORE_CHECKSUM_FILE}}" ]]; then
+            cat "$file" >> "{{.G_DEPS_CORE_CHECKSUM_FILE}}"
+          fi
+        done
+
+  # Installs a CMake-based library from a remote tarball, generates a settings file for it, and
+  # computes a checksum for the installation directory.
+  #
+  # @param {string} LIB_NAME
+  # @param {string} TARBALL_SHA256
+  # @param {string} TARBALL_URL
+  # @param {string[]} [CMAKE_GEN_ARGS] Any additional arguments to pass to the CMake generate
+  # command.
+  install-remote-cmake-lib:
+    internal: true
+    vars:
+      CMAKE_GEN_ARGS:
+        ref: "default (list) .CMAKE_GEN_ARGS"
+      INSTALL_PREFIX: "{{.G_DEPS_CORE_DIR}}/{{.LIB_NAME}}-install"
+      INSTALL_DIR_CHECKSUM_FILE: "{{.G_DEPS_CORE_CHECKSUMS_DIR}}/{{.LIB_NAME}}.md5"
+    generates:
+      - "{{.INSTALL_DIR_CHECKSUM_FILE}}"
+    deps:
+      - task: "yscope-dev-utils:checksum:validate"
+        vars:
+          CHECKSUM_FILE: "{{.INSTALL_DIR_CHECKSUM_FILE}}"
+          INCLUDE_PATTERNS:
+            - "{{.INSTALL_PREFIX}}"
+    cmds:
+      - task: "yscope-dev-utils:cmake:install-remote-tar"
+        vars:
+          FILE_SHA256: "{{.TARBALL_SHA256}}"
+          GEN_ARGS:
+            ref: ".CMAKE_GEN_ARGS"
+          NAME: "{{.LIB_NAME}}"
+          URL: "{{.TARBALL_URL}}"
+          WORK_DIR: "{{.G_DEPS_CORE_DIR}}"
+      - task: "add-package-root-to-cmake-settings"
+        vars:
+          LIB_NAME: "{{.LIB_NAME}}"
+          LIB_INSTALL_PREFIX: "{{.INSTALL_PREFIX}}"
+      # This command must be last
+      - task: "yscope-dev-utils:checksum:compute"
+        vars:
+          CHECKSUM_FILE: "{{.INSTALL_DIR_CHECKSUM_FILE}}"
+          INCLUDE_PATTERNS:
+            - "{{.INSTALL_PREFIX}}"

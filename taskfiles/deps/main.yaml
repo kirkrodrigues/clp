@@ -1,0 +1,32 @@
+version: "3"
+
+includes:
+  core: "./core/main.yaml"
+  yscope-dev-utils: "../../tools/yscope-dev-utils/exports/taskfiles/utils/utils.yaml"
+
+vars:
+  G_DEPS_DIR: "{{.G_BUILD_DIR}}/deps"
+  G_DEPS_LOG_VIEWER_CHECKSUM_FILE: "{{.G_DEPS_DIR}}/log-viewer.md5"
+
+tasks:
+  default:
+    cmds:
+      - task: "core"
+      - task: "log-viewer"
+
+  log-viewer:
+    deps:
+      - "init"
+    cmds:
+      - task: "yscope-dev-utils:remote:download-and-extract-tar"
+        vars:
+          CHECKSUM_FILE: "{{.G_DEPS_LOG_VIEWER_CHECKSUM_FILE}}"
+          FILE_SHA256: "de0600b505545f1bceb7ff5725941035f7c1dc875d08249d9b6d679e3ba77f26"
+          OUTPUT_DIR: "{{.G_LOG_VIEWER_WEBUI_SRC_DIR}}/yscope-log-viewer"
+          URL: "https://github.com/y-scope/yscope-log-viewer/archive/969ff35.tar.gz"
+          TAR_FILE: "{{.G_BUILD_DIR}}/yscope-log-viewer.tar.gz"
+
+  init:
+    internal: true
+    run: "once"
+    cmd: "mkdir -p {{.G_DEPS_DIR}}"
