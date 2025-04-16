@@ -117,9 +117,11 @@ tasks:
           components/core/config \
           components/package-template/src/etc \
           docs \
-          deps-tasks.yml \
           lint-tasks.yml \
-          Taskfile.yml
+          Taskfile.yml \
+          taskfiles/deps/core/main.yaml \
+          taskfiles/deps/core/utils.yaml \
+          taskfiles/deps/main.yaml
 
   check-cpp-format:
     sources: &cpp_source_files
