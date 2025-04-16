@@ -40,7 +40,7 @@ tasks:
     run: "once"
     deps:
       - task: "absl"
-      - task: "antlr4"
+      - task: "antlr"
       - task: "catch2"
       - task: "date"
       - task: "fmt"
@@ -94,10 +94,10 @@ tasks:
           \"Install prefix for {{.LIB_NAME}}\"
         )" >> "{{.OUTPUT_FILE}}"
 
-  antlr4:
+  antlr:
     internal: true
     vars:
-      CHECKSUM_FILE: "{{.G_CORE_DEPS_CHECKSUM_DIR}}/antlr4.md5"
+      CHECKSUM_FILE: "{{.G_CORE_DEPS_CHECKSUM_DIR}}/antlr.md5"
       OUTPUT_FILE: "{{.G_CORE_DEPS_DIR}}/antlr-4.13.1-complete.jar"
     deps:
       - task: ":utils:checksum:validate"
@@ -117,7 +117,7 @@ tasks:
       - >-
         echo "set(
         ANTLR_EXECUTABLE \"{{.OUTPUT_FILE}}\"
-        )" >> "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/antlr4.cmake"
+        )" >> "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/antlr.cmake"
       # This command must be last
       - task: ":utils:checksum:compute"
         vars:
