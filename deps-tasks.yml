@@ -5,8 +5,10 @@ vars:
   G_CORE_DEPS_CMAKE_SETTINGS_DIR: "{{.G_CORE_DEPS_DIR}}/cmake-settings"
   G_CORE_DEPS_CMAKE_SETTINGS_FILE: "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/settings.cmake"
 
+  G_CORE_DEPS_CHECKSUMS_DIR: "{{.G_CORE_DEPS_DIR}}/checksums"
+  G_DEPS_CORE_CHECKSUM_FILE: "{{.G_CORE_DEPS_CHECKSUMS_DIR}}/all.md5"
+
   # Target checksum files
-  G_DEPS_CORE_CHECKSUM_FILE: "{{.G_CORE_DEPS_DIR}}/all.md5"
   G_DEPS_LOG_VIEWER_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/deps#log-viewer.md5"
 
 tasks:
@@ -17,8 +19,8 @@ tasks:
 
   core:
     cmds:
-      - "rm -rf '{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}'"
-      - "mkdir -p '{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}'"
+      - "rm -rf '{{.G_CORE_DEPS_CHECKSUMS_DIR}}' '{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}'"
+      - "mkdir -p '{{.G_CORE_DEPS_CHECKSUMS_DIR}}' '{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}'"
       - task: "core-all-parallel"
       - task: "combine-cmake-settings-files"
       - task: "combine-core-checksum-files"
@@ -95,7 +97,16 @@ tasks:
   antlr4:
     internal: true
     vars:
+      CHECKSUM_FILE: "{{.G_CORE_DEPS_CHECKSUM_DIR}}/antlr4.md5"
       OUTPUT_FILE: "{{.G_CORE_DEPS_DIR}}/antlr-4.13.1-complete.jar"
+    deps:
+      - task: ":utils:checksum:validate"
+        vars:
+          CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
+          INCLUDE_PATTERNS:
+            - "{{.OUTPUT_FILE}}"
+    generates:
+      - "{{.CHECKSUM_FILE}}"
     run: "once"
     cmds:
       - task: ":utils:remote:curl"
@@ -106,7 +117,13 @@ tasks:
       - >-
         echo "set(
         ANTLR_EXECUTABLE \"{{.OUTPUT_FILE}}\"
-        )" >> "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/ANTLR4.cmake"
+        )" >> "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}/antlr4.cmake"
+      # This command must be last
+      - task: ":utils:checksum:compute"
+        vars:
+          CHECKSUM_FILE: "{{.CHECKSUM_FILE}}"
+          INCLUDE_PATTERNS:
+            - "{{.OUTPUT_FILE}}"
 
   catch2:
     internal: true
@@ -126,7 +143,7 @@ tasks:
     internal: true
     cmd: |-
       for file in "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}"/*.cmake; do
-        if [[ "$file" != "{{.G_CORE_DEPS_CMAKE_SETTINGS_DIR}}" ]]; then
+        if [[ "$file" != "{{.G_CORE_DEPS_CMAKE_SETTINGS_FILE}}" ]]; then
           echo "include(\"$file\")" >> "{{.G_CORE_DEPS_CMAKE_SETTINGS_FILE}}"
         fi
       done
@@ -135,10 +152,11 @@ tasks:
   combine-core-checksum-files:
     internal: true
     cmds:
-      - "rm -f '{{.G_DEPS_CORE_CHECKSUM_FILE}}'"
       - |-
-        for file in "{{.G_CORE_DEPS_DIR}}"/*-install.md5; do
-          cat "$file" >> "{{.G_DEPS_CORE_CHECKSUM_FILE}}"
+        for file in "{{.G_CORE_DEPS_CHECKSUMS_DIR}}"/*.md5; do
+          if [[ "$file" != "{{.G_DEPS_CORE_CHECKSUM_FILE}}" ]]; then
+            cat "$file" >> "{{.G_DEPS_CORE_CHECKSUM_FILE}}"
+          fi
         done
 
   date:
@@ -180,7 +198,7 @@ tasks:
       CMAKE_GEN_ARGS:
         ref: "default (list) .CMAKE_GEN_ARGS"
       INSTALL_PREFIX: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}-install"
-      INSTALL_DIR_CHECKSUM_FILE: "{{.INSTALL_PREFIX}}.md5"
+      INSTALL_DIR_CHECKSUM_FILE: "{{.G_CORE_DEPS_CHECKSUMS_DIR}}/{{.LIB_NAME}}.md5"
     generates:
       - "{{.INSTALL_DIR_CHECKSUM_FILE}}"
     deps:
@@ -314,6 +332,7 @@ tasks:
     cmds:
       - task: ":utils:remote:download-and-extract-zip"
         vars:
+          CHECKSUM_FILE: "{{.G_CORE_DEPS_CHECKSUMS_DIR}}/sqlite3.md5"
           FILE_SHA256: "999826fe4c871f18919fdb8ed7ec9dd8217180854dd1fe21eea96aed36186729"
           OUTPUT_DIR: "{{.EXTRACTION_DIR}}"
           URL: "https://www.sqlite.org/2021/{{.ZIP_FILENAME_STEM}}.zip"
@@ -331,7 +350,7 @@ tasks:
     cmds:
       - task: ":utils:remote:download-and-extract-tar"
         vars:
-          CHECKSUM_FILE: "{{.G_CORE_DEPS_DIR}}/{{.LIB_NAME}}.md5"
+          CHECKSUM_FILE: "{{.G_CORE_DEPS_CHECKSUMS_DIR}}/{{.LIB_NAME}}.md5"
           FILE_SHA256: "6920a6a5d6a04b9a89b2a89af7132f8acefd46e0c2a7b190350539e9213816c0"
           OUTPUT_DIR: "{{.UTFCPP_OUTPUT_DIR}}"
           URL: "https://github.com/nemtrif/utfcpp/archive/refs/tags/v4.0.6.tar.gz"
@@ -362,7 +381,7 @@ tasks:
     cmds:
       - task: ":utils:remote:download-and-extract-tar"
         vars:
-          CHECKSUM_FILE: "{{.G_CORE_DEPS_DIR}}/ystdlib.md5"
+          CHECKSUM_FILE: "{{.G_CORE_DEPS_CHECKSUMS_DIR}}/{{.LIB_NAME}}.md5"
           FILE_SHA256: "367e0ccc8f46fcba93a8e7b508296686715c0875f9f882ca64013fe90b6a282f"
           OUTPUT_DIR: "{{.YSTDLIB_OUTPUT_DIR}}"
           URL: "https://github.com/y-scope/ystdlib-cpp/archive/d1b4ae0.tar.gz"
