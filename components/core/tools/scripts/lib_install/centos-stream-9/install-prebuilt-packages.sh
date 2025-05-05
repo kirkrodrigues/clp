@@ -23,3 +23,25 @@ dnf install -y \
     unzip \
     xz \
     xz-devel
+
+# Determine rpm architecture for `task` installation
+rpm_arch=$(rpm --eval "%{_arch}")
+if [[ "x86_64" == "$rpm_arch" ]]; then
+    task_pkg_arch="amd64"
+elif [[ "aarch64" == "$rpm_arch" ]]; then
+    task_pkg_arch="arm64"
+else
+    echo "Error: Unsupported architecture - $rpm_arch"
+    exit 1
+fi
+
+# Install `task`
+# NOTE: We lock `task` to a version < 3.43 to avoid https://github.com/y-scope/clp/issues/872
+task_pkg_path="$(mktemp -t --suffix ".rpm")"
+curl \
+    --fail \
+    --show-error \
+    --location \
+    --output "$task_pkg_path" \
+    "https://github.com/go-task/task/releases/download/v3.42.1/task_linux_${task_pkg_arch}.rpm"
+rpm --install "$task_pkg_path"
