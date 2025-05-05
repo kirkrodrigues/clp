@@ -10,7 +10,7 @@ brew update
 
 # Install CMake v3.31.6 as ANTLR and yaml-cpp do not yet support CMake v4+.
 # See also: https://github.com/y-scope/clp/issues/795
-cmake_formula_path="$(mktemp)"
+cmake_formula_path="$(mktemp -d)/cmake.rb"
 curl \
   --fail \
   --location \
@@ -21,7 +21,7 @@ curl \
 brew install --formula "${cmake_formula_path}"
 
 # Install a version of `task` < 3.43 to avoid https://github.com/y-scope/clp/issues/872
-task_formula_path="$(mktemp)"
+task_formula_path="$(mktemp -d)/go-task.rb"
 curl \
   --fail \
   --location \
