@@ -1,5 +1,4 @@
-#FROM ghcr.io/y-scope/clp/clp-core-dependencies-x86-ubuntu-jammy:main AS base
-FROM clp-core-dependencies-x86-ubuntu-jammy:dev AS base
+FROM ghcr.io/y-scope/clp/clp-core-dependencies-x86-ubuntu-jammy:main AS base
 
 ARG CONTAINER_USER_NAME=dev
 
@@ -33,5 +32,7 @@ RUN chmod a+rx /entrypoint.sh
 # Flatten the image
 FROM scratch
 COPY --from=base / /
+
+USER $CONTAINER_USER_NAME
 
 ENTRYPOINT ["/entrypoint.sh"]
