@@ -184,13 +184,6 @@ tasks:
 
   core-generate:
     internal: true
-    sources: &core_source_files
-      - "{{.G_DEPS_CORE_CHECKSUM_FILE}}"
-      - "{{.G_CORE_COMPONENT_DIR}}/cmake/**/*"
-      - "{{.G_CORE_COMPONENT_DIR}}/CMakeLists.txt"
-      - "{{.G_CORE_COMPONENT_DIR}}/src/**/*"
-      - "{{.TASKFILE}}"
-      - "/etc/os-release"
     deps: ["deps:core"]
     cmds:
       - task: "utils:cmake:generate"
@@ -200,7 +193,6 @@ tasks:
 
   core-build:
     internal: true
-    sources: *core_source_files
     generates:
       - "{{.G_CORE_COMPONENT_BUILD_DIR}}/clg"
       - "{{.G_CORE_COMPONENT_BUILD_DIR}}/clo"
