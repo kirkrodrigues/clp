@@ -166,6 +166,14 @@ jobs:
         with:
           submodules: "recursive"
 
+      - name: "ccache"
+        uses: "hendrikmuhs/ccache-action@63069e3931dedbf3b63792097479563182fe70d1"
+        with:
+          key: >-
+            main-branch-centos-stream-9-bins
+            -${{matrix.use_shared_libs == true && 'dynamic' || 'static'}}
+          save: "${{'pull_request' != github.event_name && 'refs/heads/main' == github.ref}}"
+
       - name: "Work around actions/runner-images/issues/6775"
         run: "chown $(id -u):$(id -g) -R ."
         shell: "bash"
