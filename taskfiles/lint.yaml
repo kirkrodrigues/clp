@@ -124,13 +124,6 @@ tasks:
           taskfiles
 
   check-cpp-format:
-    sources: &cpp_source_files
-      - "{{.ROOT_DIR}}/.clang-format"
-      - "{{.ROOT_DIR}}/.clang-tidy"
-      - "{{.TASKFILE}}"
-      - "{{.G_CORE_COMPONENT_DIR}}/.clang-format"
-      - "{{.G_CORE_COMPONENT_DIR}}/src/**/*"
-      - "{{.G_CORE_COMPONENT_DIR}}/tests/**/*"
     deps: ["cpp-lint-configs", "venv"]
     cmds:
       - task: ":utils:cpp-lint:clang-format"
@@ -140,11 +133,12 @@ tasks:
             - "{{.G_CORE_COMPONENT_DIR}}/src/clp_s/search/sql/generated/*"
           FLAGS: ["--dry-run"]
           INCLUDE_FILENAME_PATTERNS: ["*.cpp", "*.h", "*.hpp", "*.inc"]
-          ROOT_PATHS: *cpp_source_files
+          ROOT_PATHS:
+            - "{{.G_CORE_COMPONENT_DIR}}/src"
+            - "{{.G_CORE_COMPONENT_DIR}}/tests"
           VENV_DIR: "{{.G_LINT_VENV_DIR}}"
 
   fix-cpp-format:
-    sources: *cpp_source_files
     deps: ["cpp-lint-configs", "venv"]
     cmds:
       - task: ":utils:cpp-lint:clang-format"
@@ -154,7 +148,9 @@ tasks:
             - "{{.G_CORE_COMPONENT_DIR}}/src/clp_s/search/sql/generated/*"
           FLAGS: ["-i"]
           INCLUDE_FILENAME_PATTERNS: ["*.cpp", "*.h", "*.hpp", "*.inc"]
-          ROOT_PATHS: *cpp_source_files
+          ROOT_PATHS:
+            - "{{.G_CORE_COMPONENT_DIR}}/src"
+            - "{{.G_CORE_COMPONENT_DIR}}/tests"
           VENV_DIR: "{{.G_LINT_VENV_DIR}}"
 
   cpp-lint-configs:
@@ -164,7 +160,6 @@ tasks:
   check-cpp-static-diff:
     # NOTE: We alias the fix task until we determine which clang-tidy fixes can be applied safely.
     aliases: ["fix-cpp-static-diff"]
-    sources: *cpp_source_files
     deps:
       - ":core-generate"
       - "cpp-lint-configs"
@@ -183,7 +178,6 @@ tasks:
   check-cpp-static-full:
     # NOTE: We alias the fix task until we determine which clang-tidy fixes can be applied safely.
     aliases: ["fix-cpp-static-full"]
-    sources: *cpp_source_files
     deps:
       - ":core-generate"
       - "cpp-lint-configs"
@@ -768,7 +762,9 @@ tasks:
             - "{{.G_CORE_COMPONENT_DIR}}/src/*"
             - "{{.G_CORE_COMPONENT_DIR}}/tests/*"
           OUTPUT_DIR: "{{.G_LINT_CLANG_TIDY_DIR}}"
-          ROOT_PATHS: *cpp_source_files
+          ROOT_PATHS:
+            - "{{.G_CORE_COMPONENT_DIR}}/src"
+            - "{{.G_CORE_COMPONENT_DIR}}/tests"
           VENV_DIR: "{{.G_LINT_VENV_DIR}}"
 
   js:
