@@ -166,13 +166,16 @@ jobs:
         with:
           submodules: "recursive"
 
-      - name: "ccache"
-        uses: "hendrikmuhs/ccache-action@63069e3931dedbf3b63792097479563182fe70d1"
+      # NOTE: We don't use the cache for scheduled runs so that they compile all files from scratch.
+      - if: "'schedule' != github.event_name"
+        name: "Restore compilation cache"
+        id: "cache-restore-ccache"
+        uses: "actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684"
         with:
+          path: "${{github.workspace}}/.ccache"
           key: >-
-            main-branch-centos-stream-9-bins
+            ccache:main/centos-stream-9-binaries
             -${{matrix.use_shared_libs == true && 'dynamic' || 'static'}}
-          save: "${{'pull_request' != github.event_name && 'refs/heads/main' == github.ref}}"
 
       - name: "Work around actions/runner-images/issues/6775"
         run: "chown $(id -u):$(id -g) -R ."
@@ -195,6 +198,14 @@ jobs:
             --source-dir /mnt/repo/components/core
             --build-dir /mnt/repo/components/core/build
             --num-jobs $(getconf _NPROCESSORS_ONLN)
+
+      # Save the compilation cache if the job is running on the main branch.
+      - if: "'pull_request' != github.event_name && 'refs/heads/main' == github.ref"
+        name: "Update compilation cache"
+        uses: "actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684"
+        with:
+          path: "${{github.workspace}}/.ccache"
+          key: "${{steps.cache-restore-ccache.outputs.cache-primary-key}}"
 
   ubuntu-jammy-binaries:
     # Run if the ancestor jobs succeeded OR they were skipped and clp was changed.
