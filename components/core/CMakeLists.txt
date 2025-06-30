@@ -102,14 +102,19 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     endif ()
 endif ()
 
+set(
+    CLP_DEPS_CMAKE_SETTINGS
+    "${CMAKE_CURRENT_LIST_DIR}/../../build/deps/core/cmake-settings/all.cmake"
+    CACHE
+    STRING
+    "Path to the CMake settings file describing CLP's dependencies."
+)
+
 if(PROJECT_IS_TOP_LEVEL)
     # Include dependency settings if the project isn't being included as a subproject.
     # NOTE: We mark the file optional since it's not required if the user happens to have the
     # dependencies installed already.
-    include("${CMAKE_SOURCE_DIR}/../../build/deps/core/cmake-settings/all.cmake"
-            OPTIONAL
-            RESULT_VARIABLE CLP_DEPS_SETTINGS_FILE_PATH
-    )
+    include("${CLP_DEPS_CMAKE_SETTINGS}" OPTIONAL RESULT_VARIABLE CLP_DEPS_SETTINGS_FILE_PATH)
 
     if(NOT CLP_DEPS_SETTINGS_FILE_PATH STREQUAL "NOTFOUND")
         # Set CMP0144 since our minimum required CMake version is less than 3.27.

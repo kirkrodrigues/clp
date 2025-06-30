@@ -17,7 +17,8 @@ vars:
   G_WEBUI_SRC_DIR: "{{.G_COMPONENTS_DIR}}/webui"
 
   # Build paths
-  G_BUILD_DIR: "{{.ROOT_DIR}}/build"
+  G_BUILD_DIR: >-
+    {{default "{{.ROOT_DIR}}/build" (env "CLP_BUILD_DIR")}}
   G_CORE_COMPONENT_BUILD_DIR: "{{.G_BUILD_DIR}}/core"
   G_NODEJS_22_BUILD_DIR: "{{.G_BUILD_DIR}}/nodejs-22"
   G_NODEJS_22_BIN_DIR: "{{.G_NODEJS_22_BUILD_DIR}}/bin"
@@ -225,6 +226,8 @@ tasks:
         vars:
           BUILD_DIR: "{{.G_CORE_COMPONENT_BUILD_DIR}}"
           SOURCE_DIR: "{{.G_CORE_COMPONENT_DIR}}"
+          EXTRA_ARGS:
+            - "-DCLP_DEPS_CMAKE_SETTINGS={{.G_DEPS_CORE_CMAKE_SETTINGS_DIR}}/all.cmake"
 
   core-build:
     internal: true
