@@ -5,6 +5,9 @@
 
 #include <catch2/catch.hpp>
 
+// Silence the check since it's a false positive as a result of including `decoding_methods.inc`
+// inside `decoding_methods.hpp`.
+// NOLINTNEXTLINE(misc-header-include-cycle)
 #include "../src/clp/ffi/ir_stream/decoding_methods.hpp"
 #include "../src/clp/ffi/ir_stream/IrUnitHandlerReq.hpp"
 #include "../src/clp/ffi/KeyValuePairLogEvent.hpp"

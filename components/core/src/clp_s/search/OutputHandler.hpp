@@ -1,8 +1,8 @@
 #ifndef CLP_S_SEARCH_OUTPUTHANDLER_HPP
 #define CLP_S_SEARCH_OUTPUTHANDLER_HPP
 
+#include <cstdint>
 #include <string_view>
-#include <vector>
 
 #include "../Defs.hpp"
 #include "../ErrorCode.hpp"
@@ -17,6 +17,12 @@ public:
     explicit OutputHandler(bool should_output_metadata, bool should_marshal_records)
             : m_should_output_metadata(should_output_metadata),
               m_should_marshal_records(should_marshal_records) {}
+
+    // Default copy & move constructors and assignment operators
+    OutputHandler(OutputHandler const&) = default;
+    OutputHandler(OutputHandler&&) = default;
+    auto operator=(OutputHandler const&) -> OutputHandler& = default;
+    auto operator=(OutputHandler&&) -> OutputHandler& = default;
 
     // Destructor
     virtual ~OutputHandler() = default;

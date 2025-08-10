@@ -27,6 +27,14 @@ public:
             : m_range_index{range_index},
               m_case_sensitive_match{case_sensitive_match} {}
 
+    // Delete copy & move constructors and assignment operators
+    EvaluateRangeIndexFilters(EvaluateRangeIndexFilters const&) = delete;
+    EvaluateRangeIndexFilters(EvaluateRangeIndexFilters const&&) = delete;
+    auto operator=(EvaluateRangeIndexFilters const&) -> EvaluateRangeIndexFilters& = delete;
+    auto operator=(EvaluateRangeIndexFilters&&) -> EvaluateRangeIndexFilters& = delete;
+
+    ~EvaluateRangeIndexFilters() override = default;
+
     auto run(std::shared_ptr<ast::Expression>& expr) -> std::shared_ptr<ast::Expression> override;
 
 private:

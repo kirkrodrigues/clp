@@ -2,8 +2,6 @@ version: "3"
 
 vars:
   # Ignore https://github.com/msgpack/msgpack-c/issues/1098
-  G_CLANG_TIDY_LINE_FILTER_IGNORE_MSGPACK_1098: >-
-    {\"name\":\"cpp11_zone.hpp\",\"lines\":[[197,197]]}
   G_LINT_CLANG_TIDY_DIR: "{{.G_BUILD_DIR}}/lint-clang-tidy"
   G_LINT_VENV_DIR: "{{.G_BUILD_DIR}}/lint-venv"
 
@@ -161,8 +159,6 @@ tasks:
         vars:
           FLAGS:
             - "--config-file '{{.ROOT_DIR}}/.clang-tidy'"
-            - >-
-              --line-filter "[{{.G_CLANG_TIDY_LINE_FILTER_IGNORE_MSGPACK_1098}}]"
             - "-p '{{.G_CORE_COMPONENT_BUILD_DIR}}'"
           OUTPUT_DIR: "{{.G_LINT_CLANG_TIDY_DIR}}"
           VENV_DIR: "{{.G_LINT_VENV_DIR}}"
@@ -486,6 +482,7 @@ tasks:
             - "clp_s/search/clp_search/Grep.hpp"
             - "clp_s/search/clp_search/Query.cpp"
             - "clp_s/search/clp_search/Query.hpp"
+            - "clp_s/search/EvaluateRangeIndexFilters.cpp"
             - "clp_s/search/EvaluateTimestampIndex.cpp"
             - "clp_s/search/EvaluateTimestampIndex.hpp"
             - "clp_s/search/kql/generated/*"
@@ -752,8 +749,6 @@ tasks:
           # yamllint enable rule:line-length
           FLAGS:
             - "--config-file '{{.ROOT_DIR}}/.clang-tidy'"
-            - >-
-              --line-filter "[{{.G_CLANG_TIDY_LINE_FILTER_IGNORE_MSGPACK_1098}}]"
             - "-p '{{.G_CORE_COMPONENT_BUILD_DIR}}'"
           OUTPUT_DIR: "{{.G_LINT_CLANG_TIDY_DIR}}"
           ROOT_PATHS: *cpp_root_paths

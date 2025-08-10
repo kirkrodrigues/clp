@@ -2,13 +2,15 @@
 #include <filesystem>
 #include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 #include <catch2/catch.hpp>
-#include <fmt/format.h>
 #include <msgpack.hpp>
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>
 
+#include "../src/clp/ErrorCode.hpp"
 #include "../src/clp/ffi/ir_stream/protocol_constants.hpp"
 #include "../src/clp/ffi/ir_stream/Serializer.hpp"
 #include "../src/clp/FileReader.hpp"
@@ -18,6 +20,7 @@
 #include "../src/clp/type_utils.hpp"
 #include "../src/clp_s/archive_constants.hpp"
 #include "../src/clp_s/ArchiveReader.hpp"
+#include "../src/clp_s/ArchiveReaderAdaptor.hpp"
 #include "../src/clp_s/ArchiveWriter.hpp"
 #include "../src/clp_s/InputConfig.hpp"
 #include "../src/clp_s/RangeIndexWriter.hpp"
@@ -81,8 +84,11 @@ void serialize_record(
     )};
     auto const auto_gen_obj{auto_gen_handle.get()};
     auto const user_gen_obj{user_gen_handle.get()};
-    REQUIRE(msgpack::type::MAP == auto_gen_obj.type);
-    REQUIRE(msgpack::type::MAP == user_gen_obj.type);
+    REQUIRE((msgpack::type::MAP == auto_gen_obj.type));
+    REQUIRE((msgpack::type::MAP == user_gen_obj.type));
+
+    // Silence the check since MsgPack doesn't provide any other way to access the union members.
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-union-access)
     REQUIRE(serializer.serialize_msgpack_map(auto_gen_obj.via.map, user_gen_obj.via.map));
 }
 
@@ -95,7 +101,7 @@ void generate_ir() {
     auto result{clp::ffi::ir_stream::Serializer<clp::ir::eight_byte_encoded_variable_t>::create(
             ir_metadata
     )};
-    REQUIRE(false == result.has_error());
+    REQUIRE((false == result.has_error()));
     auto& serializer = result.value();
 
     auto empty_object = nlohmann::json::parse("{}");
@@ -127,8 +133,8 @@ void generate_ir() {
 void read_and_check_archive_metadata(bool from_ir) {
     clp_s::ArchiveReader archive_reader;
     for (auto const& entry : std::filesystem::directory_iterator(cTestRangeIndexArchiveDirectory)) {
-        clp_s::Path archive_path{
-                .source{clp_s::InputSource::Filesystem},
+        clp_s::Path const archive_path{
+                .source = clp_s::InputSource::Filesystem,
                 .path{entry.path().string()}
         };
         REQUIRE_NOTHROW(archive_reader.open(archive_path, clp_s::NetworkAuthOption{}));
@@ -145,7 +151,7 @@ void check_archive_metadata_from_stats(
     for (auto const& stats : archive_stats) {
         auto const& range_index{stats.get_range_index()};
         REQUIRE(range_index.is_array());
-        REQUIRE(1ULL == range_index.size());
+        REQUIRE((1ULL == range_index.size()));
         auto entry = range_index.begin();
         REQUIRE(entry->is_object());
         REQUIRE(entry->contains(clp_s::RangeIndexWriter::cStartIndexName));
@@ -157,7 +163,7 @@ void check_archive_metadata_from_stats(
         REQUIRE(start_index.is_number_integer());
         REQUIRE(end_index.is_number_integer());
         REQUIRE(metadata_fields.is_object());
-        std::vector<clp_s::RangeIndexEntry> range_index_entries{clp_s::RangeIndexEntry{
+        std::vector<clp_s::RangeIndexEntry> const range_index_entries{clp_s::RangeIndexEntry{
                 start_index.template get<size_t>(),
                 end_index.template get<size_t>(),
                 std::move(metadata_fields)
@@ -168,37 +174,45 @@ void check_archive_metadata_from_stats(
 
 void
 check_archive_range_index(std::vector<clp_s::RangeIndexEntry> const& range_index, bool from_ir) {
-    REQUIRE(1ULL == range_index.size());
+    REQUIRE((1ULL == range_index.size()));
     auto const& range_index_entry = range_index.front();
-    REQUIRE(0ULL == range_index_entry.start_index);
-    REQUIRE(4ULL == range_index_entry.end_index);
+    REQUIRE((0ULL == range_index_entry.start_index));
+    REQUIRE((4ULL == range_index_entry.end_index));
     auto const& metadata_fields = range_index_entry.fields;
     REQUIRE(metadata_fields.contains(clp_s::constants::range_index::cArchiveCreatorId));
     REQUIRE(metadata_fields.at(clp_s::constants::range_index::cArchiveCreatorId).is_string());
-    REQUIRE(false
-            == metadata_fields.at(clp_s::constants::range_index::cArchiveCreatorId)
-                       .template get<std::string>()
-                       .empty());
+    REQUIRE(
+            (false
+             == metadata_fields.at(clp_s::constants::range_index::cArchiveCreatorId)
+                        .template get<std::string>()
+                        .empty())
+    );
     REQUIRE(metadata_fields.contains(clp_s::constants::range_index::cFilename));
     REQUIRE(metadata_fields.at(clp_s::constants::range_index::cFilename).is_string());
     auto const expected_input_path{
             from_ir ? get_ir_test_input_relative_path() : get_test_input_local_path()
     };
-    REQUIRE(expected_input_path
-            == metadata_fields.at(clp_s::constants::range_index::cFilename)
-                       .template get<std::string>());
+    REQUIRE(
+            (expected_input_path
+             == metadata_fields.at(clp_s::constants::range_index::cFilename)
+                        .template get<std::string>())
+    );
     REQUIRE(metadata_fields.contains(clp_s::constants::range_index::cFileSplitNumber));
     REQUIRE(
             metadata_fields.at(clp_s::constants::range_index::cFileSplitNumber).is_number_integer()
     );
-    REQUIRE(0ULL
-            == metadata_fields.at(clp_s::constants::range_index::cFileSplitNumber)
-                       .template get<size_t>());
+    REQUIRE(
+            (0ULL
+             == metadata_fields.at(clp_s::constants::range_index::cFileSplitNumber)
+                        .template get<size_t>())
+    );
     if (from_ir) {
         REQUIRE(metadata_fields.contains(cTestRangeIndexIRMetadataKey));
         REQUIRE(metadata_fields.at(cTestRangeIndexIRMetadataKey).is_string());
-        REQUIRE(cTestRangeIndexIRMetadataValue
-                == metadata_fields.at(cTestRangeIndexIRMetadataKey).template get<std::string>());
+        REQUIRE(
+                (cTestRangeIndexIRMetadataValue
+                 == metadata_fields.at(cTestRangeIndexIRMetadataKey).template get<std::string>())
+        );
     }
 }
 }  // namespace

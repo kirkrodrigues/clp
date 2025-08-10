@@ -91,7 +91,7 @@ public:
         return IRErrorCode::IRErrorCode_Success;
     }
 
-    [[nodiscard]] auto handle_end_of_stream() -> IRErrorCode {
+    [[nodiscard]] static auto handle_end_of_stream() -> IRErrorCode {
         return IRErrorCode::IRErrorCode_Success;
     }
 
