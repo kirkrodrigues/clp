@@ -1,0 +1,4 @@
+InheritParentConfig: true
+
+HeaderFilterRegex: '.*'
+ExcludeHeaderFilterRegex: '^.*/cpp11_zone.hpp$'

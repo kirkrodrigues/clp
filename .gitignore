@@ -1,5 +1,5 @@
-.clang-format
-.clang-tidy
+./.clang-format
+./.clang-tidy
 .lint-venv/
 .task/
 build/
