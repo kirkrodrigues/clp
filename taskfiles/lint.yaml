@@ -749,6 +749,7 @@ tasks:
           # yamllint enable rule:line-length
           FLAGS:
             - "--config-file '{{.ROOT_DIR}}/.clang-tidy'"
+            - "--header-filter '{{.ROOT_DIR}}/src/.*'"
             - "-p '{{.G_CORE_COMPONENT_BUILD_DIR}}'"
           OUTPUT_DIR: "{{.G_LINT_CLANG_TIDY_DIR}}"
           ROOT_PATHS: *cpp_root_paths
