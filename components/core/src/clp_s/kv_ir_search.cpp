@@ -15,6 +15,7 @@
 #include <ystdlib/error_handling/Result.hpp>
 
 #include "../clp/ErrorCode.hpp"
+#include "../clp/ffi/ir_stream/decoding_methods.hpp"
 #include "../clp/ffi/ir_stream/Deserializer.hpp"
 #include "../clp/ffi/ir_stream/IrUnitType.hpp"
 #include "../clp/ffi/ir_stream/search/QueryHandler.hpp"
@@ -28,8 +29,6 @@
 #include "CommandLineArguments.hpp"
 #include "InputConfig.hpp"
 #include "search/ast/Expression.hpp"
-
-#include "../clp/ffi/ir_stream/decoding_methods.hpp"
 
 using clp_s::KvIrSearchError;
 using clp_s::KvIrSearchErrorEnum;
