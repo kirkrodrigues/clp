@@ -124,7 +124,7 @@ TEST_CASE("clp-s-delta-encode-log-order", "[clp-s][delta-encode-log-order]") {
     for (size_t num_iterations{0ULL}; num_iterations < cNumEntries; ++num_iterations) {
         int64_t val{};
         REQUIRE_NOTHROW(val = std::get<int64_t>(log_event_idx_reader->extract_value(i)));
-        REQUIRE((val == static_cast<int64_t>(i)));
+        REQUIRE(std::cmp_equal(val ,i));
         i = (i + 1) % cNumEntries;
     }
     REQUIRE_NOTHROW(archive_reader.close());
