@@ -15,6 +15,10 @@
 #include <ystdlib/error_handling/Result.hpp>
 
 #include "../clp/ErrorCode.hpp"
+
+// This include has a circular dependency with the `.inc` file. The following clang-tidy suppression
+// should be removed once the circular dependency is resolved.
+// NOLINTNEXTLINE(misc-header-include-cycle)
 #include "../clp/ffi/ir_stream/decoding_methods.hpp"
 #include "../clp/ffi/ir_stream/Deserializer.hpp"
 #include "../clp/ffi/ir_stream/IrUnitType.hpp"
