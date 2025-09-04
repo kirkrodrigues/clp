@@ -22,12 +22,14 @@ services:
         - "${PRESTO_COORDINATOR_CONFIGPROPERTIES_DISCOVERY_URI}/v1/info"
       interval: "10s"
       retries: 30
+    restart: "on-failure"
 
   presto-worker:
     image: "ghcr.io/y-scope/presto/prestissimo-worker:dev"
     depends_on:
       presto-coordinator:
         condition: "service_healthy"
+        restart: true
     entrypoint: ["/bin/bash", "-c", "/scripts/generate-configs.sh && /opt/entrypoint.sh"]
     env_file:
       - ".env"
@@ -40,6 +42,7 @@ services:
       - "worker-config:/opt/presto-server/etc"
     networks:
       - "presto"
+    restart: "on-failure"
 
 volumes:
   coordinator-config:

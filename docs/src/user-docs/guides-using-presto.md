@@ -115,7 +115,7 @@ Using Presto with CLP requires:
 5. Start a Presto cluster by running:
 
     ```bash
-    docker compose up
+    docker compose up --detach
     ```
 
     * To use more than one Presto worker, you can use the `--scale` option as follows:
@@ -128,7 +128,11 @@ Using Presto with CLP requires:
 
 ### Stopping the Presto cluster
 
-To stop the Presto cluster, use CTRL + C.
+To stop the Presto cluster:
+
+```bash
+docker compose down
+```
 
 To clean up the Presto cluster entirely:
 
@@ -181,19 +185,29 @@ SELECT foo.bar FROM default LIMIT 1;
 
 ## Limitations
 
-The Presto CLP integration has the following limitations at present:
+The Presto CLP integration has the following limitations at present (these will be addressed in a
+future release of the Presto integration):
 
-* Nested fields containing special characters cannot be queried (see [y-scope/presto#8]). Allowed
-  characters are alphanumeric characters and underscores. To get around this limitation, you'll
-  need to preprocess your logs to remove any special characters.
+* Fields containing special characters (e.g., `@`, `$`, `-`, ` ` (space), etc.) cannot be queried
+  (see [y-scope/velox#13]). Allowed characters are alphanumeric characters and underscores. To get
+  around this limitation, you'll need to preprocess your logs to remove any special characters.
 
-These limitations will be addressed in a future release of the Presto integration.
+  :::{note}
+  The [cockroachdb], [elasticsearch], [mongodb], and [spark-event-logs] sample logs all contain
+  special characters in certain fields. The [elasticsearch] dataset can still be queried but the
+  fields containing special characters will show up as `NULL`. The other datasets will cause errors
+  if the fields with special characters are accessed.
+  :::
 
 [clp-connector-docs]: https://docs.yscope.com/presto/connector/clp.html#split-filter-config-file
 [clp-releases]: https://github.com/y-scope/clp/releases
+[cockroachdb]: https://zenodo.org/records/10516387
 [docker-compose]: https://docs.docker.com/compose/install/
 [Docker]: https://docs.docker.com/engine/install/
+[elasticsearch]: https://zenodo.org/records/10516227
+[mongodb]: https://zenodo.org/records/11075361
 [postgresql]: https://zenodo.org/records/10516401
 [Presto]: https://prestodb.io/
-[y-scope/presto#8]: https://github.com/y-scope/presto/issues/8
+[spark-event-logs]: https://zenodo.org/records/10516346
+[y-scope/velox#13]: https://github.com/y-scope/velox/issues/13
 [yscope-presto]: https://github.com/y-scope/presto
