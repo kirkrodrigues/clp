@@ -191,7 +191,7 @@ tasks:
           BUILD_DIR: "{{.G_CORE_COMPONENT_BUILD_DIR}}"
           SOURCE_DIR: "{{.G_CORE_COMPONENT_DIR}}"
           EXTRA_ARGS:
-            - "-DCLP_DEPS_CMAKE_SETTINGS={{.G_DEPS_CPP_CMAKE_SETTINGS_DIR}}/all.cmake"
+            - "-DCLP_DEPS_CMAKE_SETTINGS={{.G_DEPS_CPP_CMAKE_SETTINGS_DIR}}/all-core.cmake"
 
   core-build:
     internal: true
