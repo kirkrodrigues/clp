@@ -3,8 +3,10 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -21,7 +23,10 @@ constexpr char cAwsSessionTokenEnvVar[] = "AWS_SESSION_TOKEN";
  */
 enum class FileType : uint8_t {
     Json = 0,
-    KeyValueIr
+    KeyValueIr,
+    LogText,
+    Zstd,
+    Unknown
 };
 
 /**
@@ -68,6 +73,16 @@ struct Path {
  * @return a Path object representing the raw path or url
  */
 [[nodiscard]] auto get_path_object_for_raw_path(std::string_view const path) -> Path;
+
+/**
+ * Removes a prefix from a filesystem path.
+ * @param path
+ * @param prefix
+ * @return An option containing the path with the prefix removed on success, or an empty option on
+ * failure.
+ */
+[[nodiscard]] auto remove_path_prefix(std::string_view path, std::string_view prefix)
+        -> std::optional<std::string>;
 
 /**
  * Recursively collects all file paths from the given raw path, including the path itself.
@@ -121,6 +136,24 @@ get_input_archives_for_raw_path(std::string_view const path, std::vector<Path>& 
  */
 [[nodiscard]] auto try_create_reader(Path const& path, NetworkAuthOption const& network_auth)
         -> std::shared_ptr<clp::ReaderInterface>;
+
+/**
+ * Tries to deduce the underlying file-type of the file opened by `reader`, and returns a
+ * (potentially new) reader for underlying JSON or KV-IR content by unwrapping layers of
+ * compression.
+ * @param reader
+ * @return A vector of all created `clp::ReaderInterface`s, where the last entry in the vector is
+ * open for reading content of the type described by the element in the pair. When the content type
+ * cannot be deduced, we return an empty vector and `FileType::Unknown`.
+ */
+[[nodiscard]] auto try_deduce_reader_type(std::shared_ptr<clp::ReaderInterface> reader)
+        -> std::pair<std::vector<std::shared_ptr<clp::ReaderInterface>>, FileType>;
+
+/**
+ * Closes all readers in a vector of nested readers, starting from the last reader.
+ * @param readers
+ */
+void close_nested_readers(std::vector<std::shared_ptr<clp::ReaderInterface>> const& readers);
 }  // namespace clp_s
 
 #endif  // CLP_S_INPUTCONFIG_HPP

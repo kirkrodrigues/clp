@@ -16,12 +16,14 @@ public:
         EndObject,
         AddIntField,
         AddFloatField,
+        AddFormattedFloatField,
         AddBoolField,
         AddStringField,
         AddArrayField,
         AddNullField,
         AddIntValue,
         AddFloatValue,
+        AddFormattedFloatValue,
         AddBoolValue,
         AddStringValue,
         AddNullValue,
@@ -29,6 +31,7 @@ public:
         EndArray,
         BeginUnnamedObject,
         BeginUnnamedArray,
+        AddLiteralField,
     };
 
     static int64_t const cReservedLength = 4096;

@@ -2,7 +2,7 @@ import datetime
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from celery.app.task import Task
 from celery.utils.log import get_task_logger
@@ -15,11 +15,12 @@ from clp_py_utils.clp_config import (
 )
 from clp_py_utils.clp_logging import set_logging_level
 from clp_py_utils.s3_utils import (
-    generate_s3_virtual_hosted_style_url,
+    generate_s3_url,
     get_credential_env_vars,
     s3_put,
 )
-from clp_py_utils.sql_adapter import SQL_Adapter
+from clp_py_utils.sql_adapter import SqlAdapter
+
 from job_orchestration.executor.query.celery import app
 from job_orchestration.executor.query.utils import (
     report_task_failure,
@@ -40,7 +41,7 @@ def _make_clp_command_and_env_vars(
     job_config: dict,
     results_cache_uri: str,
     print_stream_stats: bool,
-) -> Tuple[Optional[List[str]], Optional[Dict[str, str]]]:
+) -> tuple[list[str] | None, dict[str, str] | None]:
     storage_type = worker_config.archive_output.storage.type
     archives_dir = worker_config.archive_output.get_directory()
     stream_output_dir = worker_config.stream_output.get_directory()
@@ -54,7 +55,7 @@ def _make_clp_command_and_env_vars(
         return None, None
 
     logger.info("Starting IR extraction")
-    extract_ir_config = ExtractIrJobConfig.parse_obj(job_config)
+    extract_ir_config = ExtractIrJobConfig.model_validate(job_config)
     if not extract_ir_config.file_split_id:
         logger.error("file_split_id not supplied")
         return None, None
@@ -82,25 +83,25 @@ def _make_clp_s_command_and_env_vars(
     job_config: dict,
     results_cache_uri: str,
     print_stream_stats: bool,
-) -> Tuple[Optional[List[str]], Optional[Dict[str, str]]]:
+    dataset: str | None = None,
+) -> tuple[list[str] | None, dict[str, str] | None]:
     storage_type = worker_config.archive_output.storage.type
     stream_output_dir = worker_config.stream_output.get_directory()
     stream_collection_name = worker_config.stream_collection_name
 
     logger.info("Starting JSON extraction")
-    extract_json_config = ExtractJsonJobConfig.parse_obj(job_config)
+    extract_json_config = ExtractJsonJobConfig.model_validate(job_config)
     command = [
         str(clp_home / "bin" / "clp-s"),
         "x",
     ]
 
-    dataset = extract_json_config.dataset
     if StorageType.S3 == storage_type:
         s3_config = worker_config.archive_output.storage.s3_config
-        s3_config.key_prefix = f"{s3_config.key_prefix}{dataset}/"
+        s3_object_key = f"{s3_config.key_prefix}{dataset}/{archive_id}"
         try:
-            s3_url = generate_s3_virtual_hosted_style_url(
-                s3_config.region_code, s3_config.bucket, f"{s3_config.key_prefix}{archive_id}"
+            s3_url = generate_s3_url(
+                s3_config.endpoint_url, s3_config.region_code, s3_config.bucket, s3_object_key
             )
         except ValueError as ex:
             logger.error(f"Encountered error while generating S3 url: {ex}")
@@ -152,7 +153,8 @@ def _make_command_and_env_vars(
     job_config: dict,
     results_cache_uri: str,
     print_stream_stats: bool,
-) -> Tuple[Optional[List[str]], Optional[Dict[str, str]]]:
+    dataset: str | None = None,
+) -> tuple[list[str] | None, dict[str, str] | None]:
     storage_engine = worker_config.package.storage_engine
     if StorageEngine.CLP == storage_engine:
         command, env_vars = _make_clp_command_and_env_vars(
@@ -171,6 +173,7 @@ def _make_command_and_env_vars(
             job_config,
             results_cache_uri,
             print_stream_stats,
+            dataset,
         )
     else:
         logger.error(f"Unsupported storage engine {storage_engine}")
@@ -187,7 +190,8 @@ def extract_stream(
     archive_id: str,
     clp_metadata_db_conn_params: dict,
     results_cache_uri: str,
-) -> Dict[str, Any]:
+    dataset: str | None = None,
+) -> dict[str, Any]:
     task_name = "Stream Extraction"
 
     # Setup logging to file
@@ -199,7 +203,7 @@ def extract_stream(
 
     start_time = datetime.datetime.now()
     task_status: QueryTaskStatus
-    sql_adapter = SQL_Adapter(Database.parse_obj(clp_metadata_db_conn_params))
+    sql_adapter = SqlAdapter(Database.model_validate(clp_metadata_db_conn_params))
 
     # Load configuration
     clp_config_path = Path(os.getenv("CLP_CONFIG_PATH"))
@@ -229,6 +233,7 @@ def extract_stream(
         job_config=job_config,
         results_cache_uri=results_cache_uri,
         print_stream_stats=enable_s3_upload,
+        dataset=dataset,
     )
     if not task_command:
         logger.error(f"Error creating {task_name} command")
@@ -251,7 +256,7 @@ def extract_stream(
     )
 
     if enable_s3_upload and QueryTaskStatus.SUCCEEDED == task_results.status:
-        logger.info(f"Uploading streams to S3...")
+        logger.info("Uploading streams to S3...")
 
         upload_error = False
         for line in task_stdout_str.splitlines():
@@ -290,6 +295,6 @@ def extract_stream(
             task_results.status = QueryTaskStatus.FAILED
             task_results.error_log_path = str(os.getenv("CLP_WORKER_LOG_PATH"))
         else:
-            logger.info(f"Finished uploading streams.")
+            logger.info("Finished uploading streams.")
 
-    return task_results.dict()
+    return task_results.model_dump()

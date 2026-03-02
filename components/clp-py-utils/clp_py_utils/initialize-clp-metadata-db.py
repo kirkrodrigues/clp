@@ -1,21 +1,16 @@
 #!/usr/bin/env python3
 import argparse
 import logging
+import pathlib
 import sys
 from contextlib import closing
-from pathlib import Path
 
-from sql_adapter import SQL_Adapter
+from pydantic import ValidationError
 
-from clp_py_utils.clp_config import (
-    Database,
-    StorageEngine,
-)
-from clp_py_utils.clp_metadata_db_utils import (
-    create_datasets_table,
-    create_metadata_db_tables,
-)
+from clp_py_utils.clp_config import ClpConfig, StorageEngine
+from clp_py_utils.clp_metadata_db_utils import create_datasets_table, create_metadata_db_tables
 from clp_py_utils.core import read_yaml_config_file
+from clp_py_utils.sql_adapter import SqlAdapter
 
 # Setup logging
 # Create logger
@@ -30,7 +25,7 @@ logger.addHandler(logging_console_handler)
 
 def main(argv):
     args_parser = argparse.ArgumentParser(description="Sets up CLP's metadata tables.")
-    args_parser.add_argument("--config", required=True, help="Database config file.")
+    args_parser.add_argument("--config", "-c", required=True, help="CLP configuration file.")
     args_parser.add_argument(
         "--storage-engine",
         type=str,
@@ -39,20 +34,28 @@ def main(argv):
         help="Storage engine to create tables for.",
     )
     parsed_args = args_parser.parse_args(argv[1:])
-
-    config_file_path = Path(parsed_args.config)
     storage_engine = StorageEngine(parsed_args.storage_engine)
 
+    # Load configuration
+    config_path = pathlib.Path(parsed_args.config)
     try:
-        database_config = Database.parse_obj(read_yaml_config_file(config_file_path))
-        if database_config is None:
-            raise ValueError(f"Database configuration file '{config_file_path}' is empty.")
-        sql_adapter = SQL_Adapter(database_config)
-        clp_db_connection_params = database_config.get_clp_connection_params_and_type(True)
+        clp_config = ClpConfig.model_validate(read_yaml_config_file(config_path))
+        clp_config.database.load_credentials_from_env()
+    except (ValidationError, ValueError) as err:
+        logger.error(err)
+        return -1
+    except Exception:
+        logger.exception("Failed to load CLP configuration.")
+        return -1
+
+    try:
+        sql_adapter = SqlAdapter(clp_config.database)
+        clp_db_connection_params = clp_config.database.get_clp_connection_params_and_type(True)
         table_prefix = clp_db_connection_params["table_prefix"]
-        with closing(sql_adapter.create_connection(True)) as metadata_db, closing(
-            metadata_db.cursor(dictionary=True)
-        ) as metadata_db_cursor:
+        with (
+            closing(sql_adapter.create_connection(True)) as metadata_db,
+            closing(metadata_db.cursor(dictionary=True)) as metadata_db_cursor,
+        ):
             if StorageEngine.CLP_S == storage_engine:
                 create_datasets_table(metadata_db_cursor, table_prefix)
             else:

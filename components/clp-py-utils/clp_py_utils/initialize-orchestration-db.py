@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import logging
+import pathlib
 import sys
 from contextlib import closing
 
@@ -10,16 +11,17 @@ from job_orchestration.scheduler.constants import (
     QueryJobStatus,
     QueryTaskStatus,
 )
-from sql_adapter import SQL_Adapter
+from pydantic import ValidationError
 
 from clp_py_utils.clp_config import (
+    ClpConfig,
     COMPRESSION_JOBS_TABLE_NAME,
     COMPRESSION_TASKS_TABLE_NAME,
-    Database,
     QUERY_JOBS_TABLE_NAME,
     QUERY_TASKS_TABLE_NAME,
 )
 from clp_py_utils.core import read_yaml_config_file
+from clp_py_utils.sql_adapter import SqlAdapter
 
 # Setup logging
 # Create logger
@@ -36,17 +38,27 @@ def main(argv):
     args_parser = argparse.ArgumentParser(
         description="Sets up metadata tables for job orchestration."
     )
-    args_parser.add_argument("--config", required=True, help="Database config file.")
+    args_parser.add_argument("--config", "-c", required=True, help="CLP configuration file.")
     parsed_args = args_parser.parse_args(argv[1:])
 
+    # Load configuration
+    config_path = pathlib.Path(parsed_args.config)
     try:
-        database_config = Database.parse_obj(read_yaml_config_file(parsed_args.config))
-        if database_config is None:
-            raise ValueError(f"Database configuration file '{parsed_args.config}' is empty.")
-        sql_adapter = SQL_Adapter(database_config)
-        with closing(sql_adapter.create_connection(True)) as scheduling_db, closing(
-            scheduling_db.cursor(dictionary=True)
-        ) as scheduling_db_cursor:
+        clp_config = ClpConfig.model_validate(read_yaml_config_file(config_path))
+        clp_config.database.load_credentials_from_env()
+    except (ValidationError, ValueError) as err:
+        logger.error(err)
+        return -1
+    except Exception:
+        logger.exception("Failed to load CLP configuration.")
+        return -1
+
+    try:
+        sql_adapter = SqlAdapter(clp_config.database)
+        with (
+            closing(sql_adapter.create_connection(True)) as scheduling_db,
+            closing(scheduling_db.cursor(dictionary=True)) as scheduling_db_cursor,
+        ):
             scheduling_db_cursor.execute(
                 f"""
                 CREATE TABLE IF NOT EXISTS `{COMPRESSION_JOBS_TABLE_NAME}` (
@@ -108,6 +120,7 @@ def main(argv):
                     `duration` FLOAT NULL DEFAULT NULL,
                     `job_config` VARBINARY(60000) NOT NULL,
                     PRIMARY KEY (`id`) USING BTREE,
+                    INDEX `CREATION_TIME` (`creation_time`) USING BTREE,
                     INDEX `JOB_STATUS` (`status`) USING BTREE
                 ) ROW_FORMAT=DYNAMIC
                 """

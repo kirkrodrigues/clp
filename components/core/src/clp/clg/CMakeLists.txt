@@ -15,15 +15,23 @@ set(
         ../ffi/encoding_methods.cpp
         ../ffi/encoding_methods.hpp
         ../ffi/encoding_methods.inc
+        ../ffi/EncodedTextAst.hpp
+        ../ffi/EncodedTextAstError.cpp
+        ../ffi/EncodedTextAstError.hpp
         ../ffi/ir_stream/decoding_methods.cpp
         ../ffi/ir_stream/decoding_methods.hpp
         ../ffi/ir_stream/decoding_methods.inc
+        ../ffi/ir_stream/IrSerializationError.cpp
+        ../ffi/ir_stream/IrSerializationError.hpp
+        ../ffi/StringBlob.hpp
         ../FileDescriptor.cpp
         ../FileDescriptor.hpp
         ../FileReader.cpp
         ../FileReader.hpp
         ../FileWriter.cpp
         ../FileWriter.hpp
+        ../global_metadata_db_utils.cpp
+        ../global_metadata_db_utils.hpp
         ../GlobalMetadataDB.hpp
         ../GlobalMetadataDBConfig.cpp
         ../GlobalMetadataDBConfig.hpp
@@ -33,6 +41,10 @@ set(
         ../GlobalSQLiteMetadataDB.hpp
         ../Grep.cpp
         ../Grep.hpp
+        ../GrepCore.cpp
+        ../GrepCore.hpp
+        ../SchemaSearcher.cpp
+        ../SchemaSearcher.hpp
         ../ir/EncodedTextAst.cpp
         ../ir/EncodedTextAst.hpp
         ../ir/LogEvent.hpp
@@ -44,7 +56,9 @@ set(
         ../LogSurgeonReader.hpp
         ../LogTypeDictionaryEntry.cpp
         ../LogTypeDictionaryEntry.hpp
+        ../LogTypeDictionaryEntryReq.hpp
         ../LogTypeDictionaryReader.hpp
+        ../LogTypeDictionaryReaderReq.hpp
         ../MySQLDB.cpp
         ../MySQLDB.hpp
         ../MySQLParamBindings.cpp
@@ -59,6 +73,8 @@ set(
         ../Profiler.hpp
         ../Query.cpp
         ../Query.hpp
+        ../QueryToken.cpp
+        ../QueryToken.hpp
         ../ReaderInterface.cpp
         ../ReaderInterface.hpp
         ../ReadOnlyMemoryMappedFile.cpp
@@ -111,9 +127,12 @@ set(
         ../Utils.hpp
         ../VariableDictionaryEntry.cpp
         ../VariableDictionaryEntry.hpp
+        ../VariableDictionaryEntryReq.hpp
         ../VariableDictionaryReader.hpp
+        ../VariableDictionaryReaderReq.hpp
         ../VariableDictionaryWriter.cpp
         ../VariableDictionaryWriter.hpp
+        ../VariableDictionaryWriterReq.hpp
         ../version.hpp
         ../WriterInterface.cpp
         ../WriterInterface.hpp
@@ -128,24 +147,26 @@ if(CLP_BUILD_EXECUTABLES)
         target_compile_features(clg PRIVATE cxx_std_20)
         target_include_directories(clg
                 PRIVATE
+                ../../
                 "${CLP_SQLITE3_INCLUDE_DIRECTORY}"
         )
         target_link_libraries(clg
                 PRIVATE
+                absl::flat_hash_map
                 Boost::filesystem Boost::program_options
                 date::date
                 fmt::fmt
                 log_surgeon::log_surgeon
                 MariaDBClient::MariaDBClient
+                msgpack-cxx
                 nlohmann_json::nlohmann_json
                 spdlog::spdlog
                 ${sqlite_LIBRARY_DEPENDENCIES}
                 ${STD_FS_LIBS}
                 clp::string_utils
-                yaml-cpp
                 ystdlib::containers
                 ystdlib::error_handling
-                ZStd::ZStd
+                zstd::libzstd_static
         )
         # Put the built executable at the root of the build directory
         set_target_properties(

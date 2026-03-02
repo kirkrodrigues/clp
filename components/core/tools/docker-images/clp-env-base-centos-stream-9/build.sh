@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
 
-# Exit on any error
-set -e
-
-# Error on undefined variable
-set -u
+set -o errexit
+set -o nounset
+set -o pipefail
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 component_root="${script_dir}/../../../"
 
 build_cmd=(
     docker build
+    --pull
     --tag clp-core-dependencies-x86-centos-stream-9:dev
     "$component_root"
     --file "${script_dir}/Dockerfile"

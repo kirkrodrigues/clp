@@ -3,6 +3,12 @@
 #include <memory>
 #include <vector>
 
+#include <log_surgeon/Lexer.hpp>
+#include <string_utils/string_utils.hpp>
+
+#include "../../clp/Defs.h"
+#include "../../clp/GrepCore.hpp"
+#include "../../clp/Query.hpp"
 #include "../../clp/type_utils.hpp"
 #include "../SchemaTree.hpp"
 #include "../Utils.hpp"
@@ -14,8 +20,6 @@
 #include "ast/Literal.hpp"
 #include "ast/OrExpr.hpp"
 #include "ast/SearchUtils.hpp"
-#include "clp_search/EncodedVariableInterpreter.hpp"
-#include "clp_search/Grep.hpp"
 #include "EvaluateTimestampIndex.hpp"
 
 using clp_s::search::ast::AndExpr;
@@ -59,7 +63,8 @@ auto QueryRunner::schema_init(int32_t schema_id) -> EvaluatedValue {
 void QueryRunner::clear_readers() {
     m_clp_string_readers.clear();
     m_var_string_readers.clear();
-    m_datestring_readers.clear();
+    m_timestamp_readers.clear();
+    m_deprecated_datestring_reader = nullptr;
     m_basic_readers.clear();
 }
 
@@ -69,16 +74,25 @@ void QueryRunner::initialize_reader(int32_t column_id, BaseColumnReader* column_
              & node_to_literal_type(m_schema_tree->get_node(column_id).get_type())))
         || m_match->schema_searches_against_column(m_schema, column_id))
     {
-        auto* clp_reader = dynamic_cast<ClpStringColumnReader*>(column_reader);
-        auto* var_reader = dynamic_cast<VariableStringColumnReader*>(column_reader);
-        auto* date_reader = dynamic_cast<DateStringColumnReader*>(column_reader);
-        if (nullptr != clp_reader && clp_reader->get_type() == NodeType::ClpString) {
+        if (auto* const clp_reader = dynamic_cast<ClpStringColumnReader*>(column_reader);
+            nullptr != clp_reader && NodeType::ClpString == clp_reader->get_type())
+        {
             m_clp_string_readers[column_id].push_back(clp_reader);
-        } else if (nullptr != var_reader && var_reader->get_type() == NodeType::VarString) {
+        } else if (auto* const var_reader
+                   = dynamic_cast<VariableStringColumnReader*>(column_reader);
+                   nullptr != var_reader)
+        {
             m_var_string_readers[column_id].push_back(var_reader);
-        } else if (nullptr != date_reader) {
-            // Datestring readers with a given column ID are guaranteed not to repeat
-            m_datestring_readers.emplace(column_id, date_reader);
+        } else if (auto* const timestamp_reader
+                   = dynamic_cast<TimestampColumnReader*>(column_reader);
+                   nullptr != timestamp_reader)
+        {
+            m_timestamp_readers.emplace(column_id, timestamp_reader);
+        } else if (auto* const deprecated_date_reader
+                   = dynamic_cast<DeprecatedDateStringColumnReader*>(column_reader);
+                   nullptr != deprecated_date_reader)
+        {
+            m_deprecated_datestring_reader = deprecated_date_reader;
         } else {
             m_basic_readers[column_id].push_back(column_reader);
         }
@@ -200,7 +214,7 @@ bool QueryRunner::evaluate_wildcard_filter(FilterExpr* expr, int32_t schema) {
             subtree_type.has_value() && constants::cMetadataSubtreeType == subtree_type.value()
     };
     if (column->matches_type(LiteralType::ClpStringT)) {
-        Query* q = m_expr_clp_query.at(expr);
+        auto* q = m_expr_clp_query.at(expr);
         for (auto const& entry : m_clp_string_readers) {
             if (false == matches_metadata && m_metadata_columns.contains(entry.first)) {
                 continue;
@@ -223,13 +237,19 @@ bool QueryRunner::evaluate_wildcard_filter(FilterExpr* expr, int32_t schema) {
         }
     }
 
-    if (column->matches_type(LiteralType::EpochDateT)) {
-        for (auto entry : m_datestring_readers) {
-            if (false == matches_metadata && m_metadata_columns.contains(entry.first)) {
-                continue;
-            }
-            if (evaluate_epoch_date_filter(op, entry.second, literal)) {
+    if (column->matches_type(LiteralType::TimestampT)) {
+        if (nullptr != m_deprecated_datestring_reader) {
+            if (evaluate_epoch_date_filter(op, m_deprecated_datestring_reader, literal)) {
                 return true;
+            }
+        } else {
+            for (auto entry : m_timestamp_readers) {
+                if (false == matches_metadata && m_metadata_columns.contains(entry.first)) {
+                    continue;
+                }
+                if (evaluate_timestamp_filter(op, entry.second, literal)) {
+                    return true;
+                }
             }
         }
     }
@@ -273,7 +293,7 @@ bool QueryRunner::evaluate_filter(FilterExpr* expr, int32_t schema) {
     auto* column = expr->get_column().get();
     int32_t column_id = column->get_column_id();
     auto literal = expr->get_operand();
-    Query* q = nullptr;
+    clp::Query* q = nullptr;
     std::unordered_set<int64_t>* matching_vars = nullptr;
     switch (column->get_literal_type()) {
         case LiteralType::IntegerT:
@@ -303,12 +323,22 @@ bool QueryRunner::evaluate_filter(FilterExpr* expr, int32_t schema) {
                     get_cached_decompressed_unstructured_array(column_id),
                     literal
             );
-        case LiteralType::EpochDateT:
-            return evaluate_epoch_date_filter(
+        case LiteralType::TimestampT: {
+            if (nullptr != m_deprecated_datestring_reader
+                && m_deprecated_datestring_reader->get_id() == column_id)
+            {
+                return evaluate_epoch_date_filter(
+                        expr->get_operation(),
+                        m_deprecated_datestring_reader,
+                        literal
+                );
+            }
+            return evaluate_timestamp_filter(
                     expr->get_operation(),
-                    m_datestring_readers[column_id],
+                    m_timestamp_readers.at(column_id),
                     literal
             );
+        }
             // case LiteralType::NullT:
             //  null checks are always turned into existence operators --
             //  no need to evaluate here
@@ -403,7 +433,7 @@ bool QueryRunner::evaluate_float_filter_core(FilterOperation op, double value, d
 
 bool QueryRunner::evaluate_clp_string_filter(
         FilterOperation op,
-        Query* q,
+        clp::Query* q,
         std::vector<ClpStringColumnReader*> const& readers
 ) const {
     if (FilterOperation::EXISTS == op || FilterOperation::NEXISTS == op) {
@@ -430,7 +460,7 @@ bool QueryRunner::evaluate_clp_string_filter(
             for (auto const& subquery : q->get_sub_queries()) {
                 if (subquery.matches_logtype(id) && subquery.matches_vars(vars)) {
                     if (subquery.wildcard_match_required()) {
-                        matched = StringUtils::wildcard_match_unsafe(
+                        matched = clp::string_utils::wildcard_match_unsafe(
                                 std::get<std::string>(reader->extract_value(m_cur_message)),
                                 q->get_search_string(),
                                 !q->get_ignore_case()
@@ -442,7 +472,7 @@ bool QueryRunner::evaluate_clp_string_filter(
                 }
             }
         } else {
-            matched = StringUtils::wildcard_match_unsafe(
+            matched = clp::string_utils::wildcard_match_unsafe(
                     std::get<std::string>(reader->extract_value(m_cur_message)),
                     q->get_search_string(),
                     !q->get_ignore_case()
@@ -490,7 +520,7 @@ bool QueryRunner::evaluate_array_filter(
         value.reserve(value.size() + simdjson::SIMDJSON_PADDING);
     }
     auto obj = m_array_parser.iterate(value);
-    ondemand::array array = obj.get_array();
+    simdjson::ondemand::array array = obj.get_array();
 
     // pre-evaluate whether we can match strings or numbers to eliminate
     // duplicate effort on every item
@@ -506,7 +536,7 @@ bool QueryRunner::evaluate_array_filter(
 }
 
 bool QueryRunner::evaluate_array_filter_value(
-        ondemand::value& item,
+        simdjson::ondemand::value& item,
         FilterOperation op,
         DescriptorList const& unresolved_tokens,
         size_t cur_idx,
@@ -514,8 +544,8 @@ bool QueryRunner::evaluate_array_filter_value(
 ) const {
     bool match = false;
     switch (item.type()) {
-        case ondemand::json_type::object: {
-            ondemand::object nested_object = item.get_object();
+        case simdjson::ondemand::json_type::object: {
+            simdjson::ondemand::object nested_object = item.get_object();
             if (evaluate_array_filter_object(
                         nested_object,
                         op,
@@ -527,16 +557,16 @@ bool QueryRunner::evaluate_array_filter_value(
                 match = true;
             }
         } break;
-        case ondemand::json_type::array: {
-            ondemand::array nested_array = item.get_array();
+        case simdjson::ondemand::json_type::array: {
+            simdjson::ondemand::array nested_array = item.get_array();
             if (evaluate_array_filter_array(nested_array, op, unresolved_tokens, cur_idx, operand))
             {
                 match = true;
             }
         } break;
-        case ondemand::json_type::string: {
+        case simdjson::ondemand::json_type::string: {
             if (true == m_maybe_string && unresolved_tokens.size() == cur_idx
-                && StringUtils::wildcard_match_unsafe(
+                && clp::string_utils::wildcard_match_unsafe(
                         item.get_string().value(),
                         m_array_search_string,
                         false == m_ignore_case
@@ -545,11 +575,11 @@ bool QueryRunner::evaluate_array_filter_value(
                 match = op == FilterOperation::EQ;
             }
         } break;
-        case ondemand::json_type::number: {
+        case simdjson::ondemand::json_type::number: {
             if (false == m_maybe_number || unresolved_tokens.size() != cur_idx) {
                 break;
             }
-            ondemand::number number = item.get_number();
+            simdjson::ondemand::number number = item.get_number();
             if (number.is_double()) {
                 double tmp_double;
                 operand->as_float(tmp_double, op);
@@ -567,7 +597,7 @@ bool QueryRunner::evaluate_array_filter_value(
                 match = eval(op, number.get_int64(), tmp_uint);
             }
         } break;
-        case ondemand::json_type::boolean: {
+        case simdjson::ondemand::json_type::boolean: {
             if (unresolved_tokens.size() != cur_idx || op == FilterOperation::EXISTS
                 || op == FilterOperation::NEXISTS)
             {
@@ -578,7 +608,7 @@ bool QueryRunner::evaluate_array_filter_value(
                 match = true;
             }
         } break;
-        case ondemand::json_type::null: {
+        case simdjson::ondemand::json_type::null: {
             if (op != FilterOperation::EXISTS && op != FilterOperation::NEXISTS
                 && operand->as_null(op))
             {
@@ -590,13 +620,13 @@ bool QueryRunner::evaluate_array_filter_value(
 }
 
 bool QueryRunner::evaluate_array_filter_array(
-        ondemand::array& array,
+        simdjson::ondemand::array& array,
         FilterOperation op,
         DescriptorList const& unresolved_tokens,
         size_t cur_idx,
         std::shared_ptr<Literal> const& operand
 ) const {
-    for (ondemand::value item : array) {
+    for (simdjson::ondemand::value item : array) {
         if (evaluate_array_filter_value(item, op, unresolved_tokens, cur_idx, operand)) {
             return true;
         }
@@ -605,7 +635,7 @@ bool QueryRunner::evaluate_array_filter_array(
 }
 
 bool QueryRunner::evaluate_array_filter_object(
-        ondemand::object& object,
+        simdjson::ondemand::object& object,
         FilterOperation op,
         DescriptorList const& unresolved_tokens,
         size_t cur_idx,
@@ -627,7 +657,7 @@ bool QueryRunner::evaluate_array_filter_object(
             return op == FilterOperation::EXISTS;
         }
 
-        ondemand::value item = field.value();
+        simdjson::ondemand::value item = field.value();
         return evaluate_array_filter_value(item, op, unresolved_tokens, cur_idx, operand);
     }
     return false;
@@ -642,7 +672,7 @@ bool QueryRunner::evaluate_wildcard_array_filter(
         value.reserve(value.size() + simdjson::SIMDJSON_PADDING);
     }
     auto obj = m_array_parser.iterate(value);
-    ondemand::array array = obj.get_array();
+    simdjson::ondemand::array array = obj.get_array();
 
     // pre-evaluate whether we can match strings or numbers to eliminate
     // duplicate effort on every item
@@ -653,30 +683,30 @@ bool QueryRunner::evaluate_wildcard_array_filter(
 }
 
 bool QueryRunner::evaluate_wildcard_array_filter(
-        ondemand::array& array,
+        simdjson::ondemand::array& array,
         FilterOperation op,
         std::shared_ptr<Literal> const& operand
 ) const {
     bool match = false;
     for (auto item : array) {
         switch (item.type()) {
-            case ondemand::json_type::object: {
-                ondemand::object nested_object = item.get_object();
+            case simdjson::ondemand::json_type::object: {
+                simdjson::ondemand::object nested_object = item.get_object();
                 if (evaluate_wildcard_array_filter(nested_object, op, operand)) {
                     match = true;
                 }
             } break;
-            case ondemand::json_type::array: {
-                ondemand::array nested_array = item.get_array();
+            case simdjson::ondemand::json_type::array: {
+                simdjson::ondemand::array nested_array = item.get_array();
                 if (evaluate_wildcard_array_filter(nested_array, op, operand)) {
                     match = true;
                 }
             } break;
-            case ondemand::json_type::string: {
+            case simdjson::ondemand::json_type::string: {
                 if (false == m_maybe_string) {
                     break;
                 }
-                if (StringUtils::wildcard_match_unsafe(
+                if (clp::string_utils::wildcard_match_unsafe(
                             item.get_string().value(),
                             m_array_search_string,
                             false == m_ignore_case
@@ -686,11 +716,11 @@ bool QueryRunner::evaluate_wildcard_array_filter(
                 }
                 break;
             } break;
-            case ondemand::json_type::number: {
+            case simdjson::ondemand::json_type::number: {
                 if (false == m_maybe_number) {
                     break;
                 }
-                ondemand::number number = item.get_number();
+                simdjson::ondemand::number number = item.get_number();
                 if (number.is_double()) {
                     double tmp_double;
                     operand->as_float(tmp_double, op);
@@ -705,13 +735,13 @@ bool QueryRunner::evaluate_wildcard_array_filter(
                     match |= eval(op, number.get_int64(), tmp_int);
                 }
             } break;
-            case ondemand::json_type::boolean: {
+            case simdjson::ondemand::json_type::boolean: {
                 bool tmp;
                 if (operand->as_bool(tmp, op) && eval(op, item.get_bool(), tmp)) {
                     match = true;
                 }
             } break;
-            case ondemand::json_type::null:
+            case simdjson::ondemand::json_type::null:
                 if (operand->as_null(op)) {
                     match |= op == FilterOperation::EQ;
                 }
@@ -726,31 +756,31 @@ bool QueryRunner::evaluate_wildcard_array_filter(
 }
 
 bool QueryRunner::evaluate_wildcard_array_filter(
-        ondemand::object& object,
+        simdjson::ondemand::object& object,
         FilterOperation op,
         std::shared_ptr<Literal> const& operand
 ) const {
     bool match = false;
     for (auto field : object) {
-        ondemand::value item = field.value();
+        simdjson::ondemand::value item = field.value();
         switch (item.type()) {
-            case ondemand::json_type::object: {
-                ondemand::object nested_object = item.get_object();
+            case simdjson::ondemand::json_type::object: {
+                simdjson::ondemand::object nested_object = item.get_object();
                 if (evaluate_wildcard_array_filter(nested_object, op, operand)) {
                     match = true;
                 }
             } break;
-            case ondemand::json_type::array: {
-                ondemand::array nested_array = item.get_array();
+            case simdjson::ondemand::json_type::array: {
+                simdjson::ondemand::array nested_array = item.get_array();
                 if (evaluate_wildcard_array_filter(nested_array, op, operand)) {
                     match = true;
                 }
             } break;
-            case ondemand::json_type::string: {
+            case simdjson::ondemand::json_type::string: {
                 if (false == m_maybe_string) {
                     break;
                 }
-                if (StringUtils::wildcard_match_unsafe(
+                if (clp::string_utils::wildcard_match_unsafe(
                             item.get_string().value(),
                             m_array_search_string,
                             false == m_ignore_case
@@ -760,11 +790,11 @@ bool QueryRunner::evaluate_wildcard_array_filter(
                 }
                 break;
             } break;
-            case ondemand::json_type::number: {
+            case simdjson::ondemand::json_type::number: {
                 if (false == m_maybe_number) {
                     break;
                 }
-                ondemand::number number = item.get_number();
+                simdjson::ondemand::number number = item.get_number();
                 if (number.is_double()) {
                     double tmp_double;
                     operand->as_float(tmp_double, op);
@@ -779,13 +809,13 @@ bool QueryRunner::evaluate_wildcard_array_filter(
                     match |= eval(op, number.get_int64(), tmp_int);
                 }
             } break;
-            case ondemand::json_type::boolean: {
+            case simdjson::ondemand::json_type::boolean: {
                 bool tmp;
                 if (operand->as_bool(tmp, op) && eval(op, item.get_bool(), tmp)) {
                     match = true;
                 }
             } break;
-            case ondemand::json_type::null:
+            case simdjson::ondemand::json_type::null:
                 if (operand->as_null(op)) {
                     match |= op == FilterOperation::EQ;
                 }
@@ -856,18 +886,23 @@ void QueryRunner::populate_string_queries(std::shared_ptr<Expression> const& exp
             }
 
             // search on log type dictionary
+            clp::epochtime_t placeholder_timestamp{};
+            log_surgeon::lexers::ByteLexer placeholder_lexer;
             m_string_query_map.emplace(
                     query_string,
-                    Grep::process_raw_query(
-                            m_log_dict,
-                            m_var_dict,
+                    clp::GrepCore::process_raw_query(
+                            *m_log_dict,
+                            *m_var_dict,
                             query_string,
+                            placeholder_timestamp,
+                            placeholder_timestamp,
                             m_ignore_case,
-                            false
+                            placeholder_lexer,
+                            true
                     )
             );
         }
-        SubQuery sub_query;
+
         if (filter->get_column()->matches_type(LiteralType::VarStringT)) {
             std::string query_string;
             filter->get_operand()->as_var_string(query_string, filter->get_operation());
@@ -877,19 +912,7 @@ void QueryRunner::populate_string_queries(std::shared_ptr<Expression> const& exp
 
             std::unordered_set<int64_t>& matching_vars = m_string_var_match_map[query_string];
             if (false == ast::has_unescaped_wildcards(query_string)) {
-                std::string unescaped_query_string;
-                bool escape = false;
-                for (char const c : query_string) {
-                    if (escape) {
-                        unescaped_query_string.push_back(c);
-                        escape = false;
-                    } else if (c == '\\') {
-                        escape = true;
-                    } else {
-                        unescaped_query_string.push_back(c);
-                    }
-                }
-
+                auto const unescaped_query_string{clp::string_utils::unescape_string(query_string)};
                 auto const entries = m_var_dict->get_entry_matching_value(
                         unescaped_query_string,
                         m_ignore_case
@@ -898,25 +921,15 @@ void QueryRunner::populate_string_queries(std::shared_ptr<Expression> const& exp
                 for (auto const& entry : entries) {
                     matching_vars.insert(entry->get_id());
                 }
-            } else if (EncodedVariableInterpreter::
-                               wildcard_search_dictionary_and_get_encoded_matches(
-                                       query_string,
-                                       *m_var_dict,
-                                       m_ignore_case,
-                                       sub_query
-                               ))
-            {
-                for (auto const& var : sub_query.get_vars()) {
-                    if (var.is_precise_var()) {
-                        auto const* entry = var.get_var_dict_entry();
-                        if (entry != nullptr) {
-                            matching_vars.insert(entry->get_id());
-                        }
-                    } else {
-                        for (auto const* entry : var.get_possible_var_dict_entries()) {
-                            matching_vars.insert(entry->get_id());
-                        }
-                    }
+            } else {
+                std::unordered_set<VariableDictionaryEntry const*> matching_entries;
+                m_var_dict->get_entries_matching_wildcard_string(
+                        query_string,
+                        m_ignore_case,
+                        matching_entries
+                );
+                for (auto const& entry : matching_entries) {
+                    matching_vars.emplace(entry->get_id());
                 }
             }
         }
@@ -960,7 +973,7 @@ void QueryRunner::populate_searched_wildcard_columns(std::shared_ptr<Expression>
                 auto literal_type = node_to_literal_type(tree_node_type);
                 matching_types |= literal_type;
                 if (NodeType::ClpString != tree_node_type && NodeType::VarString != tree_node_type
-                    && NodeType::DateString != tree_node_type)
+                    && NodeType::DeprecatedDateString != tree_node_type)
                 {
                     m_wildcard_to_searched_basic_columns[col].insert(node);
                 }
@@ -1062,7 +1075,7 @@ EvaluatedValue QueryRunner::constant_propagate(std::shared_ptr<Expression> const
             bool matches_clp_string = false;
             constexpr literal_type_bitmask_t other_types
                     = LiteralType::ArrayT | ast::cIntegralTypes | LiteralType::NullT
-                      | LiteralType::BooleanT | LiteralType::EpochDateT;
+                      | LiteralType::BooleanT | LiteralType::TimestampT;
             bool has_other = wildcard->matches_any(other_types);
             std::string filter_string;
             bool valid
@@ -1175,7 +1188,7 @@ EvaluatedValue QueryRunner::constant_propagate(std::shared_ptr<Expression> const
 
 bool QueryRunner::evaluate_epoch_date_filter(
         FilterOperation op,
-        DateStringColumnReader* reader,
+        DeprecatedDateStringColumnReader* reader,
         std::shared_ptr<Literal>& operand
 ) {
     if (FilterOperation::EXISTS == op || FilterOperation::NEXISTS == op) {
@@ -1183,6 +1196,23 @@ bool QueryRunner::evaluate_epoch_date_filter(
     }
 
     int64_t op_value;
+    if (false == operand->as_int(op_value, op)) {
+        return false;
+    }
+
+    return evaluate_int_filter_core(op, reader->get_encoded_time(m_cur_message), op_value);
+}
+
+auto QueryRunner::evaluate_timestamp_filter(
+        ast::FilterOperation op,
+        TimestampColumnReader* reader,
+        std::shared_ptr<ast::Literal>& operand
+) -> bool {
+    if (FilterOperation::EXISTS == op || FilterOperation::NEXISTS == op) {
+        return true;
+    }
+
+    int64_t op_value{};
     if (false == operand->as_int(op_value, op)) {
         return false;
     }

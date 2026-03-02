@@ -16,6 +16,7 @@
 
 #include <simdjson.h>
 
+#include "../../clp/Query.hpp"
 #include "../ArchiveReader.hpp"
 #include "../ColumnReader.hpp"
 #include "../DictionaryReader.hpp"
@@ -29,11 +30,7 @@
 #include "ast/FilterExpr.hpp"
 #include "ast/FilterOperation.hpp"
 #include "ast/Literal.hpp"
-#include "clp_search/Query.hpp"
 #include "SchemaMatch.hpp"
-
-using namespace simdjson;
-using namespace clp_s::search::clp_search;
 
 namespace clp_s::search {
 /**
@@ -130,13 +127,14 @@ private:
 
     std::shared_ptr<ReaderUtils::SchemaMap> m_schemas;
 
-    std::map<std::string, std::optional<Query>> m_string_query_map;
+    std::map<std::string, std::optional<clp::Query>> m_string_query_map;
     std::map<std::string, std::unordered_set<int64_t>> m_string_var_match_map;
-    std::unordered_map<ast::Expression*, Query*> m_expr_clp_query;
+    std::unordered_map<ast::Expression*, clp::Query*> m_expr_clp_query;
     std::unordered_map<ast::Expression*, std::unordered_set<int64_t>*> m_expr_var_match_map;
     std::unordered_map<int32_t, std::vector<ClpStringColumnReader*>> m_clp_string_readers;
     std::unordered_map<int32_t, std::vector<VariableStringColumnReader*>> m_var_string_readers;
-    std::unordered_map<int32_t, DateStringColumnReader*> m_datestring_readers;
+    std::unordered_map<int32_t, TimestampColumnReader*> m_timestamp_readers;
+    DeprecatedDateStringColumnReader* m_deprecated_datestring_reader{nullptr};
     std::unordered_map<int32_t, std::vector<BaseColumnReader*>> m_basic_readers;
     std::unordered_map<int32_t, std::string> m_extracted_unstructured_arrays;
     uint64_t m_cur_message{0};
@@ -147,10 +145,10 @@ private:
     ast::literal_type_bitmask_t m_wildcard_type_mask{0};
     std::unordered_set<int32_t> m_metadata_columns;
 
-    std::stack<
-            std::pair<ExpressionType, ast::OpList::iterator>,
-            std::vector<std::pair<ExpressionType, ast::OpList::iterator>>>
-            m_expression_state;
+    std::
+            stack<std::pair<ExpressionType, ast::OpList::iterator>,
+                  std::vector<std::pair<ExpressionType, ast::OpList::iterator>>>
+                    m_expression_state;
 
     simdjson::ondemand::parser m_array_parser;
     std::string m_array_search_string;
@@ -244,7 +242,7 @@ private:
      */
     auto evaluate_clp_string_filter(
             ast::FilterOperation op,
-            Query* q,
+            clp::Query* q,
             std::vector<ClpStringColumnReader*> const& readers
     ) const -> bool;
 
@@ -270,7 +268,20 @@ private:
      */
     auto evaluate_epoch_date_filter(
             ast::FilterOperation op,
-            DateStringColumnReader* reader,
+            DeprecatedDateStringColumnReader* reader,
+            std::shared_ptr<ast::Literal>& operand
+    ) -> bool;
+
+    /**
+     * Evaluates a timestamp filter.
+     * @param op
+     * @param reader
+     * @param operand
+     * @return Whether the filter evaluates to true.
+     */
+    auto evaluate_timestamp_filter(
+            ast::FilterOperation op,
+            TimestampColumnReader* reader,
             std::shared_ptr<ast::Literal>& operand
     ) -> bool;
 
@@ -299,7 +310,7 @@ private:
      * @return true if the expression evaluates to true, false otherwise
      */
     inline auto evaluate_array_filter_value(
-            ondemand::value& item,
+            simdjson::ondemand::value& item,
             ast::FilterOperation op,
             ast::DescriptorList const& unresolved_tokens,
             size_t cur_idx,
@@ -316,7 +327,7 @@ private:
      * @return true if the expression evaluates to true, false otherwise
      */
     auto evaluate_array_filter_array(
-            ondemand::array& array,
+            simdjson::ondemand::array& array,
             ast::FilterOperation op,
             ast::DescriptorList const& unresolved_tokens,
             size_t cur_idx,
@@ -333,7 +344,7 @@ private:
      * @return true if the expression evaluates to true, false otherwise
      */
     auto evaluate_array_filter_object(
-            ondemand::object& object,
+            simdjson::ondemand::object& object,
             ast::FilterOperation op,
             ast::DescriptorList const& unresolved_tokens,
             size_t cur_idx,
@@ -361,7 +372,7 @@ private:
      * @return true if the expression evaluates to true, false otherwise
      */
     auto evaluate_wildcard_array_filter(
-            ondemand::array& array,
+            simdjson::ondemand::array& array,
             ast::FilterOperation op,
             std::shared_ptr<ast::Literal> const& operand
     ) const -> bool;
@@ -374,7 +385,7 @@ private:
      * @return true if the expression evaluates to true, false otherwise
      */
     auto evaluate_wildcard_array_filter(
-            ondemand::object& object,
+            simdjson::ondemand::object& object,
             ast::FilterOperation op,
             std::shared_ptr<ast::Literal> const& operand
     ) const -> bool;

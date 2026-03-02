@@ -5,8 +5,9 @@
 # - curl
 # NOTE: Dependencies should be installed outside the script to allow the script to be largely distro-agnostic
 
-# Exit on any error
-set -e
+set -o errexit
+set -o nounset
+set -o pipefail
 
 cUsage="Usage: ${BASH_SOURCE[0]} <version>[ <.deb output directory>]"
 if [ "$#" -lt 1 ] ; then
@@ -63,8 +64,8 @@ fi
 cd ${extracted_dir}
 mkdir -p cmake-build-release
 cd cmake-build-release
-# NOTE: Disable expat so the static libarchive doesn't look for it at link time
-cmake -DENABLE_EXPAT=OFF ../
+# NOTE: Disable Expat and OpenSSL so the static libarchive doesn't look for them at link time.
+cmake -DENABLE_EXPAT=OFF -DENABLE_OPENSSL=OFF ../
 make -j${num_cpus}
 
 # Check if checkinstall is installed

@@ -1,5 +1,7 @@
 add_subdirectory(indexer)
+add_subdirectory(log_converter)
 add_subdirectory(search)
+add_subdirectory(timestamp_parser)
 
 set(
         CLP_S_CLP_SOURCES
@@ -7,6 +9,10 @@ set(
         ../clp/aws/AwsAuthenticationSigner.hpp
         ../clp/BoundedReader.cpp
         ../clp/BoundedReader.hpp
+        ../clp/BufferedReader.cpp
+        ../clp/BufferedReader.hpp
+        ../clp/BufferReader.cpp
+        ../clp/BufferReader.hpp
         ../clp/CurlDownloadHandler.cpp
         ../clp/CurlDownloadHandler.hpp
         ../clp/CurlEasyHandle.hpp
@@ -17,14 +23,29 @@ set(
         ../clp/cli_utils.cpp
         ../clp/cli_utils.hpp
         ../clp/Defs.h
+        ../clp/EncodedVariableInterpreter.cpp
+        ../clp/EncodedVariableInterpreter.hpp
         ../clp/ErrorCode.hpp
+        ../clp/ffi/encoding_methods.cpp
+        ../clp/ffi/encoding_methods.hpp
+        ../clp/ffi/encoding_methods.inc
+        ../clp/ffi/EncodedTextAst.hpp
+        ../clp/ffi/EncodedTextAstError.cpp
+        ../clp/ffi/EncodedTextAstError.hpp
+        ../clp/ffi/ir_stream/byteswap.hpp
         ../clp/ffi/ir_stream/decoding_methods.cpp
         ../clp/ffi/ir_stream/decoding_methods.hpp
+        ../clp/ffi/ir_stream/decoding_methods.inc
         ../clp/ffi/ir_stream/Deserializer.hpp
         ../clp/ffi/ir_stream/encoding_methods.cpp
         ../clp/ffi/ir_stream/encoding_methods.hpp
+        ../clp/ffi/ir_stream/IrErrorCode.cpp
+        ../clp/ffi/ir_stream/IrErrorCode.hpp
+        ../clp/ffi/ir_stream/IrSerializationError.cpp
+        ../clp/ffi/ir_stream/IrSerializationError.hpp
         ../clp/ffi/ir_stream/ir_unit_deserialization_methods.cpp
         ../clp/ffi/ir_stream/ir_unit_deserialization_methods.hpp
+        ../clp/ffi/ir_stream/protocol_constants.hpp
         ../clp/ffi/ir_stream/Serializer.cpp
         ../clp/ffi/ir_stream/Serializer.hpp
         ../clp/ffi/ir_stream/search/AstEvaluationResult.hpp
@@ -43,22 +64,36 @@ set(
         ../clp/ffi/KeyValuePairLogEvent.hpp
         ../clp/ffi/SchemaTree.cpp
         ../clp/ffi/SchemaTree.hpp
+        ../clp/ffi/StringBlob.hpp
         ../clp/ffi/Value.hpp
         ../clp/FileDescriptor.cpp
         ../clp/FileDescriptor.hpp
         ../clp/FileReader.cpp
         ../clp/FileReader.hpp
+        ../clp/GrepCore.cpp
+        ../clp/GrepCore.hpp
         ../clp/hash_utils.cpp
         ../clp/hash_utils.hpp
+        ../clp/SchemaSearcher.cpp
+        ../clp/SchemaSearcher.hpp
         ../clp/ir/constants.hpp
-        ../clp/ir/EncodedTextAst.cpp
-        ../clp/ir/EncodedTextAst.hpp
+        ../clp/ir/LogEvent.hpp
         ../clp/ir/parsing.cpp
         ../clp/ir/parsing.hpp
+        ../clp/ir/parsing.inc
+        ../clp/ir/types.hpp
+        ../clp/LogSurgeonReader.cpp
+        ../clp/LogSurgeonReader.hpp
+        ../clp/LogTypeDictionaryEntryReq.hpp
+        ../clp/LogTypeDictionaryReaderReq.hpp
         ../clp/NetworkReader.cpp
         ../clp/NetworkReader.hpp
         ../clp/networking/socket_utils.cpp
         ../clp/networking/socket_utils.hpp
+        ../clp/Query.cpp
+        ../clp/Query.hpp
+        ../clp/QueryToken.cpp
+        ../clp/QueryToken.hpp
         ../clp/ReaderInterface.cpp
         ../clp/ReaderInterface.hpp
         ../clp/ReadOnlyMemoryMappedFile.cpp
@@ -67,15 +102,22 @@ set(
         ../clp/streaming_archive/ArchiveMetadata.cpp
         ../clp/streaming_archive/ArchiveMetadata.hpp
         ../clp/streaming_archive/Constants.hpp
+        ../clp/streaming_compression/Constants.hpp
+        ../clp/streaming_compression/Decompressor.hpp
         ../clp/streaming_compression/zstd/Decompressor.cpp
         ../clp/streaming_compression/zstd/Decompressor.hpp
+        ../clp/StringReader.cpp
+        ../clp/StringReader.hpp
         ../clp/Thread.cpp
         ../clp/Thread.hpp
-        ../clp/TraceableException.hpp
         ../clp/time_types.hpp
+        ../clp/TraceableException.hpp
         ../clp/type_utils.hpp
         ../clp/utf8_utils.cpp
         ../clp/utf8_utils.hpp
+        ../clp/VariableDictionaryEntryReq.hpp
+        ../clp/VariableDictionaryReaderReq.hpp
+        ../clp/VariableDictionaryWriterReq.hpp
         ../clp/WriterInterface.cpp
         ../clp/WriterInterface.hpp
 )
@@ -88,20 +130,23 @@ if(CLP_BUILD_CLP_S_CLP_DEPENDENCIES)
         )
         add_library(clp_s::clp_dependencies ALIAS clp_s_clp_dependencies)
         target_compile_features(clp_s_clp_dependencies PRIVATE cxx_std_20)
+        target_include_directories(clp_s_clp_dependencies PUBLIC ../)
         target_link_libraries(
                 clp_s_clp_dependencies
                 PUBLIC
                 clp::string_utils
+                log_surgeon::log_surgeon
                 ystdlib::containers
+                zstd::libzstd_static
                 PRIVATE
                 Boost::regex
                 ${CURL_LIBRARIES}
                 fmt::fmt
-                spdlog::spdlog
+                msgpack-cxx
                 nlohmann_json::nlohmann_json
                 OpenSSL::Crypto
+                spdlog::spdlog
                 ystdlib::error_handling
-                ZStd::ZStd
         )
 endif()
 
@@ -137,6 +182,7 @@ if(CLP_BUILD_CLP_S_REDUCER_DEPENDENCIES)
         )
         add_library(clp_s::reducer_dependencies ALIAS clp_s_reducer_dependencies)
         target_compile_features(clp_s_reducer_dependencies PRIVATE cxx_std_20)
+        target_include_directories(clp_s_reducer_dependencies PUBLIC ../)
         target_link_libraries(
                 clp_s_reducer_dependencies
                 PUBLIC
@@ -176,12 +222,14 @@ if(CLP_BUILD_CLP_S_IO)
         target_include_directories(clp_s_io PUBLIC ../)
         target_link_libraries(
                 clp_s_io
+                PUBLIC
+                zstd::libzstd_static
                 PRIVATE
-                Boost::iostreams Boost::url
+                Boost::url
                 clp_s::clp_dependencies
                 fmt::fmt
+                simdjson::simdjson
                 spdlog::spdlog
-                ZStd::ZStd
         )
 endif()
 
@@ -198,6 +246,8 @@ set(
         DictionaryWriter.cpp
         DictionaryWriter.hpp
         ErrorCode.hpp
+        FloatFormatEncoding.cpp
+        FloatFormatEncoding.hpp
         JsonFileIterator.cpp
         JsonFileIterator.hpp
         JsonParser.cpp
@@ -222,8 +272,6 @@ set(
         TraceableException.hpp
         Utils.cpp
         Utils.hpp
-        VariableEncoder.cpp
-        VariableEncoder.hpp
 )
 
 if(CLP_BUILD_CLP_S_ARCHIVEWRITER)
@@ -238,16 +286,18 @@ if(CLP_BUILD_CLP_S_ARCHIVEWRITER)
                 clp_s_archive_writer
                 PUBLIC
                 absl::flat_hash_map
+                clp_s::clp_dependencies
                 clp_s::io
+                clp_s::timestamp_parser
+                clp_s::timestamp_pattern
+                msgpack-cxx
                 nlohmann_json::nlohmann_json
                 simdjson::simdjson
+                ystdlib::error_handling
                 PRIVATE
                 Boost::url
-                clp_s::clp_dependencies
-                clp_s::timestamp_pattern
                 ${CURL_LIBRARIES}
                 fmt::fmt
-                msgpack-cxx
                 spdlog::spdlog
         )
 endif()
@@ -267,6 +317,8 @@ set(
         DictionaryEntry.hpp
         DictionaryReader.hpp
         ErrorCode.hpp
+        FloatFormatEncoding.cpp
+        FloatFormatEncoding.hpp
         JsonSerializer.hpp
         PackedStreamReader.cpp
         PackedStreamReader.hpp
@@ -285,8 +337,6 @@ set(
         TraceableException.hpp
         Utils.cpp
         Utils.hpp
-        VariableDecoder.cpp
-        VariableDecoder.hpp
 )
 
 if(CLP_BUILD_CLP_S_ARCHIVEREADER)
@@ -301,15 +351,18 @@ if(CLP_BUILD_CLP_S_ARCHIVEREADER)
                 clp_s_archive_reader
                 PUBLIC
                 absl::flat_hash_map
+                clp::string_utils
                 clp_s::io
+                clp_s::timestamp_parser
+                clp_s::timestamp_pattern
+                msgpack-cxx
                 nlohmann_json::nlohmann_json
+                ystdlib::error_handling
                 PRIVATE
                 Boost::url
                 clp_s::clp_dependencies
-                clp_s::timestamp_pattern
                 ${CURL_LIBRARIES}
                 fmt::fmt
-                msgpack-cxx
                 spdlog::spdlog
         )
 endif()
@@ -386,6 +439,7 @@ if(CLP_BUILD_EXECUTABLES)
                 ${CLP_S_EXE_SOURCES}
         )
         target_compile_features(clp-s PRIVATE cxx_std_20)
+        target_include_directories(clp-s PRIVATE ../)
         target_link_libraries(
                 clp-s
                 PRIVATE

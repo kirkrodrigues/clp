@@ -1,10 +1,18 @@
 #include <unistd.h>
 
-#include <catch2/catch.hpp>
+#include <string>
+#include <string_view>
+#include <vector>
+
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 
 #include "../src/clp/EncodedVariableInterpreter.hpp"
 #include "../src/clp/ir/types.hpp"
+#include "../src/clp/LogTypeDictionaryEntry.hpp"
 #include "../src/clp/streaming_archive/Constants.hpp"
+#include "../src/clp/VariableDictionaryReader.hpp"
+#include "../src/clp/VariableDictionaryWriter.hpp"
 
 using clp::cVariableDictionaryIdMax;
 using clp::encoded_variable_t;
@@ -12,6 +20,7 @@ using clp::EncodedVariableInterpreter;
 using clp::enum_to_underlying_type;
 using clp::ir::VariablePlaceholder;
 using std::string;
+using std::string_view;
 using std::to_string;
 using std::vector;
 
@@ -376,6 +385,73 @@ TEST_CASE("EncodedVariableInterpreter", "[EncodedVariableInterpreter]") {
         ));
     }
 
+    SECTION("Test matches for wildcard_string_could_be_representable_integer_var") {
+        auto const value = GENERATE(
+                std::string_view{"?"},
+                std::string_view{"*"},
+                std::string_view{"*123456789*"},
+                std::string_view{"*12*34*56*"},
+                std::string_view{"?987"},
+                std::string_view{"-12*"},
+                std::string_view{"-12?"}
+        );
+        REQUIRE(EncodedVariableInterpreter::wildcard_string_could_be_representable_integer_var(
+                value
+        ));
+    }
+
+    SECTION("Test rejections for wildcard_string_could_be_representable_integer_var") {
+        auto const value = GENERATE(
+                std::string_view{"\\*"},
+                std::string_view{"\\?"},
+                std::string_view{"\\\\"},
+                std::string_view{""},
+                std::string_view{"*1abcABC*"},
+                std::string_view{"*\u2345*"},
+                std::string_view{"?1234\\?"},
+                std::string_view{"?1234\\*"},
+                std::string_view{"*1.2*"}
+        );
+        REQUIRE_FALSE(
+                EncodedVariableInterpreter::wildcard_string_could_be_representable_integer_var(
+                        value
+                )
+        );
+    }
+
+    SECTION("Test matches for wildcard_string_could_be_representable_float_var") {
+        auto const value = GENERATE(
+                std::string_view{"?"},
+                std::string_view{"*"},
+                std::string_view{"*123456789*"},
+                std::string_view{"*12*34*56*"},
+                std::string_view{"-12*"},
+                std::string_view{"-12?1"},
+                std::string_view{"*25.987*"}
+        );
+        REQUIRE(
+                EncodedVariableInterpreter::wildcard_string_could_be_representable_float_var(value)
+        );
+    }
+
+    SECTION("Test rejections for wildcard_string_could_be_representable_float_var") {
+        auto const value = GENERATE(
+                std::string_view{"\\*"},
+                std::string_view{"\\?"},
+                std::string_view{"\\\\"},
+                std::string_view{""},
+                std::string_view{"*1abcABC*"},
+                std::string_view{"*\u2345*"},
+                std::string_view{"?1234\\?1"},
+                std::string_view{"?1234\\*"},
+                std::string_view{"*1.4E09*"},
+                std::string_view{"*1.4e09*"}
+        );
+        REQUIRE_FALSE(
+                EncodedVariableInterpreter::wildcard_string_could_be_representable_float_var(value)
+        );
+    }
+
     SECTION("Test multiple metching values") {
         constexpr std::string_view cVarDictPath{"var.dict"};
         constexpr std::string_view cVarSegmentIndexPath{"var.segindex"};
@@ -409,10 +485,9 @@ TEST_CASE("EncodedVariableInterpreter", "[EncodedVariableInterpreter]") {
         var_dict_reader.open(std::string{cVarDictPath}, std::string{cVarSegmentIndexPath});
         var_dict_reader.read_new_entries();
 
-        REQUIRE(var_dict_reader.get_entry_matching_value(std::string{var_strs.at(0)}, true).size()
+        REQUIRE(var_dict_reader.get_entry_matching_value(var_strs.at(0), true).size()
                 == var_strs.size());
-        REQUIRE(var_dict_reader.get_entry_matching_value(std::string{var_strs.at(0)}, false).size()
-                == 1);
+        REQUIRE(var_dict_reader.get_entry_matching_value(var_strs.at(0), false).size() == 1);
 
         var_dict_reader.close();
 
@@ -437,14 +512,15 @@ TEST_CASE("EncodedVariableInterpreter", "[EncodedVariableInterpreter]") {
 
         string large_val_str = to_string(cVariableDictionaryIdMax) + "0";
         vector<string> var_strs
-                = {"4938", large_val_str, "-25.5196868642755", "-00.00", "python2.7.3"};
+                = {"4938", large_val_str, "-25.5196868642755", "-00.00", "python2.7.3", "\\a1"};
         // clang-format off
         msg = "here is a string with a small int " + var_strs[0]
               + " and a very large int " + var_strs[1]
               + " and a double " + var_strs[2]
               + " and a weird double " + var_strs[3]
-              + " and a str with numbers "
-              + var_strs[4] + " and an escape "
+              + " and a str with numbers " + var_strs[4]
+              + " and a str with a backslash and numbers " + var_strs[5]
+              + " and an escape "
               + enum_to_underlying_type(VariablePlaceholder::Escape)
               + " and an int placeholder "
               + enum_to_underlying_type(VariablePlaceholder::Integer)
@@ -528,6 +604,30 @@ TEST_CASE("EncodedVariableInterpreter", "[EncodedVariableInterpreter]") {
                 search_logtype,
                 sub_query
         ));
+        auto escape_handler = [](std::string_view str) -> std::string {
+            std::string escaped_string;
+            for (auto const c : str) {
+                if ('*' == c || '?' == c
+                    || enum_to_underlying_type(VariablePlaceholder::Escape) == c
+                    || enum_to_underlying_type(VariablePlaceholder::Integer) == c
+                    || enum_to_underlying_type(VariablePlaceholder::Float) == c
+                    || enum_to_underlying_type(VariablePlaceholder::Dictionary) == c)
+                {
+                    escaped_string.push_back(enum_to_underlying_type(VariablePlaceholder::Escape));
+                }
+                escaped_string.push_back(c);
+            }
+            return escaped_string;
+        };
+        search_logtype += " and a str with a backslash and numbers ";
+        REQUIRE(EncodedVariableInterpreter::encode_and_search_dictionary(
+                escape_handler(var_strs[5]),
+                var_dict_reader,
+                false,
+                search_logtype,
+                sub_query
+        ));
+
         search_logtype += " and an escape ";
         search_logtype += enum_to_underlying_type(VariablePlaceholder::Escape);
         search_logtype += enum_to_underlying_type(VariablePlaceholder::Escape);

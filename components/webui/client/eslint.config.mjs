@@ -9,6 +9,7 @@ const EslintConfig = [
         ignores: [
             "dist/",
             "node_modules/",
+            "src/sql-parser/generated",
         ],
     },
     CommonConfig,
@@ -31,15 +32,12 @@ const EslintConfig = [
             "new-cap": [
                 "error",
                 {
+                    // TypeBox imports
                     capIsNewExceptions: [
-                        // TypeBox imports
                         "Decode",
                         "Encode",
-                        "Type.Transform",
-                        "Type.Union",
-                        "Type.Literal",
-                        "Value.Parse",
                     ],
+                    capIsNewExceptionPattern: "^(Type|Value)\\.",
                 },
             ],
         },

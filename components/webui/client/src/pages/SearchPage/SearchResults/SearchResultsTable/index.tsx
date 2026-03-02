@@ -4,14 +4,13 @@ import {
     useState,
 } from "react";
 
-import VirtualTable from "../../../../components/VirtualTable";
-import useSearchStore from "../../SearchState/index";
-import {
-    SearchResult,
-    searchResultsTableColumns,
-    TABLE_BOTTOM_PADDING,
-} from "./typings";
-import {useSearchResults} from "./useSearchResults";
+import {CLP_QUERY_ENGINES} from "@webui/common/config";
+
+import {SETTINGS_QUERY_ENGINE} from "../../../../config";
+import usePrestoSearchState from "../../SearchState/Presto";
+import SearchResultsVirtualTable from "./Native/SearchResultsVirtualTable";
+import PrestoResultsVirtualTable from "./Presto/PrestoResultsVirtualTable";
+import {TABLE_BOTTOM_PADDING} from "./typings";
 
 
 /**
@@ -20,21 +19,9 @@ import {useSearchResults} from "./useSearchResults";
  * @return
  */
 const SearchResultsTable = () => {
-    const {updateNumSearchResultsTable} = useSearchStore();
-    const searchResults = useSearchResults();
     const [tableHeight, setTableHeight] = useState<number>(0);
     const containerRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const num = searchResults ?
-            searchResults.length :
-            0;
-
-        updateNumSearchResultsTable(num);
-    }, [
-        searchResults,
-        updateNumSearchResultsTable,
-    ]);
+    const {sqlInterface} = usePrestoSearchState();
 
     // Antd table requires a fixed height for virtual scrolling. The effect sets a fixed height
     // based on the window height, container top, and fixed padding.
@@ -53,19 +40,20 @@ const SearchResultsTable = () => {
         return () => {
             window.removeEventListener("resize", updateHeight);
         };
-    }, []);
+    }, [sqlInterface]);
 
     return (
         <div
             ref={containerRef}
             style={{outline: "none"}}
         >
-            <VirtualTable<SearchResult>
-                columns={searchResultsTableColumns}
-                dataSource={searchResults || []}
-                pagination={false}
-                rowKey={(record) => record._id.toString()}
-                scroll={{y: tableHeight}}/>
+            {CLP_QUERY_ENGINES.PRESTO === SETTINGS_QUERY_ENGINE ?
+                (
+                    <PrestoResultsVirtualTable tableHeight={tableHeight}/>
+                ) :
+                (
+                    <SearchResultsVirtualTable tableHeight={tableHeight}/>
+                )}
         </div>
     );
 };

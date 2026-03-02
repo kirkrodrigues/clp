@@ -17,6 +17,7 @@
 #include "../reducer/Pipeline.hpp"
 #include "../reducer/RecordGroupIterator.hpp"
 #include "Defs.hpp"
+#include "FileWriter.hpp"
 #include "search/OutputHandler.hpp"
 #include "TraceableException.hpp"
 
@@ -41,6 +42,34 @@ public:
     }
 
     void write(std::string_view message) override { std::cout << message; }
+};
+
+/**
+ * Output handler that writes to a file.
+ */
+class FileOutputHandler : public ::clp_s::search::OutputHandler {
+public:
+    // Constructors
+    explicit FileOutputHandler(std::string const& path, bool should_output_metadata = false)
+            : ::clp_s::search::OutputHandler(should_output_metadata, true),
+              m_file_writer() {
+        m_file_writer.open(path, FileWriter::OpenMode::CreateForWriting);
+    }
+
+    ~FileOutputHandler() { m_file_writer.close(); }
+
+    // Methods inherited from OutputHandler
+    void write(
+            std::string_view message,
+            epochtime_t timestamp,
+            std::string_view archive_id,
+            int64_t log_event_idx
+    ) override;
+
+    void write(std::string_view message) override { write(message, 0, {}, 0); }
+
+private:
+    FileWriter m_file_writer;
 };
 
 /**
@@ -99,19 +128,22 @@ public:
                 std::string_view message,
                 epochtime_t timestamp,
                 std::string_view archive_id,
-                int64_t log_event_idx
+                int64_t log_event_idx,
+                std::string_view dataset
         )
-                : original_path(original_path),
-                  message(message),
-                  timestamp(timestamp),
-                  archive_id(archive_id),
-                  log_event_idx(log_event_idx) {}
+                : original_path{original_path},
+                  message{message},
+                  timestamp{timestamp},
+                  archive_id{archive_id},
+                  log_event_idx{log_event_idx},
+                  dataset{dataset} {}
 
         std::string original_path;
         std::string message;
         epochtime_t timestamp;
         std::string archive_id;
         int64_t log_event_idx;
+        std::string dataset;
     };
 
     struct QueryResultGreaterTimestampComparator {
@@ -136,6 +168,7 @@ public:
             std::string const& collection,
             uint64_t batch_size,
             uint64_t max_num_results,
+            std::string dataset,
             bool should_output_metadata = true
     );
 
@@ -162,10 +195,12 @@ private:
     std::vector<bsoncxx::document::value> m_results;
     uint64_t m_batch_size;
     uint64_t m_max_num_results;
+    std::string m_dataset;
     std::priority_queue<
             std::unique_ptr<QueryResult>,
             std::vector<std::unique_ptr<QueryResult>>,
-            QueryResultGreaterTimestampComparator>
+            QueryResultGreaterTimestampComparator
+    >
             m_latest_results;
 };
 

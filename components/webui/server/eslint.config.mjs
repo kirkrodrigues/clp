@@ -7,8 +7,6 @@ const EslintConfig = [
     {
         ignores: [
             "dist/",
-            "yscope-log-viewer/dist/",
-            "client/dist/",
             "node_modules/",
         ],
     },
@@ -21,16 +19,7 @@ const EslintConfig = [
                 "error",
                 {
                     // TypeBox imports
-                    capIsNewExceptions: [
-                        "Type.Enum",
-                        "Type.Integer",
-                        "Type.Literal",
-                        "Type.Null",
-                        "Type.Required",
-                        "Type.Union",
-                        "Value.Errors",
-                        "Value.Parse",
-                    ],
+                    capIsNewExceptionPattern: "^(Type|Value)\\.",
                 },
             ],
         },

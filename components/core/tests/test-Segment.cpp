@@ -1,7 +1,7 @@
 #include <unistd.h>
 
 #include <boost/filesystem.hpp>
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include "../src/clp/streaming_archive/reader/Segment.hpp"
 #include "../src/clp/streaming_archive/writer/Segment.hpp"
@@ -14,7 +14,7 @@ TEST_CASE("Test writing and reading a segment", "[Segment]") {
     clp::ErrorCode error_code;
 
     // Initialize data to test compression and decompression
-    size_t uncompressed_data_size = 128L * 1024 * 1024;  // 128MB
+    size_t uncompressed_data_size = 128L * 1024 * 1024;  // 128 MiB
     char* uncompressed_data = new char[uncompressed_data_size];
     for (char i = 0; i < uncompressed_data_size; ++i) {
         uncompressed_data[i] = (char)('a' + (i % 26));

@@ -1,9 +1,11 @@
 #include <cstdlib>
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <string_view>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <fmt/format.h>
 #include <msgpack.hpp>
 #include <nlohmann/json.hpp>
@@ -83,7 +85,9 @@ void serialize_record(
     auto const user_gen_obj{user_gen_handle.get()};
     REQUIRE(msgpack::type::MAP == auto_gen_obj.type);
     REQUIRE(msgpack::type::MAP == user_gen_obj.type);
-    REQUIRE(serializer.serialize_msgpack_map(auto_gen_obj.via.map, user_gen_obj.via.map));
+    REQUIRE_FALSE(
+            serializer.serialize_msgpack_map(auto_gen_obj.via.map, user_gen_obj.via.map).has_error()
+    );
 }
 
 void generate_ir() {
@@ -212,20 +216,19 @@ TEST_CASE("clp-s-range-index", "[clp-s][range-index]") {
     };
 
     auto input_file{get_test_input_local_path()};
-    auto input_file_type{clp_s::FileType::Json};
     if (from_ir) {
         generate_ir();
         input_file = get_ir_test_input_relative_path();
-        input_file_type = clp_s::FileType::KeyValueIr;
     }
     std::vector<clp_s::ArchiveStats> archive_stats;
     REQUIRE_NOTHROW(
             archive_stats = compress_archive(
                     input_file,
                     std::string{cTestRangeIndexArchiveDirectory},
-                    single_file_archive,
+                    std::nullopt,
                     false,
-                    input_file_type
+                    single_file_archive,
+                    false
             )
     );
     read_and_check_archive_metadata(from_ir);

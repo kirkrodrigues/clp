@@ -5,7 +5,7 @@
 #include <string_view>
 
 #include <boost/program_options.hpp>
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include <spdlog/spdlog.h>
 
 #include "../clp/cli_utils.hpp"
@@ -206,9 +206,9 @@ CommandLineArguments::parse_arguments(int argc, char const** argv) {
 
             po::options_description compression_options("Compression options");
             std::string input_path_list_file_path;
-            constexpr std::string_view cJsonFileType{"json"};
-            constexpr std::string_view cKeyValueIrFileType{"kv-ir"};
-            std::string file_type{cJsonFileType};
+            bool normalize_file_paths{false};
+            std::string path_prefix_to_remove;
+            bool remove_leading_slash{false};
             std::string auth{cNoAuth};
             // clang-format off
             compression_options.add_options()(
@@ -248,6 +248,24 @@ CommandLineArguments::parse_arguments(int argc, char const** argv) {
                     po::bool_switch(&m_print_archive_stats),
                     "Print statistics (json) about the archive after it's compressed."
             )(
+                    "no-retain-float-format",
+                    po::bool_switch(&m_no_retain_float_format),
+                    "Do not store extra information to losslessly decompress floats."
+            )(
+                    "normalize-paths",
+                    po::bool_switch(&normalize_file_paths),
+                    "Make all paths for ingested files absolute relative to the root directory."
+            )(
+                    "remove-path-prefix",
+                    po::value<std::string>(&path_prefix_to_remove)
+                            ->value_name("DIR")
+                            ->default_value(path_prefix_to_remove),
+                    "Remove the given path prefix from each compressed file path."
+            )(
+                    "remove-leading-slash",
+                    po::bool_switch(&remove_leading_slash),
+                    "Remove the leading `/` from each compressed file path."
+            )(
                     "single-file-archive",
                     po::bool_switch(&m_single_file_archive),
                     "Create a single archive file instead of multiple files."
@@ -258,11 +276,8 @@ CommandLineArguments::parse_arguments(int argc, char const** argv) {
             )(
                     "disable-log-order",
                     po::bool_switch(&m_disable_log_order),
-                    "Do not record log order at ingestion time."
-            )(
-                    "file-type",
-                    po::value<std::string>(&file_type)->value_name("FILE_TYPE")->default_value(file_type),
-                    "The type of file being compressed (json or kv-ir)"
+                    "Do not record log order at ingestion time; Do not record the archive range"
+                    " index."
             )(
                     "auth",
                     po::value<std::string>(&auth)
@@ -320,8 +335,50 @@ CommandLineArguments::parse_arguments(int argc, char const** argv) {
                 }
             }
 
+            std::optional<std::string> path_prefix_to_remove_option{};
+            if (false == path_prefix_to_remove.empty()) {
+                if (false == std::filesystem::exists(path_prefix_to_remove)) {
+                    throw std::invalid_argument("Specified prefix to remove does not exist.");
+                }
+                if (false == std::filesystem::is_directory(path_prefix_to_remove)) {
+                    throw std::invalid_argument("Specified prefix to remove is not a directory.");
+                }
+                if (normalize_file_paths) {
+                    std::error_code ec;
+                    auto const normalized_path{
+                            std::filesystem::canonical(path_prefix_to_remove, ec)
+                    };
+                    if (ec) {
+                        throw std::invalid_argument(
+                                fmt::format(
+                                        "Failed to normalize prefix {} - {}",
+                                        path_prefix_to_remove,
+                                        ec.message()
+                                )
+                        );
+                    }
+                    path_prefix_to_remove = normalized_path.string();
+                }
+                path_prefix_to_remove_option.emplace(path_prefix_to_remove);
+            }
+
             for (auto const& path : input_paths) {
-                if (false == get_input_files_for_raw_path(path, m_input_paths)) {
+                auto path_object{get_path_object_for_raw_path(path)};
+                if (normalize_file_paths && InputSource::Filesystem == path_object.source) {
+                    std::error_code ec;
+                    auto const normalized_path{std::filesystem::canonical(path_object.path, ec)};
+                    if (ec) {
+                        throw std::invalid_argument(
+                                fmt::format(
+                                        "Failed to normalize path {} - {}",
+                                        path_object.path,
+                                        ec.message()
+                                )
+                        );
+                    }
+                    path_object.path = normalized_path.string();
+                }
+                if (false == get_input_files_for_path(path_object, m_input_paths)) {
                     throw std::invalid_argument(fmt::format("Invalid input path \"{}\".", path));
                 }
             }
@@ -330,20 +387,42 @@ CommandLineArguments::parse_arguments(int argc, char const** argv) {
                 throw std::invalid_argument("No input paths specified.");
             }
 
-            if (cJsonFileType == file_type) {
-                m_file_type = FileType::Json;
-            } else if (cKeyValueIrFileType == file_type) {
-                m_file_type = FileType::KeyValueIr;
-                if (m_structurize_arrays) {
-                    SPDLOG_ERROR(
-                            "Invalid combination of arguments; --file-type {} and "
-                            "--structurize-arrays can't be used together",
-                            cKeyValueIrFileType
-                    );
-                    return ParsingResult::Failure;
+            for (auto const& input_path : m_input_paths) {
+                if (false == path_prefix_to_remove_option.has_value()
+                    || InputSource::Filesystem != input_path.source)
+                {
+                    m_input_paths_and_canonical_filenames.emplace_back(input_path, input_path.path);
+                    continue;
                 }
-            } else {
-                throw std::invalid_argument("Unknown FILE_TYPE: " + file_type);
+
+                auto const result_option{
+                        remove_path_prefix(input_path.path, path_prefix_to_remove_option.value())
+                };
+                if (false == result_option.has_value()) {
+                    throw std::invalid_argument(
+                            fmt::format(
+                                    "Failed to remove prefix \"{}\" from path \"{}\".",
+                                    path_prefix_to_remove_option.value(),
+                                    input_path.path
+                            )
+                    );
+                }
+                m_input_paths_and_canonical_filenames.emplace_back(
+                        input_path,
+                        result_option.value()
+                );
+            }
+
+            if (remove_leading_slash) {
+                for (auto& [input_path, canonical_file_name] :
+                     m_input_paths_and_canonical_filenames)
+                {
+                    if (InputSource::Filesystem == input_path.source
+                        && false == canonical_file_name.empty() && '/' == canonical_file_name.at(0))
+                    {
+                        canonical_file_name = canonical_file_name.substr(1);
+                    }
+                }
             }
 
             validate_network_auth(auth, m_network_auth);
@@ -623,6 +702,17 @@ CommandLineArguments::parse_arguments(int argc, char const** argv) {
                     po::value<uint64_t>(&m_max_num_results)->value_name("MAX")->
                             default_value(m_max_num_results),
                     "The maximum number of results to output"
+            )(
+                    "dataset",
+                    po::value<std::string>(&m_dataset)->value_name("DATASET"),
+                    "The dataset name to include in each result document"
+            );
+
+            po::options_description file_output_handler_options("File Output Handler Options");
+            file_output_handler_options.add_options()(
+                    "path",
+                    po::value<std::string>(&m_file_output_path)->value_name("PATH"),
+                    "File output path"
             );
 
             std::vector<std::string> unrecognized_options
@@ -637,6 +727,7 @@ CommandLineArguments::parse_arguments(int argc, char const** argv) {
 
             po::notify(parsed_command_line_options);
 
+            constexpr char cFileOutputHandlerName[] = "file";
             constexpr char cNetworkOutputHandlerName[] = "network";
             constexpr char cReducerOutputHandlerName[] = "reducer";
             constexpr char cResultsCacheOutputHandlerName[] = "results-cache";
@@ -647,6 +738,8 @@ CommandLineArguments::parse_arguments(int argc, char const** argv) {
                 std::cerr << "OUTPUT_HANDLER is one of:" << std::endl;
                 std::cerr << "  " << static_cast<char const*>(cStdoutCacheOutputHandlerName)
                           << " (default) - Output to stdout" << std::endl;
+                std::cerr << "  " << static_cast<char const*>(cFileOutputHandlerName)
+                          << " - Output to a file" << std::endl;
                 std::cerr << "  " << static_cast<char const*>(cNetworkOutputHandlerName)
                           << " - Output to a network destination" << std::endl;
                 std::cerr << "  " << static_cast<char const*>(cResultsCacheOutputHandlerName)
@@ -661,6 +754,13 @@ CommandLineArguments::parse_arguments(int argc, char const** argv) {
                           << std::endl;
                 std::cerr << "  " << m_program_name << R"( s archives-dir "level: INFO")"
                           << std::endl;
+                std::cerr << std::endl;
+
+                std::cerr << "  # Search archives in archives-dir for logs matching a KQL query"
+                             R"( "level: INFO" and output to a file)"
+                          << std::endl;
+                std::cerr << "  " << m_program_name << R"( s archives-dir "level: INFO")"
+                          << " " << cFileOutputHandlerName << " --path test.out" << std::endl;
                 std::cerr << std::endl;
 
                 std::cerr << "  # Search archives in archives-dir for logs matching a KQL query"
@@ -696,6 +796,7 @@ CommandLineArguments::parse_arguments(int argc, char const** argv) {
                 visible_options.add(general_options);
                 visible_options.add(match_options);
                 visible_options.add(aggregation_options);
+                visible_options.add(file_output_handler_options);
                 visible_options.add(network_output_handler_options);
                 visible_options.add(results_cache_output_handler_options);
                 visible_options.add(reducer_output_handler_options);
@@ -751,6 +852,10 @@ CommandLineArguments::parse_arguments(int argc, char const** argv) {
                             == output_handler_name))
                 {
                     m_output_handler_type = OutputHandlerType::Stdout;
+                } else if ((static_cast<char const*>(cFileOutputHandlerName)
+                            == output_handler_name))
+                {
+                    m_output_handler_type = OutputHandlerType::File;
                 } else if (output_handler_name.empty()) {
                     throw std::invalid_argument("OUTPUT_HANDLER cannot be an empty string.");
                 } else {
@@ -773,6 +878,12 @@ CommandLineArguments::parse_arguments(int argc, char const** argv) {
             } else if (OutputHandlerType::ResultsCache == m_output_handler_type) {
                 parse_results_cache_output_handler_options(
                         results_cache_output_handler_options,
+                        search_parsed.options,
+                        parsed_command_line_options
+                );
+            } else if (OutputHandlerType::File == m_output_handler_type) {
+                parse_file_output_handler_options(
+                        file_output_handler_options,
                         search_parsed.options,
                         parsed_command_line_options
                 );
@@ -893,6 +1004,20 @@ void CommandLineArguments::parse_results_cache_output_handler_options(
 
     if (0 == m_max_num_results) {
         throw std::invalid_argument("max-num-results cannot be 0.");
+    }
+}
+
+void CommandLineArguments::parse_file_output_handler_options(
+        po::options_description const& options_description,
+        std::vector<po::option> const& options,
+        po::variables_map& parsed_options
+) {
+    clp::parse_unrecognized_options(options_description, options, parsed_options);
+    if (parsed_options.count("path") == 0) {
+        throw std::invalid_argument("path must be specified.");
+    }
+    if (m_file_output_path.empty()) {
+        throw std::invalid_argument("path cannot be an empty string.");
     }
 }
 

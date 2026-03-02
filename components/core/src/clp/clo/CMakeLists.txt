@@ -19,13 +19,19 @@ set(
         ../ffi/encoding_methods.cpp
         ../ffi/encoding_methods.hpp
         ../ffi/encoding_methods.inc
+        ../ffi/EncodedTextAst.hpp
+        ../ffi/EncodedTextAstError.cpp
+        ../ffi/EncodedTextAstError.hpp
         ../ffi/ir_stream/decoding_methods.cpp
         ../ffi/ir_stream/decoding_methods.hpp
         ../ffi/ir_stream/decoding_methods.inc
         ../ffi/ir_stream/encoding_methods.cpp
         ../ffi/ir_stream/encoding_methods.hpp
+        ../ffi/ir_stream/IrSerializationError.cpp
+        ../ffi/ir_stream/IrSerializationError.hpp
         ../ffi/ir_stream/utils.cpp
         ../ffi/ir_stream/utils.hpp
+        ../ffi/StringBlob.hpp
         ../FileDescriptor.cpp
         ../FileDescriptor.hpp
         ../FileReader.cpp
@@ -34,6 +40,10 @@ set(
         ../FileWriter.hpp
         ../Grep.cpp
         ../Grep.hpp
+        ../GrepCore.cpp
+        ../GrepCore.hpp
+        ../SchemaSearcher.cpp
+        ../SchemaSearcher.hpp
         ../ir/EncodedTextAst.cpp
         ../ir/EncodedTextAst.hpp
         ../ir/LogEvent.hpp
@@ -47,7 +57,9 @@ set(
         ../LogSurgeonReader.hpp
         ../LogTypeDictionaryEntry.cpp
         ../LogTypeDictionaryEntry.hpp
+        ../LogTypeDictionaryEntryReq.hpp
         ../LogTypeDictionaryReader.hpp
+        ../LogTypeDictionaryReaderReq.hpp
         ../networking/socket_utils.cpp
         ../networking/socket_utils.hpp
         ../networking/SocketOperationFailed.hpp
@@ -59,6 +71,8 @@ set(
         ../Profiler.hpp
         ../Query.cpp
         ../Query.hpp
+        ../QueryToken.cpp
+        ../QueryToken.hpp
         ../ReaderInterface.cpp
         ../ReaderInterface.hpp
         ../ReadOnlyMemoryMappedFile.cpp
@@ -113,9 +127,12 @@ set(
         ../Utils.hpp
         ../VariableDictionaryEntry.cpp
         ../VariableDictionaryEntry.hpp
+        ../VariableDictionaryEntryReq.hpp
         ../VariableDictionaryReader.hpp
+        ../VariableDictionaryReaderReq.hpp
         ../VariableDictionaryWriter.cpp
         ../VariableDictionaryWriter.hpp
+        ../VariableDictionaryWriterReq.hpp
         ../version.hpp
         ../WriterInterface.cpp
         ../WriterInterface.hpp
@@ -156,10 +173,12 @@ if(CLP_BUILD_EXECUTABLES)
         target_compile_features(clo PRIVATE cxx_std_20)
         target_include_directories(clo
                 PRIVATE
+                ../../
                 "${CLP_SQLITE3_INCLUDE_DIRECTORY}"
         )
         target_link_libraries(clo
                 PRIVATE
+                absl::flat_hash_map
                 Boost::filesystem Boost::program_options
                 date::date
                 fmt::fmt
@@ -173,7 +192,7 @@ if(CLP_BUILD_EXECUTABLES)
                 clp::string_utils
                 ystdlib::containers
                 ystdlib::error_handling
-                ZStd::ZStd
+                zstd::libzstd_static
         )
         # Put the built executable at the root of the build directory
         set_target_properties(

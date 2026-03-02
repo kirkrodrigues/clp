@@ -30,6 +30,8 @@
 #include "search/ast/NarrowTypes.hpp"
 #include "search/ast/OrOfAndForm.hpp"
 #include "search/ast/SearchUtils.hpp"
+#include "search/ast/SetTimestampLiteralPrecision.hpp"
+#include "search/ast/TimestampLiteral.hpp"
 #include "search/EvaluateRangeIndexFilters.hpp"
 #include "search/EvaluateTimestampIndex.hpp"
 #include "search/kql/kql.hpp"
@@ -37,8 +39,7 @@
 #include "search/OutputHandler.hpp"
 #include "search/Projection.hpp"
 #include "search/SchemaMatch.hpp"
-#include "TimestampPattern.hpp"
-#include "Utils.hpp"
+#include "SingleFileArchiveDefs.hpp"
 
 using namespace clp_s::search;
 using clp_s::cArchiveFormatDevelopmentVersionFlag;
@@ -47,7 +48,6 @@ using clp_s::cEpochTimeMin;
 using clp_s::CommandLineArguments;
 using clp_s::KvIrSearchError;
 using clp_s::KvIrSearchErrorEnum;
-using clp_s::StringUtils;
 
 namespace {
 /**
@@ -94,9 +94,9 @@ bool compress(CommandLineArguments const& command_line_arguments) {
     }
 
     clp_s::JsonParserOption option{};
-    option.input_paths = command_line_arguments.get_input_paths();
+    option.input_paths_and_canonical_filenames
+            = command_line_arguments.get_input_paths_and_canonical_filenames();
     option.network_auth = command_line_arguments.get_network_auth();
-    option.input_file_type = command_line_arguments.get_file_type();
     option.archives_dir = archives_dir.string();
     option.target_encoded_size = command_line_arguments.get_target_encoded_size();
     option.max_document_size = command_line_arguments.get_max_document_size();
@@ -104,21 +104,15 @@ bool compress(CommandLineArguments const& command_line_arguments) {
     option.compression_level = command_line_arguments.get_compression_level();
     option.timestamp_key = command_line_arguments.get_timestamp_key();
     option.print_archive_stats = command_line_arguments.print_archive_stats();
+    option.retain_float_format = command_line_arguments.get_retain_float_format();
     option.single_file_archive = command_line_arguments.get_single_file_archive();
     option.structurize_arrays = command_line_arguments.get_structurize_arrays();
     option.record_log_order = command_line_arguments.get_record_log_order();
 
     clp_s::JsonParser parser(option);
-    if (clp_s::FileType::KeyValueIr == option.input_file_type) {
-        if (false == parser.parse_from_ir()) {
-            SPDLOG_ERROR("Encountered error while parsing input");
-            return false;
-        }
-    } else {
-        if (false == parser.parse()) {
-            SPDLOG_ERROR("Encountered error while parsing input");
-            return false;
-        }
+    if (false == parser.ingest()) {
+        SPDLOG_ERROR("Encountered error while parsing input.");
+        return false;
     }
     std::ignore = parser.store();
     return true;
@@ -190,6 +184,13 @@ bool search_archive(
         return true;
     }
 
+    if (archive_reader->has_deprecated_timestamp_format()) {
+        ast::SetTimestampLiteralPrecision date_precision_pass{
+                ast::TimestampLiteral::Precision::Milliseconds
+        };
+        expr = date_precision_pass.run(expr);
+    }
+
     // Narrow against schemas
     auto match_pass = std::make_shared<SchemaMatch>(
             archive_reader->get_schema_tree(),
@@ -237,6 +238,12 @@ bool search_archive(
     std::unique_ptr<OutputHandler> output_handler;
     try {
         switch (command_line_arguments.get_output_handler_type()) {
+            case CommandLineArguments::OutputHandlerType::File:
+                output_handler = std::make_unique<clp_s::FileOutputHandler>(
+                        command_line_arguments.get_file_output_path(),
+                        true
+                );
+                break;
             case CommandLineArguments::OutputHandlerType::Network:
                 output_handler = std::make_unique<clp_s::NetworkOutputHandler>(
                         command_line_arguments.get_network_dest_host(),
@@ -261,7 +268,8 @@ bool search_archive(
                         command_line_arguments.get_mongodb_uri(),
                         command_line_arguments.get_mongodb_collection(),
                         command_line_arguments.get_batch_size(),
-                        command_line_arguments.get_max_num_results()
+                        command_line_arguments.get_max_num_results(),
+                        command_line_arguments.get_dataset()
                 );
                 break;
             case CommandLineArguments::OutputHandlerType::Stdout:
@@ -298,7 +306,6 @@ int main(int argc, char const* argv[]) {
         return 1;
     }
 
-    clp_s::TimestampPattern::init();
     mongocxx::instance const mongocxx_instance{};
     clp::CurlGlobalInstance const curl_instance{};
 

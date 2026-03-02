@@ -4,7 +4,7 @@ import closeWithGrace from "close-with-grace";
 import fastify from "fastify";
 import fp from "fastify-plugin";
 
-import serviceApp from "./fastify-v2/app.js";
+import serviceApp from "./app.js";
 
 
 const DEFAULT_FASTIFY_CLOSE_GRACE_DELAY = 500;
@@ -45,7 +45,7 @@ const init = async (): Promise<void> => {
     app.register(fp(serviceApp));
 
     closeWithGrace(
-        {delay: Number(DEFAULT_FASTIFY_CLOSE_GRACE_DELAY)},
+        {delay: DEFAULT_FASTIFY_CLOSE_GRACE_DELAY},
         async ({err}) => {
             if (err) {
                 app.log.error(err);

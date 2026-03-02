@@ -1,4 +1,5 @@
 import {Type} from "@sinclair/typebox";
+import {QUERY_JOB_TYPE} from "@webui/common/query";
 
 
 /**
@@ -23,16 +24,6 @@ const QUERY_LOADING_STATE_VALUES = Object.freeze(
 );
 
 /**
- * Enum of job type, matching the `QueryJobType` class in
- * `job_orchestration.query_scheduler.constants`.
- */
-enum QUERY_JOB_TYPE {
-    SEARCH_OR_AGGREGATION = 0,
-    EXTRACT_IR,
-    EXTRACT_JSON,
-}
-
-/**
  * Mapping between extract job type enums and stream type.
  */
 const EXTRACT_JOB_TYPE = Object.freeze({
@@ -49,6 +40,7 @@ const ExtractJobSearchParams = Type.Object({
     ),
     streamId: Type.String(),
     logEventIdx: Type.Number(),
+    dataset: Type.Optional(Type.String()),
 });
 
 interface ExtractStreamResp {
@@ -68,8 +60,7 @@ interface QueryLoadingStateDescription {
 /**
  * Descriptions for query loading states.
  */
-const QUERY_LOADING_STATE_DESCRIPTIONS
-: Record<QUERY_LOADING_STATE, QueryLoadingStateDescription> =
+const QUERY_LOADING_STATE_DESCRIPTIONS: Record<QUERY_LOADING_STATE, QueryLoadingStateDescription> =
     Object.freeze({
         [QUERY_LOADING_STATE.SUBMITTING]: {
             label: "Submitting query Job",
@@ -90,7 +81,6 @@ export type {ExtractStreamResp};
 export {
     EXTRACT_JOB_TYPE,
     ExtractJobSearchParams,
-    QUERY_JOB_TYPE,
     QUERY_LOADING_STATE,
     QUERY_LOADING_STATE_DESCRIPTIONS,
     QUERY_LOADING_STATE_VALUES,

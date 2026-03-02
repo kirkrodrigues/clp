@@ -2,9 +2,11 @@ import {useCallback} from "react";
 
 import {
     Button,
+    ButtonProps,
     Tooltip,
-    Typography,
 } from "antd";
+
+import styles from "./index.module.css";
 
 
 interface CaseSensitiveToggleProps {
@@ -12,6 +14,8 @@ interface CaseSensitiveToggleProps {
     isCaseSensitive: boolean;
     onCaseSensitiveChange: (newValue: boolean) => void;
 }
+
+type ButtonVariantType = ButtonProps["variant"];
 
 /**
  * A toggle button component that switches between case-sensitive and case-insensitive
@@ -35,23 +39,31 @@ const CaseSensitiveToggle = ({
         onCaseSensitiveChange,
     ]);
 
+    let buttonVariant: ButtonVariantType = "outlined";
+    if (isCaseSensitive) {
+        buttonVariant = "solid";
+    } else if (disabled) {
+        // The "solid" and "outlined" variants look the same when disabled,
+        // so we use "text" variant for a different appearance.
+        buttonVariant = "text";
+    }
+
     return (
         <Tooltip
             title={"Match case"}
         >
             <Button
-                color={"default"}
+                className={styles["customButton"] || ""}
                 disabled={disabled}
                 size={"small"}
-                icon={
-                    <Typography.Text disabled={disabled}>
-                        Aa
-                    </Typography.Text>
-                }
-                variant={isCaseSensitive ?
-                    "outlined" :
-                    "text"}
-                onClick={handleButtonClick}/>
+                variant={buttonVariant}
+                color={isCaseSensitive ?
+                    "primary" :
+                    "default"}
+                onClick={handleButtonClick}
+            >
+                Aa
+            </Button>
         </Tooltip>
     );
 };

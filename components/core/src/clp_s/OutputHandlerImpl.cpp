@@ -23,6 +23,18 @@ using std::string;
 using std::string_view;
 
 namespace clp_s {
+void FileOutputHandler::write(
+        string_view message,
+        epochtime_t timestamp,
+        string_view archive_id,
+        int64_t log_event_idx
+) {
+    static constexpr string_view cOrigFilePathPlaceholder{""};
+    msgpack::type::tuple<epochtime_t, string, string, string, int64_t> const
+            src(timestamp, message, cOrigFilePathPlaceholder, archive_id, log_event_idx);
+    msgpack::pack(m_file_writer, src);
+}
+
 NetworkOutputHandler::NetworkOutputHandler(
         string const& host,
         int port,
@@ -58,11 +70,13 @@ ResultsCacheOutputHandler::ResultsCacheOutputHandler(
         string const& collection,
         uint64_t batch_size,
         uint64_t max_num_results,
+        string dataset,
         bool should_output_timestamp
 )
-        : ::clp_s::search::OutputHandler(should_output_timestamp, true),
-          m_batch_size(batch_size),
-          m_max_num_results(max_num_results) {
+        : ::clp_s::search::OutputHandler{should_output_timestamp, true},
+          m_batch_size{batch_size},
+          m_max_num_results{max_num_results},
+          m_dataset{std::move(dataset)} {
     try {
         auto mongo_uri = mongocxx::uri(uri);
         m_client = mongocxx::client(mongo_uri);
@@ -102,6 +116,10 @@ ErrorCode ResultsCacheOutputHandler::flush() {
                                     bsoncxx::builder::basic::kvp(
                                             constants::results_cache::search::cLogEventIx,
                                             result.log_event_idx
+                                    ),
+                                    bsoncxx::builder::basic::kvp(
+                                            std::string{constants::results_cache::search::cDataset},
+                                            std::move(result.dataset)
                                     )
                             )
                     )
@@ -137,14 +155,26 @@ void ResultsCacheOutputHandler::write(
 ) {
     if (m_latest_results.size() < m_max_num_results) {
         m_latest_results.emplace(
-                std::make_unique<
-                        QueryResult>(string_view{}, message, timestamp, archive_id, log_event_idx)
+                std::make_unique<QueryResult>(
+                        string_view{},
+                        message,
+                        timestamp,
+                        archive_id,
+                        log_event_idx,
+                        m_dataset
+                )
         );
     } else if (m_latest_results.top()->timestamp < timestamp) {
         m_latest_results.pop();
         m_latest_results.emplace(
-                std::make_unique<
-                        QueryResult>(string_view{}, message, timestamp, archive_id, log_event_idx)
+                std::make_unique<QueryResult>(
+                        string_view{},
+                        message,
+                        timestamp,
+                        archive_id,
+                        log_event_idx,
+                        m_dataset
+                )
         );
     }
 }

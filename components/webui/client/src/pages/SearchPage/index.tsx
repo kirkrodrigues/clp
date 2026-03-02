@@ -1,9 +1,14 @@
+import {CLP_QUERY_ENGINES} from "@webui/common/config";
+
+import {SETTINGS_QUERY_ENGINE} from "../../config";
 import styles from "./index.module.css";
+import {ProgressBar} from "./ProgressBar";
 import SearchControls from "./SearchControls";
-import SearchQueryStatus from "./SearchQueryStatus";
 import SearchResultsTable from "./SearchResults/SearchResultsTable";
 import SearchResultsTimeline from "./SearchResults/SearchResultsTimeline";
-import {useUiUpdateOnDoneSignal} from "./SearchState/useUpdateStateWithMetadata";
+import usePrestoSearchState from "./SearchState/Presto";
+import {PRESTO_SQL_INTERFACE} from "./SearchState/Presto/typings";
+import {useUpdateStateWithMetadata} from "./SearchState/useUpdateStateWithMetadata";
 
 
 /**
@@ -12,19 +17,21 @@ import {useUiUpdateOnDoneSignal} from "./SearchState/useUpdateStateWithMetadata"
  * @return
  */
 const SearchPage = () => {
-    useUiUpdateOnDoneSignal();
+    useUpdateStateWithMetadata();
+    const sqlInterface = usePrestoSearchState((state) => state.sqlInterface);
 
     return (
-        <div className={styles["searchPageContainer"]}>
-            <div>
+        <>
+            {SETTINGS_QUERY_ENGINE === CLP_QUERY_ENGINES.PRESTO && <ProgressBar/>}
+            <div className={styles["searchPageContainer"]}>
                 <SearchControls/>
-                <SearchQueryStatus/>
+                {(SETTINGS_QUERY_ENGINE !== CLP_QUERY_ENGINES.PRESTO ||
+                  PRESTO_SQL_INTERFACE.GUIDED === sqlInterface) &&
+                  <SearchResultsTimeline/>}
+                <SearchResultsTable/>
             </div>
-            <SearchResultsTimeline/>
-            <SearchResultsTable/>
-        </div>
+        </>
     );
 };
-
 
 export default SearchPage;
