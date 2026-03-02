@@ -24,7 +24,7 @@ vars:
 
   # Build paths
   G_BUILD_DIR: >-
-    {{default "{{.ROOT_DIR}}/build" (env "CLP_BUILD_DIR")}}
+    {{default (printf "%s/%s" .ROOT_DIR "build") (env "CLP_BUILD_DIR")}}
   G_CONFIG_SCHEMA_BUILD_DIR: "{{.G_BUILD_DIR}}/config-schema"
   G_CORE_COMPONENT_BUILD_DIR: "{{.G_BUILD_DIR}}/core"
   G_NODEJS_22_BUILD_DIR: "{{.G_BUILD_DIR}}/nodejs-22"
@@ -57,6 +57,8 @@ vars:
   G_WEBUI_PACKAGE_NODE_MODULES_CHECKSUM_FILE: "{{.G_BUILD_DIR}}/webui-package-node-modules.md5"
 
 tasks:
+  test:
+    cmd: "echo {{.G_BUILD_DIR}}"
   default:
     deps: ["package"]
 
