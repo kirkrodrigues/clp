@@ -120,10 +120,10 @@ endif ()
 
 set(
     CLP_DEPS_CMAKE_SETTINGS
-    "${CMAKE_CURRENT_LIST_DIR}/../../build/deps/core/cmake-settings/all.cmake"
+    "${CMAKE_CURRENT_LIST_DIR}/../../build/deps/cpp/cmake-settings/all-core.cmake"
     CACHE
     STRING
-    "Path to the CMake settings file describing CLP's dependencies."
+    "Path to the CMake settings file describing CLP-core's dependencies."
 )
 
 if(PROJECT_IS_TOP_LEVEL)
