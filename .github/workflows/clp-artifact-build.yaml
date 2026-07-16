@@ -695,7 +695,8 @@ jobs:
       matrix:
         # Only build arm64 images on push to main to save CI resources on PRs.
         arch: >-
-          ${{github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+          ${{github.event_name != 'pull_request'
+          && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v[0-9]+.[0-9]+.[0-9]+')
           && fromJSON('["amd64", "arm64"]') || fromJSON('["amd64"]')}}
     runs-on: >-
       ${{
@@ -745,7 +746,7 @@ jobs:
     name: "package-image-multiarch-manifest"
     if: >-
       github.event_name != 'pull_request'
-      && github.ref == 'refs/heads/main'
+      && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v[0-9]+.[0-9]+.[0-9]+')
       && needs.package-image.result == 'success'
     needs: "package-image"
     runs-on: *runner
