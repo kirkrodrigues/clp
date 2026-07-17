@@ -281,7 +281,7 @@ jobs:
     if: >-
       needs.filter-relevant-changes.outputs.ubuntu_jammy_image_changed == 'true'
       && github.event_name != 'pull_request'
-      && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v[0-9]+.[0-9]+.[0-9]+')
+      && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v'))
     needs: "filter-relevant-changes"
     runs-on: "ubuntu-24.04-arm"
     steps:
@@ -696,7 +696,7 @@ jobs:
         # Only build arm64 images on push to main to save CI resources on PRs.
         arch: >-
           ${{github.event_name != 'pull_request'
-          && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v[0-9]+.[0-9]+.[0-9]+')
+          && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v'))
           && fromJSON('["amd64", "arm64"]') || fromJSON('["amd64"]')}}
     runs-on: >-
       ${{
@@ -746,7 +746,7 @@ jobs:
     name: "package-image-multiarch-manifest"
     if: >-
       github.event_name != 'pull_request'
-      && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v[0-9]+.[0-9]+.[0-9]+')
+      && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v'))
       && needs.package-image.result == 'success'
     needs: "package-image"
     runs-on: *runner
